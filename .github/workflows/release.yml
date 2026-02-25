@@ -27,21 +27,47 @@ jobs:
       - name: Build binaries
         run: |
           mkdir -p dist
+          VERSION=${GITHUB_REF#refs/tags/}
+          COMMIT=${GITHUB_SHA:0:7}
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          echo "Building version: $VERSION"
+          echo "Commit: $COMMIT"
+          echo "Date: $DATE"
           
           # Linux AMD64
-          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${GITHUB_REF#refs/tags/} -X main.commit=${GITHUB_SHA} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/cultivator-linux-amd64 ./cmd/cultivator
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+            -ldflags "-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE" \
+            -o dist/cultivator-linux-amd64 \
+            ./cmd/cultivator
           
           # Linux ARM64
-          GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=${GITHUB_REF#refs/tags/} -X main.commit=${GITHUB_SHA} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/cultivator-linux-arm64 ./cmd/cultivator
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+            -ldflags "-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE" \
+            -o dist/cultivator-linux-arm64 \
+            ./cmd/cultivator
           
           # macOS AMD64
-          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${GITHUB_REF#refs/tags/} -X main.commit=${GITHUB_SHA} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/cultivator-darwin-amd64 ./cmd/cultivator
+          GOOS=darwin GOARCH=amd64 go build \
+            -ldflags "-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE" \
+            -o dist/cultivator-darwin-amd64 \
+            ./cmd/cultivator
           
           # macOS ARM64
-          GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=${GITHUB_REF#refs/tags/} -X main.commit=${GITHUB_SHA} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/cultivator-darwin-arm64 ./cmd/cultivator
+          GOOS=darwin GOARCH=arm64 go build \
+            -ldflags "-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE" \
+            -o dist/cultivator-darwin-arm64 \
+            ./cmd/cultivator
           
           # Windows AMD64
-          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=${GITHUB_REF#refs/tags/} -X main.commit=${GITHUB_SHA} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/cultivator-windows-amd64.exe ./cmd/cultivator
+          GOOS=windows GOARCH=amd64 go build \
+            -ldflags "-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.date=$DATE" \
+            -o dist/cultivator-windows-amd64.exe \
+            ./cmd/cultivator
+          
+          # List built binaries
+          echo "Built binaries:"
+          ls -lh dist/
           
       - name: Create checksums
         run: |
