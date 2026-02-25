@@ -1,0 +1,62 @@
+name: Cultivator CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '**.hcl'
+      - '**.tf'
+      - '.github/workflows/cultivator.yml'
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  cultivator:
+    name: Terragrunt Automation
+    runs-on: ubuntu-latest
+    
+    # Only run on PR comments that start with /cultivator
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && 
+       github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '/cultivator'))
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
+          fetch-depth: 0
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+          terraform_wrapper: false
+          
+      - name: Setup Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v0.55.0/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+          terragrunt --version
+          
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          
+      - name: Run Cultivator
+        uses: cultivator-dev/cultivator-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: cultivator.yml
+          auto-plan: true

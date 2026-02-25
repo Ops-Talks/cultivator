@@ -1,0 +1,14 @@
+services:
+  cultivator:
+    image: cultivator:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+      - ~/.aws:/root/.aws:ro
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+    working_dir: /workspace
+    command: ["run"]
