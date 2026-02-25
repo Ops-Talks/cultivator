@@ -33,7 +33,7 @@ repos:
         
       # Organize imports with goimports
       - id: go-imports
-        args: [-w, -local, github.com/weyderfs/cultivator]
+        args: [-w, -local, github.com/Ops-Talks/cultivator]
         
       # Run go vet
       - id: go-vet

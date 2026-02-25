@@ -44,5 +44,5 @@ dist/
 # Pre-commit cache
 .pre-commit-config.yaml.backup
 
-# Remove Helpers Dir
-./helpers/
+# Helpers directory
+helpers/
