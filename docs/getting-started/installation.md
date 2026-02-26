@@ -61,7 +61,50 @@ git commit -m "Add Cultivator GitHub Action"
 git push origin main
 ```
 
-### Option 2: Docker
+### Option 2: GitLab CI/CD
+
+If using GitLab, create `.gitlab-ci.yml` in your repository:
+
+```yaml
+stages:
+  - plan
+  - apply
+
+variables:
+  TERRAFORM_VERSION: "1.7.0"
+  TERRAGRUNT_VERSION: "0.55.0"
+
+cultivator_plan:
+  stage: plan
+  image: ubuntu:latest
+  script:
+    - apt-get update && apt-get install -y wget unzip
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+    - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+    - terragrunt run-all plan --terragrunt-non-interactive
+  only:
+    - merge_requests
+
+cultivator_apply:
+  stage: apply
+  image: ubuntu:latest
+  script:
+    - apt-get update && apt-get install -y wget unzip
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+    - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+    - terragrunt run-all apply --terragrunt-non-interactive
+  when: manual
+  only:
+    - merge_requests
+```
+
+See [GitLab Pipelines](../user-guide/gitlab-pipelines.md) for full configuration options.
+
+### Option 3: Docker
 
 Run Cultivator in a container:
 
@@ -72,7 +115,7 @@ docker run -v $(pwd):/work \
   weyderfs/cultivator:latest
 ```
 
-### Option 3: Local Installation (Development)
+### Option 4: Local Installation (Development)
 
 ```bash
 # Clone the repository

@@ -63,3 +63,22 @@ examples/
 - **Changed**: `terragrunt.hcl` (root)
 - **Affected modules**: ALL (because all inherit from root)
 - **Execution order**: Topologically sorted based on dependencies
+
+## Pipeline Examples
+
+This directory also contains example pipeline configurations for different CI/CD platforms:
+
+### GitHub Actions
+See the main [Quick Start](../docs/getting-started/quickstart.md) for GitHub Actions examples.
+
+### GitLab CI/CD
+See [`.gitlab-ci.yml`](.gitlab-ci.yml) for a complete GitLab pipeline example.
+
+To use in your project:
+```bash
+cp examples/.gitlab-ci.yml .gitlab-ci.yml
+```
+
+Then customize the `TERRAFORM_VERSION` and `TERRAGRUNT_VERSION` variables as needed.
+
+For more details, see [GitLab Pipelines Integration](../docs/user-guide/gitlab-pipelines.md).
