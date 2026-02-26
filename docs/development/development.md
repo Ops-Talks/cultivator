@@ -330,7 +330,7 @@ make build
 
 ## Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for:
+See [Contributing Guide](/CONTRIBUTING.md) for:
 - Code style guidelines
 - PR process
 - Commit message format

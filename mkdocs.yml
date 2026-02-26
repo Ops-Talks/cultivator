@@ -8,10 +8,10 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   language: en
-  custom_dir: docs/overrides
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   
   palette:
-    # Light mode with light green theme
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
@@ -20,7 +20,6 @@ theme:
         icon: material/brightness-7
         name: Switch to dark mode
     
-    # Dark mode with light green theme
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: custom
@@ -32,29 +31,22 @@ theme:
   features:
     - content.code.copy
     - content.code.annotate
+    - content.code.select
     - content.tabs.link
     - navigation.instant
-    - navigation.instant.prefetch
+    - navigation.instant.loading
     - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.top
     - navigation.footer
-    - toc.follow
     - search.suggest
     - search.highlight
-    - content.tooltips
+    - toc.follow
 
 plugins:
   - search:
       lang: en
-  - minify:
-      minify_html: true
-      minify_css: true
-      minify_js: true
-  - git-revision-date-localized:
-      enable_creation_date: true
-      type: iso_date
 
 markdown_extensions:
   - abbr
@@ -62,24 +54,20 @@ markdown_extensions:
   - attr_list
   - def_list
   - footnotes
+  - meta
   - md_in_html
   - tables
   - toc:
       permalink: true
       toc_depth: 3
-  - pymdownx.arithmatex:
-      block_start: $$
-      block_end: $$
-      inline_start: $
-      inline_end: $
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
   - pymdownx.critic
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:pymdownx.emoji.to_svg
-      emoji_index: !!python/name:pymdownx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       use_pygments: true
       anchor_linenums: true
@@ -88,35 +76,12 @@ markdown_extensions:
   - pymdownx.keys
   - pymdownx.mark
   - pymdownx.smartsymbols
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_highlight
+  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
-
-nav:
-  - Home: index.md
-  - Getting Started:
-    - Introduction: getting-started/index.md
-    - Installation: getting-started/installation.md
-    - Quick Start: getting-started/quickstart.md
-  - User Guide:
-    - Overview: user-guide/index.md
-    - Features: user-guide/features.md
-    - Configuration: user-guide/configuration.md
-    - Workflows: user-guide/workflows.md
-  - Architecture:
-    - Design: architecture/design.md
-    - External Modules: architecture/external-modules.md
-  - Development:
-    - Contributing: development/contributing.md
-    - Development Guide: development/development.md
-  - FAQ: faq.md
 
 extra:
   analytics:
@@ -132,3 +97,22 @@ extra_css:
   - stylesheets/custom.css
 
 copyright: Copyright &copy; 2024-2026 Cultivator Project
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Introduction: getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Configuration: getting-started/configuration.md
+  - User Guide:
+    - Overview: user-guide/index.md
+    - Features: user-guide/features.md
+    - Workflows: user-guide/workflows.md
+  - Architecture:
+    - Design: architecture/design.md
+    - External Modules: architecture/external-modules.md
+  - Development:
+    - Contributing: development/contributing.md
+    - Development Guide: development/development.md
+  - FAQ: faq.md

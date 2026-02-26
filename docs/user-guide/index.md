@@ -5,7 +5,7 @@ Learn how to use Cultivator to automate your Terragrunt workflows.
 ## Sections
 
 - **[Features](features.md)** - What Cultivator can do
-- **[Configuration](configuration.md)** - How to configure your setup
+- **[Configuration](../getting-started/configuration.md)** - How to configure your setup
 - **[Workflows](workflows.md)** - How to use Cultivator commands
 
 ## Quick Overview
@@ -34,5 +34,5 @@ Results are formatted nicely in PR comments with plan summaries and status indic
 
 - Check [Features](features.md) for what you can do
 - Read [Workflows](workflows.md) for command details
-- See [Configuration](configuration.md) for setup options
+- See [Configuration](../getting-started/configuration.md) for setup options
 - Browse the [FAQ](../faq.md)

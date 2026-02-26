@@ -1,6 +1,6 @@
 # Cultivator
 
-![Cultivator](assets/logo.png)
+![Cultivator](assets/logo.svg)
 
 **Cultivator** is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests - similar to what Digger/Atlantis do for Terraform, but built specifically for Terragrunt workflows.
 

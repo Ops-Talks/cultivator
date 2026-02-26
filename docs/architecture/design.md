@@ -90,4 +90,4 @@ settings:
   lock_timeout: 30m
 ```
 
-See [Configuration](../user-guide/configuration.md) for full reference.
+See [Configuration](../getting-started/configuration.md) for full reference.

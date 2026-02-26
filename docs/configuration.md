@@ -252,6 +252,6 @@ Cultivator config is similar to Digger but adds Terragrunt-specific features.
 
 ## Next Steps
 
-- Review [Advanced Features](advanced.md)
+- Review advanced features in the [User Guide](user-guide/features.md)
 - Check [Examples](../examples/)
-- Read [Troubleshooting](troubleshooting.md)
+- Read [Troubleshooting](faq.md)

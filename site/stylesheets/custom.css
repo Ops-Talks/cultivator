@@ -1,0 +1,312 @@
+/* Cultivator - Light Green Theme Custom CSS */
+
+:root {
+  /* Light Green Color Palette */
+  --md-primary-fg-color: #2d7a3a;           /* Dark green */
+  --md-primary-fg-color--light: #4db84f;    /* Medium green */
+  --md-primary-fg-color--dark: #1f5428;     /* Very dark green */
+  --md-primary-bg-color: #f0fdf5;           /* Very light green background */
+  --md-primary-bg-color--light: #f8fbf7;    /* Almost white green */
+  
+  /* Accent colors - light green variants */
+  --md-accent-fg-color: #65d867;            /* Bright light green */
+  --md-accent-bg-color: #e8f8ec;            /* Very pale green */
+  
+  /* Light theme specific */
+  --md-default-fg-color: #1f1f1f;           /* Near black for text */
+  --md-default-bg-color: #ffffff;           /* Pure white */
+  --md-default-fg-color--light: #666666;    /* Gray for secondary text */
+  --md-default-fg-color--lighter: #999999;  /* Lighter gray */
+  --md-default-bg-color--light: #f5f5f5;    /* Very light gray */
+  --md-default-bg-color--lighter: #fafafa;  /* Almost white */
+  
+  /* Code colors */
+  --md-code-fg-color: #2d7a3a;              /* Green for code */
+  --md-code-bg-color: #f0fdf5;              /* Light green background */
+}
+
+/* Dark theme overrides */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #65d867;           /* Bright green for dark mode */
+  --md-primary-fg-color--light: #90e891;    /* Lighter green */
+  --md-primary-fg-color--dark: #4db84f;     /* Medium green */
+  --md-primary-bg-color: #1a3a23;           /* Dark green background */
+  --md-primary-bg-color--light: #234d34;    /* Slightly lighter dark green */
+  
+  --md-accent-fg-color: #a0f0a0;            /* Very light green */
+  --md-accent-bg-color: #1f352a;            /* Very dark green */
+  
+  --md-default-fg-color: #e8e8e8;           /* Light gray text */
+  --md-default-bg-color: #1e1e1e;           /* Very dark background */
+  --md-default-fg-color--light: #b0b0b0;    /* Light gray secondary */
+  --md-default-fg-color--lighter: #808080;  /* Medium gray */
+  --md-default-bg-color--light: #262626;    /* Slightly lighter dark */
+  --md-default-bg-color--lighter: #303030;  /* Even lighter dark */
+  
+  --md-code-fg-color: #90e891;              /* Light green for code */
+  --md-code-bg-color: #1f352a;              /* Very dark green background */
+}
+
+/* Header with green gradient */
+.md-header {
+  background: linear-gradient(135deg, #2d7a3a 0%, #4db84f 100%);
+  box-shadow: 0 2px 8px rgba(45, 122, 58, 0.2);
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background: linear-gradient(135deg, #1f5428 0%, #2d7a3a 100%);
+}
+
+/* Sidebar navigation */
+.md-nav__link {
+  color: var(--md-default-fg-color);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.md-nav__link:hover {
+  background-color: var(--md-primary-bg-color);
+  color: var(--md-primary-fg-color);
+}
+
+.md-nav__link--active {
+  color: var(--md-primary-fg-color);
+  border-left: 3px solid var(--md-primary-fg-color);
+  padding-left: calc(1rem - 3px);
+}
+
+[data-md-color-scheme="slate"] .md-nav__link--active {
+  color: var(--md-accent-fg-color);
+  border-left-color: var(--md-accent-fg-color);
+}
+
+/* Buttons */
+.md-button {
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.md-button--primary {
+  background-color: var(--md-primary-fg-color);
+  color: white;
+  border: none;
+}
+
+.md-button--primary:hover {
+  background-color: var(--md-primary-fg-color--light);
+  box-shadow: 0 4px 12px rgba(45, 122, 58, 0.3);
+}
+
+[data-md-color-scheme="slate"] .md-button--primary {
+  background-color: var(--md-accent-fg-color);
+  color: #1e1e1e;
+}
+
+[data-md-color-scheme="slate"] .md-button--primary:hover {
+  background-color: #c0ffc0;
+  box-shadow: 0 4px 12px rgba(165, 240, 165, 0.3);
+}
+
+/* Code blocks */
+.md-typeset code {
+  background-color: var(--md-code-bg-color);
+  color: var(--md-code-fg-color);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: "Roboto Mono", monospace;
+}
+
+.md-typeset pre {
+  background-color: var(--md-code-bg-color);
+  border-left: 4px solid var(--md-primary-fg-color);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+[data-md-color-scheme="slate"] .md-typeset pre {
+  border-left-color: var(--md-accent-fg-color);
+}
+
+/* Admonitions */
+.md-typeset .admonition {
+  border-left: 4px solid var(--md-primary-fg-color);
+  border-radius: 6px;
+  background-color: var(--md-primary-bg-color);
+}
+
+.md-typeset .admonition > .admonition-title {
+  background-color: rgba(45, 122, 58, 0.1);
+  color: var(--md-primary-fg-color);
+  font-weight: 600;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition {
+  border-left-color: var(--md-accent-fg-color);
+  background-color: rgba(101, 216, 103, 0.05);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition > .admonition-title {
+  background-color: rgba(101, 216, 103, 0.1);
+  color: var(--md-accent-fg-color);
+}
+
+/* Tables */
+.md-typeset table {
+  border: 1px solid var(--md-primary-fg-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.md-typeset thead {
+  background-color: var(--md-primary-bg-color);
+}
+
+.md-typeset thead th {
+  color: var(--md-primary-fg-color);
+  font-weight: 600;
+  border-bottom: 2px solid var(--md-primary-fg-color);
+}
+
+.md-typeset tbody tr:nth-child(even) {
+  background-color: var(--md-primary-bg-color);
+}
+
+.md-typeset tbody tr:hover {
+  background-color: rgba(45, 122, 58, 0.05);
+}
+
+[data-md-color-scheme="slate"] .md-typeset tbody tr:hover {
+  background-color: rgba(101, 216, 103, 0.1);
+}
+
+/* Links */
+.md-typeset a {
+  color: var(--md-primary-fg-color);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.md-typeset a:hover {
+  color: var(--md-primary-fg-color--light);
+  text-decoration: underline;
+}
+
+[data-md-color-scheme="slate"] .md-typeset a {
+  color: var(--md-accent-fg-color);
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+  color: #c0ffc0;
+}
+
+/* Search box */
+.md-search__input {
+  background-color: var(--md-default-bg-color);
+  border-color: var(--md-primary-fg-color);
+  border-radius: 4px;
+}
+
+.md-search__input:focus {
+  border-color: var(--md-primary-fg-color--light);
+  box-shadow: 0 0 0 2px rgba(45, 122, 58, 0.1);
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  background-color: #262626;
+  border-color: var(--md-accent-fg-color);
+}
+
+[data-md-color-scheme="slate"] .md-search__input:focus {
+  border-color: #a0f0a0;
+  box-shadow: 0 0 0 2px rgba(101, 216, 103, 0.1);
+}
+
+/* TOC highlights */
+.md-sidebar__scrollwrap {
+  scrollbar-color: var(--md-primary-fg-color) transparent;
+}
+
+.md-sidebar__scrollwrap::-webkit-scrollbar {
+  width: 8px;
+}
+
+.md-sidebar__scrollwrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.md-sidebar__scrollwrap::-webkit-scrollbar-thumb {
+  background-color: var(--md-primary-fg-color);
+  border-radius: 4px;
+}
+
+.md-sidebar__scrollwrap::-webkit-scrollbar-thumb:hover {
+  background-color: var(--md-primary-fg-color--light);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar__scrollwrap::-webkit-scrollbar-thumb {
+  background-color: var(--md-accent-fg-color);
+}
+
+/* Footer */
+.md-footer {
+  background-color: var(--md-primary-fg-color);
+  color: white;
+}
+
+.md-footer__link {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.md-footer__link:hover {
+  color: white;
+}
+
+/* Breadcrumbs */
+.md-breadcrumbs__item {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-breadcrumbs__link {
+  color: var(--md-primary-fg-color);
+}
+
+.md-breadcrumbs__link:hover {
+  color: var(--md-primary-fg-color--light);
+}
+
+/* Custom classes for special content */
+.highlight-green {
+  background-color: var(--md-primary-bg-color);
+  color: var(--md-primary-fg-color);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.callout-green {
+  border-left: 4px solid var(--md-primary-fg-color);
+  padding: 12px 16px;
+  background-color: var(--md-primary-bg-color);
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Production green button variant */
+.md-button.green {
+  background-color: #4db84f;
+}
+
+.md-button.green:hover {
+  background-color: #65d867;
+  box-shadow: 0 4px 12px rgba(45, 122, 58, 0.4);
+}

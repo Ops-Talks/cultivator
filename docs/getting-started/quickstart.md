@@ -67,7 +67,7 @@ That's it!
 
 - Learn about [available commands](../user-guide/workflows.md)
 - Configure [advanced settings](configuration.md)
-- Set up [locking and approvals](../user-guide/configuration.md)
+- Set up [locking and approvals](../getting-started/configuration.md)
 
 ## Common Commands
 

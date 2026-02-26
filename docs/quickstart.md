@@ -118,7 +118,7 @@ Comment these on your PR to trigger actions:
 
 - Read the [Configuration Guide](configuration.md)
 - Check out [Examples](../examples/)
-- Learn about [Advanced Features](advanced.md)
+- Learn about advanced features in the [User Guide](user-guide/features.md)
 
 ## Troubleshooting
 
@@ -139,4 +139,4 @@ Comment these on your PR to trigger actions:
 
 - Check the [FAQ](faq.md)
 - Open an [Issue](https://github.com/cultivator-dev/cultivator/issues)
-- Read [Contributing Guide](../CONTRIBUTING.md)
+- View [Contributing Guide](/CONTRIBUTING.md)
