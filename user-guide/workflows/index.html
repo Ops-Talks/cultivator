@@ -16,7 +16,7 @@
         <link rel="prev" href="../features/">
       
       
-        <link rel="next" href="../../architecture/design/">
+        <link rel="next" href="../gitlab-pipelines/">
       
       
       <link rel="icon" href="../../assets/logo.svg">
@@ -680,18 +680,27 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#plan-command" class="md-nav__link">
+  <a href="#plan" class="md-nav__link">
     <span class="md-ellipsis">
-      Plan Command
+      Plan
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#apply-command" class="md-nav__link">
+  <a href="#apply" class="md-nav__link">
     <span class="md-ellipsis">
-      Apply Command
+      Apply
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Destroy
     </span>
   </a>
   
@@ -703,37 +712,64 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow-examples" class="md-nav__link">
+  <a href="#cli-examples" class="md-nav__link">
     <span class="md-ellipsis">
-      Workflow Examples
+      CLI Examples
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Workflow Examples">
+    <nav class="md-nav" aria-label="CLI Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-workflow" class="md-nav__link">
+  <a href="#plan-specific-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Basic Workflow
+      Plan specific environment
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#approval-workflow" class="md-nav__link">
+  <a href="#plan-specific-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Approval Workflow
+      Plan specific modules
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#multi-module-workflow" class="md-nav__link">
+  <a href="#plan-excluding-experimental-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-Module Workflow
+      Plan excluding experimental modules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan-only-modules-with-specific-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan only modules with specific tags
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan-with-custom-parallelism" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan with custom parallelism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-json-for-cicd-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output JSON for CI/CD systems
     </span>
   </a>
   
@@ -745,36 +781,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#status-indicators" class="md-nav__link">
+  <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
-      Status Indicators
+      Exit Codes
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#error-handling" class="md-nav__link">
+  <a href="#standard-workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      Error Handling
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#concurrency-locking" class="md-nav__link">
-    <span class="md-ellipsis">
-      Concurrency &amp; Locking
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rate-limiting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rate Limiting
+      Standard Workflow
     </span>
   </a>
   
@@ -784,6 +802,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab-pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab Pipelines
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1031,18 +1070,27 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#plan-command" class="md-nav__link">
+  <a href="#plan" class="md-nav__link">
     <span class="md-ellipsis">
-      Plan Command
+      Plan
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#apply-command" class="md-nav__link">
+  <a href="#apply" class="md-nav__link">
     <span class="md-ellipsis">
-      Apply Command
+      Apply
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destroy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Destroy
     </span>
   </a>
   
@@ -1054,37 +1102,64 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow-examples" class="md-nav__link">
+  <a href="#cli-examples" class="md-nav__link">
     <span class="md-ellipsis">
-      Workflow Examples
+      CLI Examples
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Workflow Examples">
+    <nav class="md-nav" aria-label="CLI Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-workflow" class="md-nav__link">
+  <a href="#plan-specific-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Basic Workflow
+      Plan specific environment
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#approval-workflow" class="md-nav__link">
+  <a href="#plan-specific-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Approval Workflow
+      Plan specific modules
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#multi-module-workflow" class="md-nav__link">
+  <a href="#plan-excluding-experimental-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-Module Workflow
+      Plan excluding experimental modules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan-only-modules-with-specific-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan only modules with specific tags
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan-with-custom-parallelism" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan with custom parallelism
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-json-for-cicd-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output JSON for CI/CD systems
     </span>
   </a>
   
@@ -1096,36 +1171,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#status-indicators" class="md-nav__link">
+  <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
-      Status Indicators
+      Exit Codes
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#error-handling" class="md-nav__link">
+  <a href="#standard-workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      Error Handling
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#concurrency-locking" class="md-nav__link">
-    <span class="md-ellipsis">
-      Concurrency &amp; Locking
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rate-limiting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rate Limiting
+      Standard Workflow
     </span>
   </a>
   
@@ -1150,130 +1207,74 @@
 
 
 <h1 id="workflows">Workflows<a class="headerlink" href="#workflows" title="Permanent link">&para;</a></h1>
-<p>Learn about the available Cultivator commands and workflows.</p>
+<p>Learn the key commands and workflows for Cultivator.</p>
 <h2 id="available-commands">Available Commands<a class="headerlink" href="#available-commands" title="Permanent link">&para;</a></h2>
-<h3 id="plan-command">Plan Command<a class="headerlink" href="#plan-command" title="Permanent link">&para;</a></h3>
-<p>Run OpenTofu/Terraform via Terragrunt plan on affected modules.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cultivator plan
+<h3 id="plan">Plan<a class="headerlink" href="#plan" title="Permanent link">&para;</a></h3>
+<p>Run <code>terragrunt plan</code> on matching modules.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
 </span></code></pre></div>
-<p><strong>Behavior</strong>:
-- Detects changed modules
-- Builds dependency graph
-- Runs plan in dependency order
-- Posts results to PR</p>
 <p><strong>Options</strong>:
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cultivator plan --all          # Plan all modules (not just affected)
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cultivator plan --module vpc   # Plan specific module
-</span></code></pre></div></p>
-<h3 id="apply-command">Apply Command<a class="headerlink" href="#apply-command" title="Permanent link">&para;</a></h3>
-<p>Apply approved OpenTofu/Terraform via Terragrunt changes.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cultivator apply
+- <code>--destroy</code> - run <code>terragrunt plan -destroy</code>
+- <code>--non-interactive</code> - add <code>-input=false</code></p>
+<h3 id="apply">Apply<a class="headerlink" href="#apply" title="Permanent link">&para;</a></h3>
+<p>Run <code>terragrunt apply</code> on matching modules.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
 </span></code></pre></div>
-<p><strong>Behavior</strong>:
-- Requires approval (if configured)
-- Runs apply in dependency order
-- Locks modules during apply
-- Posts results to PR</p>
-<p><strong>Requirements</strong>:
-- Plan must have been run first
-- Must have necessary permissions
-- Branch protection rules respected</p>
 <p><strong>Options</strong>:
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cultivator apply --all         # Apply all modules
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cultivator apply --force       # Skip approval requirement (if authorized)
-</span></code></pre></div></p>
-<h2 id="workflow-examples">Workflow Examples<a class="headerlink" href="#workflow-examples" title="Permanent link">&para;</a></h2>
-<h3 id="basic-workflow">Basic Workflow<a class="headerlink" href="#basic-workflow" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Open a Pull Request with infrastructure changes</li>
-<li>Cultivator automatically runs plan (if <code>auto_plan: true</code>)</li>
-<li>Review plan results in PR comment</li>
-<li>Comment: <code>cultivator apply</code></li>
-<li>Cultivator executes apply</li>
-<li>Results posted to PR</li>
-</ol>
-<h3 id="approval-workflow">Approval Workflow<a class="headerlink" href="#approval-workflow" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Create PR with changes</li>
-<li>Comment: <code>cultivator plan</code></li>
-<li>Review plan output</li>
-<li>If changes look good: <code>cultivator apply</code></li>
-<li>If <code>require_approval: true</code>, another reviewer must approve</li>
-<li>Apply executes and results appear in PR</li>
-</ol>
-<h3 id="multi-module-workflow">Multi-Module Workflow<a class="headerlink" href="#multi-module-workflow" title="Permanent link">&para;</a></h3>
-<p>Infrastructure structure:
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>vpc/
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  - main.tf
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>security-groups/
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  - main.tf (depends on vpc)
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>app/
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  - main.tf (depends on vpc and security-groups)
-</span></code></pre></div></p>
-<p>PR changes <code>vpc/main.tf</code>:</p>
-<ol>
-<li>Cultivator detects: vpc affected</li>
-<li>Determines: security-groups and app also affected (due to dependencies)</li>
-<li>Plans: vpc → security-groups → app</li>
-<li>Shows dependency chain in PR comment</li>
-</ol>
-<h2 id="status-indicators">Status Indicators<a class="headerlink" href="#status-indicators" title="Permanent link">&para;</a></h2>
-<p>Cultivator uses status indicators in PR comments:</p>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>✓ Plan Complete</td>
-<td>Plan succeeded, ready to apply</td>
-</tr>
-<tr>
-<td>✗ Plan Failed</td>
-<td>Plan had errors, needs fixes</td>
-</tr>
-<tr>
-<td>⊗ Apply In Progress</td>
-<td>Currently applying changes</td>
-</tr>
-<tr>
-<td>✓ Applied</td>
-<td>Apply succeeded</td>
-</tr>
-<tr>
-<td>✗ Apply Failed</td>
-<td>Apply had errors</td>
-</tr>
-</tbody>
-</table>
-<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
-<p>If a command fails, Cultivator will:</p>
-<ol>
-<li>Post error details to PR comment</li>
-<li>Suggest troubleshooting steps</li>
-<li>Provide error context and logs</li>
-<li>Maintain lock (if apply failed)</li>
-</ol>
-<p>Fix the issue and comment again to retry:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cultivator plan
+- <code>--auto-approve</code> - add <code>-auto-approve</code>
+- <code>--non-interactive</code> - add <code>-input=false</code></p>
+<h3 id="destroy">Destroy<a class="headerlink" href="#destroy" title="Permanent link">&para;</a></h3>
+<p>Run <code>terragrunt destroy</code> on matching modules.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cultivator<span class="w"> </span>destroy<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
 </span></code></pre></div>
-<h2 id="concurrency-locking">Concurrency &amp; Locking<a class="headerlink" href="#concurrency-locking" title="Permanent link">&para;</a></h2>
+<p><strong>Options</strong>:
+- <code>--auto-approve</code> - add <code>-auto-approve</code>
+- <code>--non-interactive</code> - add <code>-input=false</code></p>
+<h2 id="cli-examples">CLI Examples<a class="headerlink" href="#cli-examples" title="Permanent link">&para;</a></h2>
+<h3 id="plan-specific-environment">Plan specific environment<a class="headerlink" href="#plan-specific-environment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<h3 id="plan-specific-modules">Plan specific modules<a class="headerlink" href="#plan-specific-modules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--include<span class="o">=</span>envs/prod/app1,envs/prod/app2<span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<h3 id="plan-excluding-experimental-modules">Plan excluding experimental modules<a class="headerlink" href="#plan-excluding-experimental-modules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--exclude<span class="o">=</span>experimental<span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<h3 id="plan-only-modules-with-specific-tags">Plan only modules with specific tags<a class="headerlink" href="#plan-only-modules-with-specific-tags" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--tags<span class="o">=</span>critical<span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<h3 id="plan-with-custom-parallelism">Plan with custom parallelism<a class="headerlink" href="#plan-with-custom-parallelism" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--parallelism<span class="o">=</span><span class="m">8</span><span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<h3 id="output-json-for-cicd-systems">Output JSON for CI/CD systems<a class="headerlink" href="#output-json-for-cicd-systems" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--output-format<span class="o">=</span>json<span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<h2 id="exit-codes">Exit Codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Only one apply per module at a time</li>
-<li>Lock timeout: configurable (default 30 minutes)</li>
-<li>Automatic cleanup on completion</li>
-<li>Prevents accidental concurrent applies</li>
+<li><code>0</code> - Success (all modules executed successfully)</li>
+<li><code>1</code> - Failure (one or more modules failed)</li>
+<li><code>2</code> - Usage error (invalid flags or arguments)</li>
 </ul>
-<h2 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h2>
-<p>GitHub API has rate limits. For large infrastructure:</p>
-<ul>
-<li>Stagger multiple runs (don't run all at once)</li>
-<li>Combine PR changes to reduce plan runs</li>
-<li>Plan all modules, not frequently</li>
-</ul>
+<h2 id="standard-workflow">Standard Workflow<a class="headerlink" href="#standard-workflow" title="Permanent link">&para;</a></h2>
+<p>For pull requests + main branch merges:</p>
+<ol>
+<li>
+<p><strong>PR triggers plan:</strong>
+   <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Review plan output</strong></p>
+</li>
+<li>
+<p><strong>Merge PR</strong></p>
+</li>
+<li>
+<p><strong>Main branch triggers apply:</strong>
+   <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
+</span></code></pre></div></p>
+</li>
+</ol>
 <hr />
 <p>See <a href="../features/">Features</a> for more about what Cultivator can do.</p>
 
@@ -1332,13 +1333,13 @@
         
         
           
-          <a href="../../architecture/design/" class="md-footer__link md-footer__link--next" aria-label="Next: Design">
+          <a href="../gitlab-pipelines/" class="md-footer__link md-footer__link--next" aria-label="Next: GitLab Pipelines">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Design
+                GitLab Pipelines
               </div>
             </div>
             <div class="md-footer__button md-icon">

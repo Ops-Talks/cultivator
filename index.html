@@ -439,15 +439,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key Features
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#quick-links" class="md-nav__link">
     <span class="md-ellipsis">
       Quick Links
@@ -734,6 +725,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="user-guide/gitlab-pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab Pipelines
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -975,15 +987,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key Features
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#quick-links" class="md-nav__link">
     <span class="md-ellipsis">
       Quick Links
@@ -1048,25 +1051,15 @@
 
 <h1 id="cultivator">Cultivator<a class="headerlink" href="#cultivator" title="Permanent link">&para;</a></h1>
 <p><img alt="Cultivator" src="assets/logo.svg" /></p>
-<p><strong>Cultivator</strong> is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests - similar to what Digger/Atlantis do for OpenTofu/Terraform, but built specifically for Terragrunt workflows.</p>
+<p><strong>Cultivator</strong> is a Go-based CLI that orchestrates <strong>Terragrunt</strong> pipelines in CI (GitHub Actions and GitLab CI). It standardizes <code>plan</code>, <code>apply</code>, and <code>destroy</code> runs without requiring a separate backend.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>While tools like Atlantis and Digger work great for OpenTofu/Terraform, they don't fully support Terragrunt's unique features:</p>
+<p>Cultivator focuses on predictable CI execution for Terragrunt repositories:</p>
 <ul>
-<li><strong>Dependencies between modules</strong> (<code>dependency</code> blocks)</li>
-<li><strong>Run-all operations</strong> across multiple modules</li>
-<li><strong>Hierarchical configuration</strong> with <code>terragrunt.hcl</code> inheritance</li>
-<li><strong>Impact detection</strong> when parent configs change</li>
-</ul>
-<p>Cultivator is built from the ground up to handle these Terragrunt-specific scenarios.</p>
-<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>PR-based workflows</strong> - Run terragrunt commands via PR comments</li>
-<li><strong>Smart change detection</strong> - Detects which modules are affected by changes</li>
-<li><strong>Dependency-aware execution</strong> - Respects Terragrunt dependencies and runs in correct order</li>
-<li><strong>Run-all support</strong> - Execute plans/applies across multiple modules</li>
-<li><strong>No separate server</strong> - Runs in your existing CI/CD (GitHub Actions, GitLab CI, etc)</li>
-<li><strong>Locking mechanism</strong> - Prevents concurrent applies to the same module</li>
-<li><strong>Rich PR comments</strong> - Beautiful formatted outputs with plan summaries</li>
+<li>Module discovery from a root layout</li>
+<li>Filters by environment, include/exclude paths, and tags</li>
+<li>Parallel execution with configurable limits</li>
+<li>Text or JSON output for CI logs</li>
+<li>Stateless operation using existing Terragrunt/Terraform backends</li>
 </ul>
 <h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">&para;</a></h2>
 <div class="grid cards">
@@ -1078,26 +1071,17 @@
 </ul>
 </div>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>1. User comments on PR:
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   &quot;cultivator plan&quot; or &quot;cultivator apply&quot;
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>2. Cultivator detects changed modules
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>3. Builds dependency graph
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>4. Executes operations respecting dependencies
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>5. Posts formatted results as PR comment
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>1. CI triggers a pipeline job
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>2. Cultivator discovers Terragrunt modules
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>3. Terragrunt runs per module (plan/apply/destroy)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>4. Results are logged with a consistent exit code
 </span></code></pre></div>
 <h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Comment on PR to run plan for affected modules</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cultivator<span class="w"> </span>plan
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Run plan for dev modules</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Run plan for all modules</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--all
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Apply changes (requires approval in some configurations)</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>cultivator<span class="w"> </span>apply
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Apply changes with auto-approve</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
 </span></code></pre></div>
 <h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1107,8 +1091,6 @@
 </ul>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>Cultivator is licensed under the MIT License. See <a href="https://github.com/Ops-Talks/cultivator/blob/main/LICENSE">LICENSE</a> for details.</p>
-<hr />
-<p><strong>Latest Version</strong>: 1.0.0 | <strong>Last Updated</strong>: February 2026</p>
 
 
 

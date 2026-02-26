@@ -656,36 +656,36 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#change-detection" class="md-nav__link">
+  <a href="#module-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      Change Detection
+      Module Discovery
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#dependency-awareness" class="md-nav__link">
+  <a href="#filters" class="md-nav__link">
     <span class="md-ellipsis">
-      Dependency Awareness
+      Filters
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#locking" class="md-nav__link">
+  <a href="#parallelism" class="md-nav__link">
     <span class="md-ellipsis">
-      Locking
+      Parallelism
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#rich-output" class="md-nav__link">
+  <a href="#output-formats" class="md-nav__link">
     <span class="md-ellipsis">
-      Rich Output
+      Output Formats
     </span>
   </a>
   
@@ -747,6 +747,27 @@
   
   <span class="md-ellipsis">
     Workflows
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="gitlab-pipelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab Pipelines
   </span>
   
 
@@ -1016,36 +1037,36 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#change-detection" class="md-nav__link">
+  <a href="#module-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      Change Detection
+      Module Discovery
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#dependency-awareness" class="md-nav__link">
+  <a href="#filters" class="md-nav__link">
     <span class="md-ellipsis">
-      Dependency Awareness
+      Filters
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#locking" class="md-nav__link">
+  <a href="#parallelism" class="md-nav__link">
     <span class="md-ellipsis">
-      Locking
+      Parallelism
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#rich-output" class="md-nav__link">
+  <a href="#output-formats" class="md-nav__link">
     <span class="md-ellipsis">
-      Rich Output
+      Output Formats
     </span>
   </a>
   
@@ -1084,26 +1105,27 @@
 
 
 <h1 id="user-guide">User Guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
-<p>Learn how to use Cultivator to automate your Terragrunt workflows.</p>
+<p>Learn how to use Cultivator to automate Terragrunt workflows in CI.</p>
 <h2 id="sections">Sections<a class="headerlink" href="#sections" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong><a href="features/">Features</a></strong> - What Cultivator can do</li>
 <li><strong><a href="workflows/">Workflows</a></strong> - How to use Cultivator commands</li>
-<li><strong><a href="../getting-started/configuration/">Configuration</a></strong> - How to configure your setup</li>
+<li><strong><a href="gitlab-pipelines/">GitLab Pipelines</a></strong> - Integrate with GitLab CI/CD</li>
+<li><strong><a href="../getting-started/configuration/">Configuration</a></strong> - Configure your setup</li>
 </ul>
 <h2 id="quick-overview">Quick Overview<a class="headerlink" href="#quick-overview" title="Permanent link">&para;</a></h2>
-<p>Cultivator runs Terragrunt operations from PR comments:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>User comments → Cultivator detects → Executes with dependencies → Posts results
+<p>Cultivator is a CLI that discovers Terragrunt modules and executes commands with consistent output:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CI job starts -&gt; Cultivator discovers modules -&gt; Terragrunt runs -&gt; Logs + exit code
 </span></code></pre></div>
 <h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h2>
-<h3 id="change-detection">Change Detection<a class="headerlink" href="#change-detection" title="Permanent link">&para;</a></h3>
-<p>Cultivator automatically detects which modules are affected by changes in your PR.</p>
-<h3 id="dependency-awareness">Dependency Awareness<a class="headerlink" href="#dependency-awareness" title="Permanent link">&para;</a></h3>
-<p>Operations respect Terragrunt dependencies and run modules in the correct order.</p>
-<h3 id="locking">Locking<a class="headerlink" href="#locking" title="Permanent link">&para;</a></h3>
-<p>Prevents concurrent applies to the same module, ensuring safe deployments.</p>
-<h3 id="rich-output">Rich Output<a class="headerlink" href="#rich-output" title="Permanent link">&para;</a></h3>
-<p>Results are formatted nicely in PR comments with plan summaries and status indicators.</p>
+<h3 id="module-discovery">Module Discovery<a class="headerlink" href="#module-discovery" title="Permanent link">&para;</a></h3>
+<p>Cultivator walks the root directory, finds <code>terragrunt.hcl</code> modules, and applies filters.</p>
+<h3 id="filters">Filters<a class="headerlink" href="#filters" title="Permanent link">&para;</a></h3>
+<p>Use <code>--env</code>, <code>--include</code>, <code>--exclude</code>, and <code>--tags</code> to scope execution.</p>
+<h3 id="parallelism">Parallelism<a class="headerlink" href="#parallelism" title="Permanent link">&para;</a></h3>
+<p>Run modules concurrently with a configurable worker pool.</p>
+<h3 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h3>
+<p>Choose <code>text</code> or <code>json</code> logging for CI visibility and automation.</p>
 <h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Check <a href="features/">Features</a> for what you can do</li>
