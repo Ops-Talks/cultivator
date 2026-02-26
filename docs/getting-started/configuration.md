@@ -121,6 +121,18 @@ env:
   TERRAGRUNT_DOWNLOAD: /tmp/terragrunt-cache
 ```
 
+## OpenTofu or Terraform
+
+Cultivator runs Terragrunt, which in turn calls either OpenTofu or Terraform.
+Choose the binary in your `terragrunt.hcl`:
+
+```hcl
+terraform_binary = "tofu" # Use OpenTofu (default in our examples)
+# terraform_binary = "terraform" # Use HashiCorp Terraform instead
+```
+
+Make sure the selected binary is installed in your CI environment.
+
 ## Advanced Configuration
 
 ### Custom modules path

@@ -1,10 +1,10 @@
 # Cultivator
 
-**Cultivator** is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests - similar to what Digger/Atlantis do for Terraform, but built specifically for Terragrunt workflows.
+**Cultivator** is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests - similar to what Digger/Atlantis do for OpenTofu/Terraform, but built specifically for Terragrunt workflows.
 
 ## Why Cultivator?
 
-While tools like Atlantis and Digger work great for Terraform, they don't fully support Terragrunt's unique features:
+While tools like Atlantis and Digger work great for OpenTofu/Terraform, they don't fully support Terragrunt's unique features:
 - **Dependencies between modules** (`dependency` blocks)
 - **Run-all operations** across multiple modules
 - **Hierarchical configuration** with `terragrunt.hcl` inheritance
@@ -65,6 +65,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+If you prefer OpenTofu, install it instead of Terraform and set `terraform_binary = "tofu"` in your `terragrunt.hcl`.
+
 ### 2. Use commands in PR comments
 
 - `/cultivator plan` - Run plan on affected modules
@@ -115,6 +117,8 @@ hooks:
   post_apply:
     - echo "Applied successfully"
 ```
+
+Cultivator works with both OpenTofu and Terraform. Terragrunt decides which binary to use via `terraform_binary`.
 
 ## Architecture
 

@@ -79,6 +79,6 @@ To use in your project:
 cp examples/.gitlab-ci.yml .gitlab-ci.yml
 ```
 
-Then customize the `TERRAFORM_VERSION` and `TERRAGRUNT_VERSION` variables as needed.
+Then customize `OPENTOFU_VERSION`, `TERRAGRUNT_VERSION`, and `IAC_TOOL` as needed.
 
 For more details, see [GitLab Pipelines Integration](../docs/user-guide/gitlab-pipelines.md).

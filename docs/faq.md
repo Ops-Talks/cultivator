@@ -23,8 +23,8 @@ Yes! Cultivator is designed to work alongside other workflows. Just add the Cult
 ### What versions of Terragrunt are supported?
 Cultivator supports Terragrunt 0.40.0+. For best results, use recent versions (1.0+).
 
-### What about Terraform version?
-Cultivator works with any Terraform version that your Terragrunt version supports.
+### What about OpenTofu/Terraform version?
+Cultivator works with any OpenTofu or Terraform version that your Terragrunt version supports.
 
 ## Usage
 
@@ -52,7 +52,7 @@ Cultivator will post the error in the PR comment. Fix the issue and comment agai
 
 ## Security
 
-### Is my Terraform state safe?
+### Is my OpenTofu/Terraform state safe?
 Yes. Cultivator requires proper AWS/Azure/GCP credentials in GitHub Secrets. Only authorized users can run operations.
 
 ### What about sensitive outputs?

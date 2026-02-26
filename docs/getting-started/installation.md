@@ -65,22 +65,31 @@ git push origin main
 
 If using GitLab, create `.gitlab-ci.yml` in your repository:
 
+> **Recommended**: Uses OpenTofu (open-source, Terraform-compatible) by default. Change `IAC_TOOL: "terraform"` if you prefer HashiCorp Terraform.
+
 ```yaml
 stages:
   - plan
   - apply
 
 variables:
-  TERRAFORM_VERSION: "1.7.0"
+  OPENTOFU_VERSION: "1.7.0"
   TERRAGRUNT_VERSION: "0.55.0"
+  IAC_TOOL: "opentofu"
 
 cultivator_plan:
   stage: plan
   image: ubuntu:latest
   script:
     - apt-get update && apt-get install -y wget unzip
-    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - |
+      if [ "$IAC_TOOL" = "terraform" ]; then
+        wget -q https://releases.hashicorp.com/terraform/${OPENTOFU_VERSION}/terraform_${OPENTOFU_VERSION}_linux_amd64.zip
+        unzip -q terraform_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+      else
+        wget -q https://github.com/opentofu/opentofu/releases/download/v${OPENTOFU_VERSION}/tofu_${OPENTOFU_VERSION}_linux_amd64.zip
+        unzip -q tofu_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+      fi
     - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
     - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
     - terragrunt run-all plan --terragrunt-non-interactive
@@ -92,8 +101,14 @@ cultivator_apply:
   image: ubuntu:latest
   script:
     - apt-get update && apt-get install -y wget unzip
-    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - |
+      if [ "$IAC_TOOL" = "terraform" ]; then
+        wget -q https://releases.hashicorp.com/terraform/${OPENTOFU_VERSION}/terraform_${OPENTOFU_VERSION}_linux_amd64.zip
+        unzip -q terraform_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+      else
+        wget -q https://github.com/opentofu/opentofu/releases/download/v${OPENTOFU_VERSION}/tofu_${OPENTOFU_VERSION}_linux_amd64.zip
+        unzip -q tofu_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+      fi
     - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
     - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
     - terragrunt run-all apply --terragrunt-non-interactive

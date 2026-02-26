@@ -6,7 +6,7 @@ Learn about the available Cultivator commands and workflows.
 
 ### Plan Command
 
-Run Terraform/Terragrunt plan on affected modules.
+Run OpenTofu/Terraform via Terragrunt plan on affected modules.
 
 ```
 cultivator plan
@@ -26,7 +26,7 @@ cultivator plan --module vpc   # Plan specific module
 
 ### Apply Command
 
-Apply approved Terraform/Terragrunt changes.
+Apply approved OpenTofu/Terraform via Terragrunt changes.
 
 ```
 cultivator apply
