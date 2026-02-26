@@ -1,156 +1,70 @@
 # Cultivator
 
-**Cultivator** is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests - similar to what Digger/Atlantis do for OpenTofu/Terraform, but built specifically for Terragrunt workflows.
+**Cultivator** is a Go-based CLI that orchestrates **Terragrunt** pipelines in CI (GitHub Actions and GitLab CI). It standardizes `plan`, `apply`, and `destroy` runs without requiring a separate backend.
 
 ## Why Cultivator?
 
-While tools like Atlantis and Digger work great for OpenTofu/Terraform, they don't fully support Terragrunt's unique features:
-- **Dependencies between modules** (`dependency` blocks)
-- **Run-all operations** across multiple modules
-- **Hierarchical configuration** with `terragrunt.hcl` inheritance
-- **Impact detection** when parent configs change
+Terragrunt repositories often need a simple, repeatable way to execute `plan` and `apply` across multiple modules. Cultivator focuses on:
 
-Cultivator is built from the ground up to handle these Terragrunt-specific scenarios.
+- Module discovery from a root layout
+- Consistent CLI flags and CI-friendly defaults
+- Optional filtering by environment, path, and tags
+- Stateless execution that relies on Terragrunt/Terraform backends
 
 ## Features
 
-- **PR-based workflows** - Run terragrunt commands via PR comments  
-- **Smart change detection** - Detects which modules are affected by changes  
-- **Dependency-aware execution** - Respects Terragrunt dependencies and runs in correct order  
-- **Run-all support** - Execute plans/applies across multiple modules  
-- **No separate server** - Runs in your existing CI/CD (GitHub Actions, GitLab CI, etc)  
-- **Locking mechanism** - Prevents concurrent applies to the same module  
-- **Rich PR comments** - Beautiful formatted outputs with plan summaries  
+- **Terragrunt-first CLI** - `plan`, `apply`, and `destroy` from one entrypoint
+- **Module discovery** - finds `terragrunt.hcl` modules under a root directory
+- **Scope filters** - filter by environment, include/exclude paths, or tags
+- **Parallel execution** - configurable worker pool for faster runs
+- **CI-ready output** - text or JSON logs with consistent exit codes
+- **No backend** - uses existing Terragrunt/Terraform state backends
 
 ## Quick Start
 
-### 1. Add GitHub Action to your repository
+### Build locally
 
-Create `.github/workflows/cultivator.yml`:
-
-```yaml
-name: Cultivator
-
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  issue_comment:
-    types: [created]
-
-jobs:
-  cultivator:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          
-      - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1
-        with:
-          terragrunt-version: 0.55.0
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.7.0
-          
-      - name: Run Cultivator
-        uses: cultivator-dev/cultivator-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+```bash
+go build -o cultivator ./cmd/cultivator
 ```
 
-If you prefer OpenTofu, install it instead of Terraform and set `terraform_binary = "tofu"` in your `terragrunt.hcl`.
+### Run a plan
 
-### 2. Use commands in PR comments
+```bash
+./cultivator plan --root=live --env=dev --non-interactive
+```
 
-- `/cultivator plan` - Run plan on affected modules
-- `/cultivator apply` - Apply changes (requires approval)
-- `/cultivator plan-all` - Run plan on all modules in directory
-- `/cultivator apply-all` - Apply all modules in correct order
-- `/cultivator unlock` - Remove locks if needed
+### Apply changes
 
-## How it Works
+```bash
+./cultivator apply --root=live --env=dev --non-interactive --auto-approve
+```
 
-1. **Detects Changes**: When a PR is opened/updated, Cultivator analyzes which files changed
-2. **Finds Affected Modules**: Determines which Terragrunt modules are impacted (including dependencies)
-3. **Runs Operations**: Executes `terragrunt plan` or `apply` in the correct order
-4. **Posts Results**: Comments on the PR with formatted output and summaries
+### Destroy
+
+```bash
+./cultivator destroy --root=live --env=dev --non-interactive --auto-approve
+```
 
 ## Configuration
 
-Create a `cultivator.yml` in your repository root:
+Create a `.cultivator.yaml`, `.cultivator.yml`, `cultivator.yaml`, or `cultivator.yml` file in your repository root:
 
 ```yaml
-version: 1
+root: live
+parallelism: 4
+output_format: text
+non_interactive: true
 
-# Projects to manage
-projects:
-  - name: infrastructure
-    dir: infrastructure/
-    terragrunt_version: 0.55.0
-    terraform_version: 1.7.0
-    
-  - name: environments
-    dir: environments/
-    workflow: custom
-    apply_requirements:
-      - approved
-      - mergeable
-
-# Global settings
-settings:
-  auto_plan: true
-  lock_timeout: 10m
-  parallel_plan: true
-  max_parallel: 5
-  
-# Execute custom commands before/after
-hooks:
-  pre_plan:
-    - terragrunt validate-all
-  post_apply:
-    - echo "Applied successfully"
+plan:
+  destroy: false
+apply:
+  auto_approve: true
+destroy:
+  auto_approve: true
 ```
 
-Cultivator works with both OpenTofu and Terraform. Terragrunt decides which binary to use via `terraform_binary`.
-
-## Architecture
-
-```
-┌─────────────────┐
-│   Pull Request  │
-│    (GitHub)     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  GitHub Actions │
-│   (CI Runner)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Cultivator    │
-│      Core       │
-├─────────────────┤
-│ • Change Detect │
-│ • Dependency    │
-│ • Executor      │
-│ • Lock Manager  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Terragrunt    │
-│   Commands      │
-└─────────────────┘
-```
+Environment variables and CLI flags override the config file. Flags take precedence over environment variables.
 
 ## Project Structure
 
@@ -158,45 +72,26 @@ Cultivator works with both OpenTofu and Terraform. Terragrunt decides which bina
 cultivator/
 ├── cmd/
 │   └── cultivator/          # CLI entry point
-├── pkg/
-│   ├── detector/            # Change detection
-│   ├── parser/              # Terragrunt HCL parser
-│   ├── executor/            # Command execution
-│   ├── lock/                # Locking mechanism
-│   ├── github/              # GitHub API integration
-│   └── formatter/           # Output formatting
-├── action/                  # GitHub Action wrapper
-└── docs/                    # Documentation
+├── internal/
+│   ├── cli/                 # CLI parsing and orchestration
+│   ├── config/              # Config load/merge
+│   ├── discovery/           # Module discovery
+│   ├── runner/              # Terragrunt execution
+│   └── logging/             # Output formatting
+├── docs/                    # Documentation
+└── mkdocs.yml               # MkDocs configuration
 ```
 
 ## Requirements
 
 - Terragrunt >= 0.50.0
-- OpenTofu >= 1.6.0 (open-source Terraform alternative) or Terraform >= 1.5.0
+- OpenTofu >= 1.6.0 or Terraform >= 1.5.0
 - Go >= 1.25 (for building from source)
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome. Please read the [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
-
-## Roadmap
-
-- [ ] GitHub Actions support
-- [ ] GitLab CI support
-- [ ] Azure DevOps support
-- [ ] Cost estimation integration
-- [ ] Drift detection
-- [ ] Policy as code (OPA support)
-- [ ] Slack/Discord notifications
-- [ ] RBAC for different environments
-
-## Credits
-
-Inspired by:
-- [Digger](https://github.com/diggerhq/digger)
-- [Atlantis](https://www.runatlantis.io/)
-- [Terragrunt](https://terragrunt.gruntwork.io/)

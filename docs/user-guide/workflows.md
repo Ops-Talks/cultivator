@@ -1,134 +1,106 @@
 # Workflows
 
-Learn about the available Cultivator commands and workflows.
+Learn the key commands and workflows for Cultivator.
 
 ## Available Commands
 
-### Plan Command
+### Plan
 
-Run OpenTofu/Terraform via Terragrunt plan on affected modules.
+Run `terragrunt plan` on matching modules.
 
+```bash
+cultivator plan --root=live --env=dev --non-interactive
 ```
-cultivator plan
-```
-
-**Behavior**:
-- Detects changed modules
-- Builds dependency graph
-- Runs plan in dependency order
-- Posts results to PR
 
 **Options**:
+- `--destroy` - run `terragrunt plan -destroy`
+- `--non-interactive` - add `-input=false`
+
+### Apply
+
+Run `terragrunt apply` on matching modules.
+
+```bash
+cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
-cultivator plan --all          # Plan all modules (not just affected)
-cultivator plan --module vpc   # Plan specific module
-```
-
-### Apply Command
-
-Apply approved OpenTofu/Terraform via Terragrunt changes.
-
-```
-cultivator apply
-```
-
-**Behavior**:
-- Requires approval (if configured)
-- Runs apply in dependency order
-- Locks modules during apply
-- Posts results to PR
-
-**Requirements**:
-- Plan must have been run first
-- Must have necessary permissions
-- Branch protection rules respected
 
 **Options**:
-```
-cultivator apply --all         # Apply all modules
-cultivator apply --force       # Skip approval requirement (if authorized)
-```
+- `--auto-approve` - add `-auto-approve`
+- `--non-interactive` - add `-input=false`
 
-## Workflow Examples
+### Destroy
 
-### Basic Workflow
+Run `terragrunt destroy` on matching modules.
 
-1. Open a Pull Request with infrastructure changes
-2. Cultivator automatically runs plan (if `auto_plan: true`)
-3. Review plan results in PR comment
-4. Comment: `cultivator apply`
-5. Cultivator executes apply
-6. Results posted to PR
-
-### Approval Workflow
-
-1. Create PR with changes
-2. Comment: `cultivator plan`
-3. Review plan output
-4. If changes look good: `cultivator apply`
-5. If `require_approval: true`, another reviewer must approve
-6. Apply executes and results appear in PR
-
-### Multi-Module Workflow
-
-Infrastructure structure:
-```
-vpc/
-  - main.tf
-security-groups/
-  - main.tf (depends on vpc)
-app/
-  - main.tf (depends on vpc and security-groups)
+```bash
+cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ```
 
-PR changes `vpc/main.tf`:
+**Options**:
+- `--auto-approve` - add `-auto-approve`
+- `--non-interactive` - add `-input=false`
 
-1. Cultivator detects: vpc affected
-2. Determines: security-groups and app also affected (due to dependencies)
-3. Plans: vpc → security-groups → app
-4. Shows dependency chain in PR comment
+## CLI Examples
 
-## Status Indicators
+### Plan specific environment
 
-Cultivator uses status indicators in PR comments:
-
-| Status | Meaning |
-|--------|---------|
-| ✓ Plan Complete | Plan succeeded, ready to apply |
-| ✗ Plan Failed | Plan had errors, needs fixes |
-| ⊗ Apply In Progress | Currently applying changes |
-| ✓ Applied | Apply succeeded |
-| ✗ Apply Failed | Apply had errors |
-
-## Error Handling
-
-If a command fails, Cultivator will:
-
-1. Post error details to PR comment
-2. Suggest troubleshooting steps
-3. Provide error context and logs
-4. Maintain lock (if apply failed)
-
-Fix the issue and comment again to retry:
-
-```
-cultivator plan
+```bash
+./cultivator plan --root=live --env=prod --non-interactive
 ```
 
-## Concurrency & Locking
+### Plan specific modules
 
-- Only one apply per module at a time
-- Lock timeout: configurable (default 30 minutes)
-- Automatic cleanup on completion
-- Prevents accidental concurrent applies
+```bash
+./cultivator plan --root=live --include=envs/prod/app1,envs/prod/app2 --non-interactive
+```
 
-## Rate Limiting
+### Plan excluding experimental modules
 
-GitHub API has rate limits. For large infrastructure:
+```bash
+./cultivator plan --root=live --exclude=experimental --non-interactive
+```
 
-- Stagger multiple runs (don't run all at once)
-- Combine PR changes to reduce plan runs
-- Plan all modules, not frequently
+### Plan only modules with specific tags
+
+```bash
+./cultivator plan --root=live --tags=critical --non-interactive
+```
+
+### Plan with custom parallelism
+
+```bash
+./cultivator plan --root=live --parallelism=8 --non-interactive
+```
+
+### Output JSON for CI/CD systems
+
+```bash
+./cultivator plan --root=live --output-format=json --non-interactive
+```
+
+## Exit Codes
+
+- `0` - Success (all modules executed successfully)
+- `1` - Failure (one or more modules failed)
+- `2` - Usage error (invalid flags or arguments)
+
+## Standard Workflow
+
+For pull requests + main branch merges:
+
+1. **PR triggers plan:**
+   ```bash
+   cultivator plan --root=live --env=dev --non-interactive
+   ```
+
+2. **Review plan output**
+
+3. **Merge PR**
+
+4. **Main branch triggers apply:**
+   ```bash
+   cultivator apply --root=live --env=dev --non-interactive --auto-approve
+   ```
 
 ---
 

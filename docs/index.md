@@ -2,28 +2,17 @@
 
 ![Cultivator](assets/logo.svg)
 
-**Cultivator** is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests - similar to what Digger/Atlantis do for OpenTofu/Terraform, but built specifically for Terragrunt workflows.
+**Cultivator** is a Go-based CLI that orchestrates **Terragrunt** pipelines in CI (GitHub Actions and GitLab CI). It standardizes `plan`, `apply`, and `destroy` runs without requiring a separate backend.
 
 ## Overview
 
-While tools like Atlantis and Digger work great for OpenTofu/Terraform, they don't fully support Terragrunt's unique features:
+Cultivator focuses on predictable CI execution for Terragrunt repositories:
 
-- **Dependencies between modules** (`dependency` blocks)
-- **Run-all operations** across multiple modules
-- **Hierarchical configuration** with `terragrunt.hcl` inheritance
-- **Impact detection** when parent configs change
-
-Cultivator is built from the ground up to handle these Terragrunt-specific scenarios.
-
-## Key Features
-
-- **PR-based workflows** - Run terragrunt commands via PR comments
-- **Smart change detection** - Detects which modules are affected by changes
-- **Dependency-aware execution** - Respects Terragrunt dependencies and runs in correct order
-- **Run-all support** - Execute plans/applies across multiple modules
-- **No separate server** - Runs in your existing CI/CD (GitHub Actions, GitLab CI, etc)
-- **Locking mechanism** - Prevents concurrent applies to the same module
-- **Rich PR comments** - Beautiful formatted outputs with plan summaries
+- Module discovery from a root layout
+- Filters by environment, include/exclude paths, and tags
+- Parallel execution with configurable limits
+- Text or JSON output for CI logs
+- Stateless operation using existing Terragrunt/Terraform backends
 
 ## Quick Links
 
@@ -39,29 +28,20 @@ Cultivator is built from the ground up to handle these Terragrunt-specific scena
 ## How It Works
 
 ```
-1. User comments on PR:
-   "cultivator plan" or "cultivator apply"
-   
-2. Cultivator detects changed modules
-   
-3. Builds dependency graph
-   
-4. Executes operations respecting dependencies
-   
-5. Posts formatted results as PR comment
+1. CI triggers a pipeline job
+2. Cultivator discovers Terragrunt modules
+3. Terragrunt runs per module (plan/apply/destroy)
+4. Results are logged with a consistent exit code
 ```
 
 ## Example Usage
 
 ```bash
-# Comment on PR to run plan for affected modules
-cultivator plan
+# Run plan for dev modules
+cultivator plan --root=live --env=dev --non-interactive
 
-# Run plan for all modules
-cultivator plan --all
-
-# Apply changes (requires approval in some configurations)
-cultivator apply
+# Apply changes with auto-approve
+cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
 
 ## Getting Help
@@ -73,7 +53,3 @@ cultivator apply
 ## License
 
 Cultivator is licensed under the MIT License. See [LICENSE](https://github.com/Ops-Talks/cultivator/blob/main/LICENSE) for details.
-
----
-
-**Latest Version**: 1.0.0 | **Last Updated**: February 2026

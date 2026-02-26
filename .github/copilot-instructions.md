@@ -23,6 +23,11 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Prefer standard library solutions over custom implementations when functionality exists
 - Write comments in English by default; translate only upon user request
 - Avoid using emoji in code and comments
+- Use SOLID principles where applicable, but don't over-engineer; keep it simple and pragmatic
+- Follow the DRY principle, but don't abstract prematurely; avoid unnecessary indirection
+- Use composition over inheritance; prefer embedding and interfaces for code reuse
+- Write tests for all new functionality and bug fixes; aim for high test coverage, but prioritize meaningful tests over 100% coverage
+- Use table-driven tests for multiple test cases; use subtests for better organization
 
 ## Naming Conventions
 

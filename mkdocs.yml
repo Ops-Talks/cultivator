@@ -107,6 +107,7 @@ nav:
     - Overview: user-guide/index.md
     - Features: user-guide/features.md
     - Workflows: user-guide/workflows.md
+    - GitLab Pipelines: user-guide/gitlab-pipelines.md
   - Architecture:
     - Design: architecture/design.md
     - External Modules: architecture/external-modules.md

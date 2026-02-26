@@ -1,173 +1,141 @@
 # Configuration
 
-Configure Cultivator to match your infrastructure and workflow needs.
+Configure Cultivator to match your Terragrunt layout and CI needs.
 
 ## Configuration File
 
-Create a `cultivator.yml` file in your repository root:
+Cultivator looks for a config file in this order:
+
+- `.cultivator.yaml`
+- `.cultivator.yml`
+- `cultivator.yaml`
+- `cultivator.yml`
+
+Example configuration:
 
 ```yaml
-version: 1
+root: live
+parallelism: 4
+output_format: text
+non_interactive: true
 
-settings:
-  # Auto plan on PR events
-  auto_plan: true
-  
-  # Require approval for apply operations
-  require_approval: true
-  
-  # Lock timeout to prevent deadlocks
-  lock_timeout: 30m
-  
-  # Run modules in parallel (experimental)
-  parallel_plan: false
-  max_parallel: 1
+include:
+  - envs/prod
+exclude:
+  - envs/prod/experimental
+
+tags:
+  - app
+
+plan:
+  destroy: false
+apply:
+  auto_approve: false
+destroy:
+  auto_approve: true
 ```
 
 ## Settings Reference
 
-### `auto_plan`
-- **Type**: Boolean
-- **Default**: `true`
-- **Description**: Automatically run plan when PR is opened or updated
+### `root`
+- **Type**: String
+- **Default**: `.`
+- **Description**: Root directory used to discover `terragrunt.hcl` modules
 
-### `require_approval`
-- **Type**: Boolean
-- **Default**: `true`
-- **Description**: Require explicit approval comment before applying changes
+### `env`
+- **Type**: String
+- **Default**: empty
+- **Description**: Environment filter derived from the first directory under `root`
 
-### `lock_timeout`
-- **Type**: Duration
-- **Default**: `30m`
-- **Valid values**: `1m`, `5m`, `10m`, `30m`, `1h`, etc.
-- **Description**: Maximum time to wait for lock before timing out
+### `include` / `exclude`
+- **Type**: String list
+- **Default**: empty
+- **Description**: Relative paths under `root` to include or exclude
 
-### `parallel_plan`
-- **Type**: Boolean
-- **Default**: `false`
-- **Description**: Run modules in parallel (experimental, not recommended for interdependent modules)
+### `tags`
+- **Type**: String list
+- **Default**: empty
+- **Description**: Optional tags filter parsed from `terragrunt.hcl` comments (example: `# cultivator:tags=app,db`)
 
-### `max_parallel`
+### `parallelism`
 - **Type**: Integer
-- **Default**: `1`
+- **Default**: number of CPUs
 - **Description**: Maximum number of modules to execute in parallel
 
-## GitHub Secrets
+### `output_format`
+- **Type**: String
+- **Default**: `text`
+- **Valid values**: `text`, `json`
+- **Description**: Log output format
 
-Configure these secrets in your GitHub repository settings:
+### `non_interactive`
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: Adds `-input=false` to Terragrunt commands
 
-### Required
+### `plan.destroy`
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: Run `terragrunt plan -destroy`
 
-| Secret | Description |
-|--------|-------------|
-| `GITHUB_TOKEN` | GitHub token (auto-provided by GitHub Actions) |
+### `apply.auto_approve`
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: Add `-auto-approve` to `terragrunt apply`
 
-### Optional (based on your infrastructure)
-
-| Secret | Description |
-|--------|-------------|
-| `AWS_ACCESS_KEY_ID` | AWS credentials |
-| `AWS_SECRET_ACCESS_KEY` | AWS credentials |
-| `AZURE_CLIENT_ID` | Azure credentials |
-| `AZURE_CLIENT_SECRET` | Azure credentials |
-| `GCP_PROJECT_ID` | GCP project ID |
-| `GCP_SA_KEY` | GCP service account key (JSON) |
-
-## Branch Protection Rules
-
-Recommended settings for your main branch:
-
-1. Go to Settings → Branches → Add rule
-2. Branch name pattern: `main`
-3. Enable:
-   - Require pull request reviews before merging
-   - Dismiss stale pull request approvals
-   - Require status checks to pass (include Cultivator if desired)
-
-## Permissions
-
-Cultivator requires these GitHub permissions:
-
-```yaml
-permissions:
-  contents: read
-  pull-requests: write
-  statuses: write
-  checks: write
-```
-
-## Filtering Runs
-
-Run Cultivator only on specific path changes:
-
-```yaml
-on:
-  pull_request:
-    paths:
-      - 'infrastructure/**'
-      - 'terragrunt/**'
-      - 'cultivator.yml'
-      - '.github/workflows/cultivator.yml'
-```
+### `destroy.auto_approve`
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: Add `-auto-approve` to `terragrunt destroy`
 
 ## Environment Variables
 
-Set environment variables in your workflow:
+Environment variables override the config file:
+
+- `CULTIVATOR_ROOT`
+- `CULTIVATOR_ENV`
+- `CULTIVATOR_INCLUDE`
+- `CULTIVATOR_EXCLUDE`
+- `CULTIVATOR_TAGS`
+- `CULTIVATOR_PARALLELISM`
+- `CULTIVATOR_OUTPUT_FORMAT`
+- `CULTIVATOR_NON_INTERACTIVE`
+- `CULTIVATOR_PLAN_DESTROY`
+- `CULTIVATOR_APPLY_AUTO_APPROVE`
+- `CULTIVATOR_DESTROY_AUTO_APPROVE`
+
+Example:
 
 ```yaml
 env:
-  TF_VAR_environment: production
-  TF_VAR_region: us-east-1
-  TERRAGRUNT_DOWNLOAD: /tmp/terragrunt-cache
+  CULTIVATOR_ROOT: live
+  CULTIVATOR_ENV: prod
+  CULTIVATOR_NON_INTERACTIVE: "true"
+```
+
+## CLI Flags
+
+Flags override environment variables:
+
+```bash
+cultivator plan \
+  --root=live \
+  --env=prod \
+  --include=envs/prod/app1 \
+  --exclude=envs/prod/experimental \
+  --tags=app,db \
+  --parallelism=4 \
+  --output-format=json \
+  --non-interactive
 ```
 
 ## OpenTofu or Terraform
 
-Cultivator runs Terragrunt, which in turn calls either OpenTofu or Terraform.
-Choose the binary in your `terragrunt.hcl`:
+Cultivator runs Terragrunt, which in turn calls either OpenTofu or Terraform. Choose the binary in your `terragrunt.hcl`:
 
 ```hcl
-terraform_binary = "tofu" # Use OpenTofu (default in our examples)
+terraform_binary = "tofu" # Use OpenTofu
 # terraform_binary = "terraform" # Use HashiCorp Terraform instead
 ```
 
 Make sure the selected binary is installed in your CI environment.
-
-## Advanced Configuration
-
-### Custom modules path
-
-```yaml
-settings:
-  modules_path: ./infrastructure
-```
-
-### Ignore specific patterns
-
-```yaml
-settings:
-  ignore_patterns:
-    - '**/.terraform'
-    - '**/cache/**'
-```
-
-### Redaction patterns
-
-```yaml
-settings:
-  redaction:
-    enabled: true
-    patterns:
-      - 'password'
-      - 'secret'
-      - 'token'
-      - 'key'
-```
-
-## See Also
-
-- [Quick Start](quickstart.md) - Get started in 5 minutes
-- [User Guide](../user-guide/workflows.md) - Available commands
-- [Multi-Account Strategy](../advanced/multi-account-strategy.md) - Deploy across multiple AWS accounts
-- [Security Best Practices](../advanced/security-best-practices.md) - Secure credential management with OIDC
-- [GitHub Actions Docs](https://docs.github.com/en/actions)

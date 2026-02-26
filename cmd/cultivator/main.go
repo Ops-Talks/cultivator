@@ -1,23 +1,22 @@
-// Package main is the entry point for the Cultivator CLI application.
 package main
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/cultivator-dev/cultivator/pkg/cmd"
+	"github.com/Ops-Talks/cultivator/internal/cli"
 )
 
 var (
 	version = "dev"
-	commit  = "none"
+	commit  = "unknown"
 	date    = "unknown"
 )
 
 func main() {
-	rootCmd := cmd.NewRootCommand(version, commit, date)
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
+	code := cli.Run(os.Args, cli.VersionInfo{
+		Version: version,
+		Commit:  commit,
+		Date:    date,
+	})
+	os.Exit(code)
 }

@@ -1,125 +1,86 @@
 # Installation
 
-Install Cultivator in your repository using GitHub Actions.
+Install Cultivator as a CLI in your CI pipelines or locally for development.
 
 ## Prerequisites
 
-- **GitHub Organization/Repository** with admin access
-- **.github/workflows** directory (will be created if doesn't exist)
-- **Terragrunt v0.40.0+** (or latest)
-- **Git** (for repository management)
+- Terragrunt v0.50.0+ (or latest)
+- Go v1.25+ for building from source
+- OpenTofu or Terraform installed in your CI environment
 
-## Installation Steps
-
-### Option 1: Using GitHub Actions (Recommended)
-
-#### Step 1: Create Workflow File
+## Option 1: GitHub Actions
 
 Create `.github/workflows/cultivator.yml`:
 
 ```yaml
-name: Cultivator
+name: Cultivator Plan
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
-  issue_comment:
-    types: [created]
-
-permissions:
-  contents: read
-  pull-requests: write
-  checks: write
-  statuses: write
 
 jobs:
-  cultivator:
-    if: |
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
-    
+  plan:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          fetch-depth: 0
+          go-version: 'stable'
 
-      - name: Run Cultivator
-        uses: weyderfs/cultivator@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          terragrunt-version: 'latest'
+      - name: Build Cultivator
+        run: go build -o bin/cultivator ./cmd/cultivator
+
+      - name: Install Terragrunt
+        run: |
+          curl -L https://github.com/gruntwork-io/terragrunt/releases/latest/download/terragrunt_linux_amd64 -o terragrunt
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+      - name: Cultivator plan
+        run: ./bin/cultivator plan --root=live --env=dev --non-interactive
 ```
 
-#### Step 2: Commit and Push
+## Option 2: GitLab CI
 
-```bash
-git add .github/workflows/cultivator.yml
-git commit -m "Add Cultivator GitHub Action"
-git push origin main
+Create `.gitlab-ci.yml`:
+
+```yaml
+stages:
+  - plan
+  - apply
+
+plan:
+  stage: plan
+  image: golang:1.25
+  script:
+    - go build -o bin/cultivator ./cmd/cultivator
+    - ./bin/cultivator plan --root=live --env=dev --non-interactive
+  only:
+    - merge_requests
+
+apply:
+  stage: apply
+  image: golang:1.25
+  script:
+    - go build -o bin/cultivator ./cmd/cultivator
+    - ./bin/cultivator apply --root=live --env=dev --non-interactive --auto-approve
+  when: manual
+  only:
+    - main
 ```
 
-### Option 2: Docker
-
-Run Cultivator in a container:
+## Option 3: Local Installation
 
 ```bash
-docker run -v $(pwd):/work \
-  -e GITHUB_TOKEN=$GITHUB_TOKEN \
-  -e GITHUB_REPOSITORY=owner/repo \
-  weyderfs/cultivator:latest
-```
-
-### Option 3: Local Installation (Development)
-
-```bash
-# Clone the repository
-git clone https://github.com/Ops-Talks/cultivator.git
-cd cultivator
-
-# Build from source
 go build -o cultivator ./cmd/cultivator
-
-# Run
-./cultivator --help
+./cultivator plan --root=live --env=dev --non-interactive
 ```
 
 ## Configuration
 
-Create `cultivator.yml` in your repository root:
-
-```yaml
-version: 1
-
-settings:
-  # Automatically plan on PR open/update
-  auto_plan: true
-  
-  # Require approval before apply
-  require_approval: true
-  
-  # Lock timeout for concurrent applies
-  lock_timeout: 30m
-  
-  # Parallel execution
-  parallel_plan: false
-  max_parallel: 1
-```
-
-See [Configuration Reference](configuration.md) for all options.
-
-## Verify Installation
-
-1. Open a Pull Request with infrastructure changes
-2. Comment on the PR:
-   ```
-   cultivator plan
-   ```
-3. Wait for Cultivator to respond with plan results
-
-If you see a formatted comment with Terragrunt plan output, installation is successful!
+Create a `.cultivator.yaml` (or `cultivator.yml`) in your repository root. See [Configuration](configuration.md) for details.
 
 ## Next Steps
 

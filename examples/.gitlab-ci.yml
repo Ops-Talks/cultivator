@@ -1,0 +1,54 @@
+stages:
+  - plan
+  - apply
+
+variables:
+  TERRAFORM_VERSION: "1.7.0"
+  TERRAGRUNT_VERSION: "0.55.0"
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MRS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+cultivator_plan:
+  stage: plan
+  image: ubuntu:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  before_script:
+    - apt-get update && apt-get install -y wget unzip git curl
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+    - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+  script:
+    - terragrunt run-all plan --terragrunt-non-interactive
+  artifacts:
+    paths:
+      - .terraform/
+      - "**/*.tfplan"
+    expire_in: 1 day
+  only:
+    - merge_requests
+
+cultivator_apply:
+  stage: apply
+  image: ubuntu:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_APPROVED == "true"'
+      when: manual
+  before_script:
+    - apt-get update && apt-get install -y wget unzip git curl
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+    - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+  script:
+    - terragrunt run-all apply --terragrunt-non-interactive
+  only:
+    - merge_requests
+  dependencies:
+    - cultivator_plan

@@ -1,34 +1,35 @@
 # User Guide
 
-Learn how to use Cultivator to automate your Terragrunt workflows.
+Learn how to use Cultivator to automate Terragrunt workflows in CI.
 
 ## Sections
 
 - **[Features](features.md)** - What Cultivator can do
 - **[Workflows](workflows.md)** - How to use Cultivator commands
-- **[Configuration](../getting-started/configuration.md)** - How to configure your setup
+- **[GitLab Pipelines](gitlab-pipelines.md)** - Integrate with GitLab CI/CD
+- **[Configuration](../getting-started/configuration.md)** - Configure your setup
 
 ## Quick Overview
 
-Cultivator runs Terragrunt operations from PR comments:
+Cultivator is a CLI that discovers Terragrunt modules and executes commands with consistent output:
 
 ```
-User comments → Cultivator detects → Executes with dependencies → Posts results
+CI job starts -> Cultivator discovers modules -> Terragrunt runs -> Logs + exit code
 ```
 
 ## Key Concepts
 
-### Change Detection
-Cultivator automatically detects which modules are affected by changes in your PR.
+### Module Discovery
+Cultivator walks the root directory, finds `terragrunt.hcl` modules, and applies filters.
 
-### Dependency Awareness
-Operations respect Terragrunt dependencies and run modules in the correct order.
+### Filters
+Use `--env`, `--include`, `--exclude`, and `--tags` to scope execution.
 
-### Locking
-Prevents concurrent applies to the same module, ensuring safe deployments.
+### Parallelism
+Run modules concurrently with a configurable worker pool.
 
-### Rich Output
-Results are formatted nicely in PR comments with plan summaries and status indicators.
+### Output Formats
+Choose `text` or `json` logging for CI visibility and automation.
 
 ## Getting Help
 

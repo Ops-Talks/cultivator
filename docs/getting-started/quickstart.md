@@ -1,86 +1,67 @@
 # Quick Start
 
-Get Cultivator running in your repository in 5 minutes.
+Get Cultivator running in your repository in a few minutes.
 
-## Step 1: Add GitHub Action
+## Step 1: Build the CLI
 
-Create `.github/workflows/cultivator.yml`:
+```bash
+go build -o cultivator ./cmd/cultivator
+```
+
+## Step 2: Run a plan locally
+
+```bash
+./cultivator plan --root=live --env=dev --non-interactive
+```
+
+## Step 3: Add a CI job
+
+Example GitHub Actions workflow for `plan` on pull requests:
 
 ```yaml
-name: Cultivator
+name: Cultivator Plan
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
-  issue_comment:
-    types: [created]
 
 jobs:
-  cultivator:
+  plan:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      checks: write
-      statuses: write
-      
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          fetch-depth: 0
-          
-      - name: Run Cultivator
-        uses: weyderfs/cultivator@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          terragrunt-version: 0.55.0
+          go-version: 'stable'
+
+      - name: Build Cultivator
+        run: go build -o bin/cultivator ./cmd/cultivator
+
+      - name: Install Terragrunt
+        run: |
+          curl -L https://github.com/gruntwork-io/terragrunt/releases/latest/download/terragrunt_linux_amd64 -o terragrunt
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+      - name: Cultivator plan
+        run: ./bin/cultivator plan --root=live --env=dev --non-interactive
 ```
-
-## Step 2: Commit and Push
-
-```bash
-git add .github/workflows/cultivator.yml
-git commit -m "Add Cultivator workflow"
-git push origin your-branch
-```
-
-## Step 3: Create a Pull Request
-
-1. Go to GitHub
-2. Open a Pull Request with your changes
-3. Comment on the PR:
-
-```
-cultivator plan
-```
-
-## Step 4: Wait for Results
-
-Cultivator will:
-1. Detect changed modules
-2. Run `terragrunt plan` on affected modules
-3. Post results as a PR comment
-
-That's it! 
 
 ## Next Steps
 
-- Learn about [available commands](../user-guide/workflows.md)
-- Configure [advanced settings](configuration.md)
-- Set up [locking and approvals](../getting-started/configuration.md)
+- Learn about [configuration](configuration.md)
+- Review [workflows](../user-guide/workflows.md)
 
 ## Common Commands
 
 ```bash
-# Plan affected modules
-cultivator plan
-
-# Plan all modules
-cultivator plan --all
+# Plan dev modules
+cultivator plan --root=live --env=dev --non-interactive
 
 # Apply changes
-cultivator apply
+cultivator apply --root=live --env=dev --non-interactive --auto-approve
 
-# Apply with auto-approve
-cultivator apply --all
+# Destroy
+cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ```

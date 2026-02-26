@@ -45,3 +45,30 @@ dist/
 
 # Helpers directory
 helpers/
+
+# MkDocs
+site/
+.mkdocs.yml.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.env.local
+thumbs.db
+

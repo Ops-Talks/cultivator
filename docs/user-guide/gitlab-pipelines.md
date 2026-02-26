@@ -2,8 +2,6 @@
 
 This guide shows how to integrate Cultivator with GitLab CI/CD pipelines.
 
-> **Note**: By default, this configuration uses **OpenTofu**, an open-source fork of Terraform that maintains full compatibility. If you prefer HashiCorp Terraform, simply set `IAC_TOOL: "terraform"` in the variables section.
-
 ## Setup
 
 ### Option 1: Using Docker Image (Recommended)
@@ -20,10 +18,8 @@ stages:
   - apply
 
 variables:
-  OPENTOFU_VERSION: "1.7.0"
+  TERRAFORM_VERSION: "1.7.0"
   TERRAGRUNT_VERSION: "0.55.0"
-  # Set to 'terraform' if you prefer HashiCorp Terraform instead of OpenTofu
-  IAC_TOOL: "opentofu"
 
 workflow:
   rules:
@@ -39,14 +35,8 @@ cultivator_plan:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   before_script:
     - apt-get update && apt-get install -y wget unzip git curl
-    - |
-      if [ "$IAC_TOOL" = "terraform" ]; then
-        wget -q https://releases.hashicorp.com/terraform/${OPENTOFU_VERSION}/terraform_${OPENTOFU_VERSION}_linux_amd64.zip
-        unzip -q terraform_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${OPENTOFU_VERSION}_linux_amd64.zip
-      else
-        wget -q https://github.com/opentofu/opentofu/releases/download/v${OPENTOFU_VERSION}/tofu_${OPENTOFU_VERSION}_linux_amd64.zip
-        unzip -q tofu_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin && rm tofu_${OPENTOFU_VERSION}_linux_amd64.zip
-      fi
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
     - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
     - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
   script:
@@ -67,14 +57,8 @@ cultivator_apply:
       when: manual
   before_script:
     - apt-get update && apt-get install -y wget unzip git curl
-    - |
-      if [ "$IAC_TOOL" = "terraform" ]; then
-        wget -q https://releases.hashicorp.com/terraform/${OPENTOFU_VERSION}/terraform_${OPENTOFU_VERSION}_linux_amd64.zip
-        unzip -q terraform_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${OPENTOFU_VERSION}_linux_amd64.zip
-      else
-        wget -q https://github.com/opentofu/opentofu/releases/download/v${OPENTOFU_VERSION}/tofu_${OPENTOFU_VERSION}_linux_amd64.zip
-        unzip -q tofu_${OPENTOFU_VERSION}_linux_amd64.zip -d /usr/local/bin && rm tofu_${OPENTOFU_VERSION}_linux_amd64.zip
-      fi
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
     - wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
     - chmod +x terragrunt_linux_amd64 && mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
   script:
@@ -147,7 +131,7 @@ Common GitLab CI variables you might use:
 
 ## Artifacts & Caching
 
-### Caching OpenTofu/Terraform and Terragrunt
+### Caching Terraform/Terragrunt
 
 ```yaml
 cache:
@@ -228,7 +212,7 @@ script:
 - Check **Settings → CI/CD → Variables** for correct secrets
 - Ensure service account has required permissions
 
-### OpenTofu/Terraform not found
+### Terraform/Terragrunt not found
 
 - Verify `before_script` is running correctly
 - Check Runner logs for installation errors
