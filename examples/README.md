@@ -66,19 +66,4 @@ examples/
 
 ## Pipeline Examples
 
-This directory also contains example pipeline configurations for different CI/CD platforms:
-
-### GitHub Actions
-See the main [Quick Start](../docs/getting-started/quickstart.md) for GitHub Actions examples.
-
-### GitLab CI/CD
-See [`.gitlab-ci.yml`](.gitlab-ci.yml) for a complete GitLab pipeline example.
-
-To use in your project:
-```bash
-cp examples/.gitlab-ci.yml .gitlab-ci.yml
-```
-
-Then customize `OPENTOFU_VERSION`, `TERRAGRUNT_VERSION`, and `IAC_TOOL` as needed.
-
-For more details, see [GitLab Pipelines Integration](../docs/user-guide/gitlab-pipelines.md).
+See the main [Installation Guide](../docs/getting-started/installation.md) for GitHub Actions setup instructions.

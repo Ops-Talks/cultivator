@@ -168,4 +168,6 @@ settings:
 
 - [Quick Start](quickstart.md) - Get started in 5 minutes
 - [User Guide](../user-guide/workflows.md) - Available commands
+- [Multi-Account Strategy](../advanced/multi-account-strategy.md) - Deploy across multiple AWS accounts
+- [Security Best Practices](../advanced/security-best-practices.md) - Secure credential management with OIDC
 - [GitHub Actions Docs](https://docs.github.com/en/actions)

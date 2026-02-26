@@ -6,7 +6,6 @@ Learn how to use Cultivator to automate your Terragrunt workflows.
 
 - **[Features](features.md)** - What Cultivator can do
 - **[Workflows](workflows.md)** - How to use Cultivator commands
-- **[GitLab Pipelines](gitlab-pipelines.md)** - Integrate with GitLab CI/CD
 - **[Configuration](../getting-started/configuration.md)** - How to configure your setup
 
 ## Quick Overview
