@@ -71,6 +71,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://Ops-Talks.github.io/cultivator/user-guide/gitlab-pipelines/</loc>
+         <lastmod>2026-02-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://Ops-Talks.github.io/cultivator/user-guide/workflows/</loc>
          <lastmod>2026-02-26</lastmod>
          <changefreq>daily</changefreq>
