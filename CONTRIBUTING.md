@@ -48,6 +48,31 @@ go build -o cultivator ./cmd/cultivator
 ./cultivator --help
 ```
 
+### Documentation
+
+We use **MkDocs** with **Material theme** for documentation. To test documentation locally:
+
+```bash
+# Create and activate Python virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install documentation dependencies
+pip install -r requirements-docs.txt
+
+# Start MkDocs development server
+mkdocs serve
+
+# The site will be available at http://localhost:8000
+```
+
+**To build for production:**
+```bash
+mkdocs build
+```
+
+This generates a static site in the `site/` directory that's deployed to GitHub Pages.
+
 ### Pre-commit Hooks
 
 We use pre-commit hooks to ensure code quality and consistency before commits are made. This helps catch issues early and maintains a high-quality codebase.
