@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 )
 
 // HTTPModuleSource handles Terraform sources from HTTP/HTTPS URLs
@@ -37,11 +39,14 @@ func (h *HTTPModuleSource) Type() string {
 func (h *HTTPModuleSource) Parse(source string) (*SourceInfo, error) {
 	// Validate that it's a proper HTTPS/HTTP URL
 	if err := isValidURL(source); err != nil {
-		return nil, fmt.Errorf("invalid HTTP URL: %w", err)
+		return nil, custErrors.NewValidationError("invalid HTTP URL").
+			WithContext("source", source).
+			WithContext("error", err.Error())
 	}
 
 	if !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "https://") {
-		return nil, fmt.Errorf("http source must start with http:// or https://")
+		return nil, custErrors.NewValidationError("http source must start with http:// or https://").
+			WithContext("source", source)
 	}
 
 	// Extract subpath if present (after #)
@@ -65,23 +70,29 @@ func (h *HTTPModuleSource) Parse(source string) (*SourceInfo, error) {
 func (h *HTTPModuleSource) FetchVersion(ctx context.Context, source string) (string, error) {
 	info, err := h.Parse(source)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Make a HEAD request to validate the URL is accessible
 	req, err := http.NewRequestWithContext(ctx, "HEAD", info.URL, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", custErrors.NewExternalError("HTTP request creation", err).
+			WithContext("url", info.URL).
+			WithContext("method", "HEAD")
 	}
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch URL: %w", err)
+		return "", custErrors.NewExternalError("HTTP request execution", err).
+			WithContext("url", info.URL).
+			WithContext("method", "HEAD")
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("HTTP error: %d", resp.StatusCode)
+		return "", custErrors.NewExternalError("HTTP request failed", fmt.Errorf("status code %d", resp.StatusCode)).
+			WithContext("url", info.URL).
+			WithContext("status_code", resp.StatusCode)
 	}
 
 	// For HTTP sources, use the ETag header as version if available, otherwise use the URL
@@ -105,7 +116,7 @@ func (h *HTTPModuleSource) Checkout(ctx context.Context, source string, workdir 
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tempFile)
+	defer os.Remove(tempFile) //nolint:errcheck
 
 	// Create working directory
 	if err := os.MkdirAll(workdir, 0755); err != nil {
@@ -127,25 +138,30 @@ func (h *HTTPModuleSource) Checkout(ctx context.Context, source string, workdir 
 func (h *HTTPModuleSource) downloadFile(ctx context.Context, url string) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", custErrors.NewExternalError("HTTP request creation", err).
+			WithContext("url", url).
+			WithContext("method", "GET")
 	}
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to download file: %w", err)
+		return "", custErrors.NewExternalError("HTTP file download", err).
+			WithContext("url", url)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("HTTP error: %d", resp.StatusCode)
+		return "", custErrors.NewExternalError("HTTP download failed", fmt.Errorf("status code %d", resp.StatusCode)).
+			WithContext("url", url).
+			WithContext("status_code", resp.StatusCode)
 	}
 
 	// Create temporary file
 	tempFile, err := os.CreateTemp("", "cultivator-module-*.tmp")
 	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
+		return "", custErrors.NewFileError("create temp", "", err)
 	}
-	defer tempFile.Close()
+	defer tempFile.Close() //nolint:errcheck
 
 	// Copy response body to temp file
 	if _, err := io.Copy(tempFile, resp.Body); err != nil {
@@ -162,13 +178,13 @@ func (h *HTTPModuleSource) extractTarGz(archivePath, workdir, subPath string) er
 	if err != nil {
 		return fmt.Errorf("failed to open archive: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	gz, err := gzip.NewReader(file)
 	if err != nil {
 		return fmt.Errorf("failed to create gzip reader: %w", err)
 	}
-	defer gz.Close()
+	defer gz.Close() //nolint:errcheck
 
 	tr := tar.NewReader(gz)
 
@@ -203,7 +219,7 @@ func (h *HTTPModuleSource) extractZip(archivePath, workdir, subPath string) erro
 	if err != nil {
 		return fmt.Errorf("failed to open zip: %w", err)
 	}
-	defer reader.Close()
+	defer reader.Close() //nolint:errcheck
 
 	for _, file := range reader.File {
 		// Skip if file is outside the target subpath
@@ -233,10 +249,10 @@ func (h *HTTPModuleSource) extractZip(archivePath, workdir, subPath string) erro
 		}
 
 		if err := h.writeFile(targetPath, src); err != nil {
-			src.Close()
+			src.Close() //nolint:errcheck
 			return err
 		}
-		src.Close()
+		src.Close() //nolint:errcheck
 	}
 
 	return nil

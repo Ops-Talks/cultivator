@@ -1,6 +1,6 @@
 site_name: Cultivator
 site_description: CI/CD automation tool for Terragrunt workflows
-site_url: https://Ops-Talks.github.io/cultivator/
+site_url: https://Ops-Talks.github.io/cultivator
 repo_url: https://github.com/Ops-Talks/cultivator
 repo_name: Ops-Talks/cultivator
 edit_uri: edit/main/docs/

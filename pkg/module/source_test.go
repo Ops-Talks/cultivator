@@ -281,9 +281,9 @@ func TestExtractSubPath(t *testing.T) {
 
 func TestExtractQueryParam(t *testing.T) {
 	tests := []struct {
-		source    string
-		param     string
-		expected  string
+		source   string
+		param    string
+		expected string
 	}{
 		{"git::https://github.com/org/repo?ref=v1.0.0", "ref", "v1.0.0"},
 		{"git::https://github.com/org/repo?ref=main&depth=1", "ref", "main"},

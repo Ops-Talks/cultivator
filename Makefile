@@ -3,6 +3,8 @@
 # Variables
 BINARY_NAME=cultivator
 GO=go
+GOOS=linux
+GOARCH=amd64
 GOFLAGS=-v
 LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 )
 
 // ModuleSource defines the interface for external Terraform module sources
@@ -25,11 +27,11 @@ type ModuleSource interface {
 
 // SourceInfo contains parsed information about a module source
 type SourceInfo struct {
-	Type       string // "git" or "http"
-	URL        string // Repository URL
-	SubPath    string // Path within repo (e.g., //vpc)
-	Ref        string // Branch, tag, or commit
-	RawSource  string // Original source string
+	Type      string // "git" or "http"
+	URL       string // Repository URL
+	SubPath   string // Path within repo (e.g., //vpc)
+	Ref       string // Branch, tag, or commit
+	RawSource string // Original source string
 }
 
 // SourceParser creates appropriate ModuleSource implementations
@@ -52,23 +54,26 @@ func NewSourceParser() *SourceParser {
 // This avoids code duplication (DRY principle)
 func (sp *SourceParser) Parse(sourceStr string) (*SourceInfo, error) {
 	if sourceStr == "" {
-		return nil, fmt.Errorf("empty source string")
+		return nil, custErrors.NewValidationError("empty source string")
 	}
 
 	// Detect source type from prefix
 	sourceType := sp.detectSourceType(sourceStr)
 	if sourceType == "" {
-		return nil, fmt.Errorf("unknown source type: %s", sourceStr)
+		return nil, custErrors.NewValidationError(fmt.Sprintf("unknown source type: %s", sourceStr)).
+			WithContext("source", sourceStr)
 	}
 
 	parser, exists := sp.sources[sourceType]
 	if !exists {
-		return nil, fmt.Errorf("no parser for source type: %s", sourceType)
+		return nil, custErrors.NewNotFoundError("source parser", sourceStr).
+			WithContext("source_type", sourceType)
 	}
 
 	info, err := parser.Parse(sourceStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse %s source: %w", sourceType, err)
+		return nil, custErrors.NewParseError(fmt.Sprintf("%s source", sourceType), err).
+			WithContext("source", sourceStr)
 	}
 
 	return info, nil

@@ -1,3 +1,4 @@
+// Package orchestrator coordinates the execution of Terragrunt operations across modules.
 package orchestrator
 
 import (
@@ -5,10 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/cultivator-dev/cultivator/pkg/config"
 	"github.com/cultivator-dev/cultivator/pkg/detector"
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 	"github.com/cultivator-dev/cultivator/pkg/events"
 	"github.com/cultivator-dev/cultivator/pkg/executor"
 	"github.com/cultivator-dev/cultivator/pkg/github"
@@ -20,14 +21,14 @@ import (
 
 // Orchestrator coordinates the entire Cultivator workflow
 type Orchestrator struct {
-	config    *config.Config
-	ghClient  *github.Client
-	parser    *parser.Parser
-	detector  *detector.ChangeDetector
-	executor  *executor.Executor
-	lockMgr              *lock.Manager
-	stdout               io.Writer
-	stderr               io.Writer
+	config              *config.Config
+	ghClient            *github.Client
+	parser              *parser.Parser
+	detector            *detector.ChangeDetector
+	executor            *executor.Executor
+	lockMgr             *lock.Manager
+	stdout              io.Writer
+	stderr              io.Writer
 	lastDetectedModules []*detector.Module // Cache detected modules for external module extraction
 }
 
@@ -43,7 +44,7 @@ func NewOrchestrator(cfg *config.Config, ghToken string, stdout, stderr io.Write
 	// Parse repository from environment
 	event, err := events.ParseEvent()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse event: %w", err)
+		return nil, custErrors.NewParseError("GitHub event", err)
 	}
 
 	return &Orchestrator{
@@ -65,7 +66,7 @@ func (o *Orchestrator) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to parse event: %w", err)
 	}
 
-	fmt.Fprintf(o.stdout, "Event: %s (action: %s)\n", event.Type, event.Action)
+	_, _ = fmt.Fprintf(o.stdout, "Event: %s (action: %s)\n", event.Type, event.Action)
 
 	// Handle different event types
 	if event.IsCommand() {
@@ -76,22 +77,22 @@ func (o *Orchestrator) Run(ctx context.Context) error {
 		return o.handleAutoPlan(ctx, event)
 	}
 
-	fmt.Fprintf(o.stdout, "No action needed for this event\n")
+	_, _ = fmt.Fprintf(o.stdout, "No action needed for this event\n")
 	return nil
 }
 
 // logMessage logs a formatted message to stdout
 func (o *Orchestrator) logMessage(format string, args ...interface{}) {
-	fmt.Fprintf(o.stdout, format+"\n", args...)
+	_, _ = fmt.Fprintf(o.stdout, format+"\n", args...)
 }
 
 // logError logs an error message to stderr
 func (o *Orchestrator) logError(format string, args ...interface{}) {
-	fmt.Fprintf(o.stderr, format+"\n", args...)
+	_, _ = fmt.Fprintf(o.stderr, format+"\n", args...)
 }
 
 // getModulesToProcess returns modules to process based on 'all' flag (DRY principle)
-func (o *Orchestrator) getModulesToProcess(ctx context.Context, event *events.Event, all bool) ([]string, error) {
+func (o *Orchestrator) getModulesToProcess(_ context.Context, event *events.Event, all bool) ([]string, error) {
 	if all {
 		return o.parser.GetAllModules(".")
 	}
@@ -104,7 +105,11 @@ func (o *Orchestrator) getModulesToProcess(ctx context.Context, event *events.Ev
 	}
 
 	// Store detected modules for later access to external modules
-	o.lastDetectedModules = changedModules
+	// Convert []detector.Module to []*detector.Module
+	o.lastDetectedModules = make([]*detector.Module, len(changedModules))
+	for i := range changedModules {
+		o.lastDetectedModules[i] = &changedModules[i]
+	}
 
 	modules := make([]string, 0, len(changedModules))
 	for _, m := range changedModules {
@@ -143,7 +148,7 @@ func (o *Orchestrator) updateStatus(ctx context.Context, sha, state, description
 func (o *Orchestrator) handleCommand(ctx context.Context, event *events.Event) error {
 	command, args := event.ParseCommand()
 
-	fmt.Fprintf(o.stdout, "Command: %s %v\n", command, args)
+	_, _ = fmt.Fprintf(o.stdout, "Command: %s %v\n", command, args)
 
 	switch command {
 	case "plan":
@@ -163,7 +168,7 @@ func (o *Orchestrator) handleCommand(ctx context.Context, event *events.Event) e
 
 // handleAutoPlan automatically runs plan when PR is opened/updated
 func (o *Orchestrator) handleAutoPlan(ctx context.Context, event *events.Event) error {
-	fmt.Fprintf(o.stdout, "Auto-running plan...\n")
+	_, _ = fmt.Fprintf(o.stdout, "Auto-running plan...\n")
 	return o.runPlan(ctx, event, false)
 }
 
@@ -225,7 +230,7 @@ func (o *Orchestrator) runPlan(ctx context.Context, event *events.Event, all boo
 }
 
 // executePlans runs plan for each module and returns formatted results (extracted method)
-func (o *Orchestrator) executePlans(ctx context.Context, modules []string, event *events.Event) ([]string, error) {
+func (o *Orchestrator) executePlans(ctx context.Context, modules []string, _ *events.Event) ([]string, error) {
 	var results []string
 
 	for _, modulePath := range modules {
@@ -235,7 +240,9 @@ func (o *Orchestrator) executePlans(ctx context.Context, modules []string, event
 		if err != nil || result.ExitCode != 0 {
 			errMsg := fmt.Sprintf("Plan failed for %s", modulePath)
 			output := github.FormatPlanOutput(modulePath, result.Stdout+"\n"+result.Stderr, false)
-			return nil, fmt.Errorf(errMsg + "\n\n" + output)
+			return nil, custErrors.NewExternalError("terraform plan", fmt.Errorf("%s", errMsg)).
+				WithContext("module", modulePath).
+				WithContext("output", output)
 		}
 
 		results = append(results, github.FormatPlanOutput(modulePath, result.Stdout, true))
@@ -246,10 +253,10 @@ func (o *Orchestrator) executePlans(ctx context.Context, modules []string, event
 
 // runApply executes terragrunt apply
 func (o *Orchestrator) runApply(ctx context.Context, event *events.Event, all bool) error {
-	o.logMessage("Running apply..."
+	o.logMessage("Running apply...")
 
 	// Check apply requirements
-	pr, err := o.ghClient.GetPR(ctx, event.PRNumber)
+	_, err := o.ghClient.GetPR(ctx, event.PRNumber)
 	if err != nil {
 		return fmt.Errorf("failed to get PR: %w", err)
 	}
@@ -316,15 +323,22 @@ func (o *Orchestrator) executeApplies(ctx context.Context, modules []string, eve
 
 		// Try to acquire lock
 		if err := o.lockMgr.Acquire(ctx, modulePath, event.CommentAuthor, event.PRNumber); err != nil {
-			return nil, fmt.Errorf("failed to acquire lock: %w", err)
+			return nil, custErrors.NewExternalError("acquire module lock", err).
+				WithContext("module", modulePath).
+				WithContext("pr_number", event.PRNumber).
+				WithContext("author", event.CommentAuthor)
 		}
-		defer o.lockMgr.Release(modulePath)
+		defer func() {
+			_ = o.lockMgr.Release(modulePath)
+		}()
 
 		result, err := o.executor.Apply(ctx, modulePath)
 		if err != nil || result.ExitCode != 0 {
 			errMsg := fmt.Sprintf("Apply failed for %s", modulePath)
 			output := github.FormatApplyOutput(modulePath, result.Stdout+"\n"+result.Stderr, false)
-			return nil, fmt.Errorf(errMsg + "\n\n" + output)
+			return nil, custErrors.NewExternalError("terraform apply", fmt.Errorf("%s", errMsg)).
+				WithContext("module", modulePath).
+				WithContext("output", output)
 		}
 
 		results = append(results, github.FormatApplyOutput(modulePath, result.Stdout, true))

@@ -118,8 +118,8 @@ func TestCleanTerraformOutput(t *testing.T) {
 
 func TestRedactSensitive(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
+		name           string
+		input          string
 		mustNotContain []string
 		mustContain    []string
 	}{

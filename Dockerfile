@@ -1,6 +1,6 @@
 # Dockerfile for Cultivator
 
-FROM golang:1.21-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git make
@@ -23,12 +23,13 @@ FROM alpine:latest
 # Install runtime dependencies
 RUN apk add --no-cache ca-certificates git bash
 
-# Install Terraform
-ENV TERRAFORM_VERSION=1.7.0
-RUN wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
-    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
-    mv terraform /usr/local/bin/ && \
-    rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+# Install OpenTofu (open-source alternative to Terraform)
+ENV OPENTOFU_VERSION=1.6.1
+RUN wget -q https://github.com/opentofu/opentofu/releases/download/v${OPENTOFU_VERSION}/tofu_${OPENTOFU_VERSION}_linux_amd64.zip && \
+    unzip tofu_${OPENTOFU_VERSION}_linux_amd64.zip && \
+    mv tofu /usr/local/bin/ && \
+    rm tofu_${OPENTOFU_VERSION}_linux_amd64.zip && \
+    ln -s /usr/local/bin/tofu /usr/local/bin/terraform
 
 # Install Terragrunt
 ENV TERRAGRUNT_VERSION=0.55.0

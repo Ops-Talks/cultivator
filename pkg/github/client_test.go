@@ -8,7 +8,7 @@ import (
 
 func TestFormatPlanOutput(t *testing.T) {
 	output := FormatPlanOutput("env/dev/vpc", "Plan output here", true)
-	
+
 	assert.Contains(t, output, "Plan Results")
 	assert.Contains(t, output, "env/dev/vpc")
 	assert.Contains(t, output, "Changes detected")
@@ -17,7 +17,7 @@ func TestFormatPlanOutput(t *testing.T) {
 
 func TestFormatApplyOutput(t *testing.T) {
 	output := FormatApplyOutput("env/dev/vpc", "Apply output here", true)
-	
+
 	assert.Contains(t, output, "Apply Results")
 	assert.Contains(t, output, "env/dev/vpc")
 	assert.Contains(t, output, "Applied successfully")

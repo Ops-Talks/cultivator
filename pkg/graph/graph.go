@@ -1,8 +1,11 @@
+// Package graph builds and analyzes module dependency graphs.
 package graph
 
 import (
 	"fmt"
 	"sort"
+
+	"github.com/cultivator-dev/cultivator/pkg/util"
 )
 
 // Node represents a module in the dependency graph
@@ -41,12 +44,12 @@ func (g *Graph) AddDependency(from, to string) {
 	g.AddNode(to)
 
 	// Add to dependencies
-	if !contains(g.nodes[from].Dependencies, to) {
+	if !util.Contains(g.nodes[from].Dependencies, to) {
 		g.nodes[from].Dependencies = append(g.nodes[from].Dependencies, to)
 	}
 
 	// Add to dependents (reverse)
-	if !contains(g.nodes[to].Dependents, from) {
+	if !util.Contains(g.nodes[to].Dependents, from) {
 		g.nodes[to].Dependents = append(g.nodes[to].Dependents, from)
 	}
 }
@@ -226,14 +229,4 @@ func (g *Graph) Subgraph(modules []string) *Graph {
 func (g *Graph) Validate() error {
 	_, err := g.TopologicalSort()
 	return err
-}
-
-// Helper function to check if slice contains string
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }

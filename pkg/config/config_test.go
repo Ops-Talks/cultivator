@@ -27,11 +27,11 @@ settings:
 
 	tmpFile, err := os.CreateTemp("", "cultivator-test-*.yml")
 	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
+	defer os.Remove(tmpFile.Name()) //nolint:errcheck
 
 	_, err = tmpFile.WriteString(configContent)
 	require.NoError(t, err)
-	tmpFile.Close()
+	tmpFile.Close() //nolint:errcheck
 
 	// Load config
 	cfg, err := LoadConfig(tmpFile.Name())

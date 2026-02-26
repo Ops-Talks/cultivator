@@ -1,3 +1,4 @@
+// Package formatter handles output formatting and text redaction for sensitive data.
 package formatter
 
 import (

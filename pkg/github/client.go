@@ -1,3 +1,4 @@
+// Package github provides GitHub API client functionality for pull request operations.
 package github
 
 import (
@@ -5,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 	"github.com/cultivator-dev/cultivator/pkg/formatter"
 	"github.com/google/go-github/v58/github"
 	"golang.org/x/oauth2"
@@ -49,7 +51,10 @@ func (c *Client) GetPRFiles(ctx context.Context, prNumber int) ([]string, error)
 	for {
 		files, resp, err := c.client.PullRequests.ListFiles(ctx, c.owner, c.repo, prNumber, opts)
 		if err != nil {
-			return nil, fmt.Errorf("failed to list PR files: %w", err)
+			return nil, custErrors.NewExternalError("GitHub API - list PR files", err).
+				WithContext("owner", c.owner).
+				WithContext("repo", c.repo).
+				WithContext("pr_number", prNumber)
 		}
 
 		for _, file := range files {
@@ -71,7 +76,10 @@ func (c *Client) GetPRFiles(ctx context.Context, prNumber int) ([]string, error)
 func (c *Client) GetPR(ctx context.Context, prNumber int) (*github.PullRequest, error) {
 	pr, _, err := c.client.PullRequests.Get(ctx, c.owner, c.repo, prNumber)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get PR: %w", err)
+		return nil, custErrors.NewExternalError("GitHub API - get PR", err).
+			WithContext("owner", c.owner).
+			WithContext("repo", c.repo).
+			WithContext("pr_number", prNumber)
 	}
 	return pr, nil
 }
@@ -104,14 +112,14 @@ type OutputFormat struct {
 func formatOutputSection(modulePath, output string, format OutputFormat) string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("### %s %s\n\n", format.Emoji, format.Title))
-	sb.WriteString(fmt.Sprintf("**Module:** `%s`\n\n", modulePath))
+	sb.WriteString(fmt.Sprintf("### %s %s\n\n", format.Emoji, format.Title)) //nolint:staticcheck
+	sb.WriteString(fmt.Sprintf("**Module:** `%s`\\n\\n", modulePath))        //nolint:staticcheck
 
 	if format.HasChanges {
 		if format.Title == "Plan Results" {
 			summary := formatter.ParsePlanOutput(output)
 			if summary.HasChanges {
-				sb.WriteString(fmt.Sprintf("**%s**\n\n", summary.String()))
+				sb.WriteString(fmt.Sprintf("**%s**\n\n", summary.String())) //nolint:staticcheck
 			} else {
 				sb.WriteString("**No changes**\n\n")
 			}
@@ -126,8 +134,8 @@ func formatOutputSection(modulePath, output string, format OutputFormat) string 
 	truncatedOutput := formatter.TruncateOutput(cleanOutput, 100)
 
 	sb.WriteString("<details>\n")
-	sb.WriteString(fmt.Sprintf("<summary>Show %s</summary>\n\n", format.Title))
-	sb.WriteString(fmt.Sprintf("```%s\n", format.CodeLang))
+	sb.WriteString(fmt.Sprintf("<summary>Show %s</summary>\n\n", format.Title)) //nolint:staticcheck
+	sb.WriteString(fmt.Sprintf("```%s\n", format.CodeLang))                     //nolint:staticcheck
 	sb.WriteString(truncatedOutput)
 	sb.WriteString("\n```\n\n")
 	sb.WriteString("</details>\n")

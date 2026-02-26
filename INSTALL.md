@@ -42,7 +42,7 @@ go install github.com/cultivator-dev/cultivator/cmd/cultivator@latest
 ## Option 3: Build from Source
 
 ### Prerequisites
-- Go 1.21 or higher
+- Go 1.25 or higher
 - Git
 
 ### Steps
@@ -157,8 +157,8 @@ Cultivator requires these tools to be installed:
 
 ### Required
 - **Git** - For detecting changes
-- **Terragrunt** >= 0.50.0
-- **Terraform** >= 1.5.0
+- **Terragrunt** >= 0.55.0
+- **Terraform** >= 1.7.0
 
 ### Optional
 - **Docker** - For containerized execution

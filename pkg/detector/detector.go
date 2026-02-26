@@ -1,3 +1,4 @@
+// Package detector identifies changes in Terragrunt modules.
 package detector
 
 import (
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 	"github.com/cultivator-dev/cultivator/pkg/module"
 	"github.com/cultivator-dev/cultivator/pkg/parser"
 )
@@ -19,12 +21,12 @@ const terragruntConfigFile = "terragrunt.hcl"
 
 // Module represents a Terragrunt module that was changed
 type Module struct {
-	Path             string                 `json:"path"`
-	RelativePath     string                 `json:"relative_path"`
-	Dependencies     []string               `json:"dependencies,omitempty"`
-	ExternalModules  []module.SourceInfo    `json:"external_modules,omitempty"` // External module sources
-	Changed          bool                   `json:"changed"`
-	Affected         bool                   `json:"affected"` // Affected by dependency changes
+	Path            string              `json:"path"`
+	RelativePath    string              `json:"relative_path"`
+	Dependencies    []string            `json:"dependencies,omitempty"`
+	ExternalModules []module.SourceInfo `json:"external_modules,omitempty"` // External module sources
+	Changed         bool                `json:"changed"`
+	Affected        bool                `json:"affected"` // Affected by dependency changes
 }
 
 // ChangeDetector detects which Terragrunt modules have changed
@@ -50,7 +52,10 @@ func (d *ChangeDetector) DetectChangedFiles() ([]string, error) {
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to detect changed files: %w", err)
+		return nil, custErrors.NewExternalError("git diff", err).
+			WithContext("base_ref", d.baseRef).
+			WithContext("head_ref", d.headRef).
+			WithContext("working_dir", d.workingDir)
 	}
 
 	files := strings.Split(strings.TrimSpace(string(output)), "\n")
@@ -209,7 +214,7 @@ func (d *ChangeDetector) buildAffectedResult(allModules []Module, affected map[s
 // DetectExternalModuleChanges detects changes in external module versions
 // Compares external module references between base and head commits
 // Returns modules where external modules have been updated
-func (d *ChangeDetector) DetectExternalModuleChanges(ctx context.Context, modules []Module) ([]Module, error) {
+func (d *ChangeDetector) DetectExternalModuleChanges(_ context.Context, modules []Module) ([]Module, error) {
 	changedModules := make([]Module, 0)
 	hclParser := parser.NewParser()
 	moduleSourceParser := module.NewSourceParser()
@@ -271,7 +276,6 @@ func (d *ChangeDetector) hasExternalModuleChanges(baseTfContent, headTfContent s
 	// If sources differ, check if they're both external
 	if (strings.HasPrefix(baseSource, "git::") || strings.HasPrefix(baseSource, "http")) &&
 		(strings.HasPrefix(headSource, "git::") || strings.HasPrefix(headSource, "http")) {
-
 		// Check if the version/ref has changed
 		return d.compareExternalSources(baseSource, headSource, parser)
 	}

@@ -33,7 +33,7 @@ jobs:
         uses: weyderfs/cultivator@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          terragrunt-version: latest
+          terragrunt-version: 0.55.0
 ```
 
 ## Step 2: Commit and Push

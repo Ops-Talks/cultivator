@@ -22,9 +22,9 @@ Thank you for considering contributing to Cultivator! This document provides gui
 ## Development Setup
 
 ### Prerequisites
-- Go 1.21 or higher
-- Terragrunt 0.50.0 or higher
-- Terraform 1.5.0 or higher
+- Go 1.25 or higher
+- Terragrunt 0.55.0 or higher
+- Terraform 1.7.0 or higher
 - Git
 
 ### Running Tests

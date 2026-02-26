@@ -1,79 +1,69 @@
+// Package config handles configuration loading and validation.
 package config
 
 import (
-	"fmt"
 	"os"
 	"time"
 
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 	"github.com/cultivator-dev/cultivator/pkg/lock"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
-// Config represents the cultivator configuration
-package config
-type Config struct {
-	Version  int                `yaml:"version"`
-	Projects []ProjectConfig    `yaml:"projects"`
-	Settings GlobalSettings     `yaml:"settings"`
-	Hooks    map[string][]string `yaml:"hooks,omitempty"`
-}
-
-// ProjectConfig represents a single project/directory to manage
-type ProjectConfig struct {
-	Name               string              `yaml:"name"`
 // Default configuration values (constants for DRY principle)
 const (
 	defaultVersion     = 1
 	defaultMaxParallel = 5
 )
-	Dir                string              `yaml:"dir"`
-	TerragruntVersion  string              `yaml:"terragrunt_version,omitempty"`
-	TerraformVersion   string              `yaml:"terraform_version,omitempty"`
-	Workflow           string              `yaml:"workflow,omitempty"`
-	ApplyRequirements  []string            `yaml:"apply_requirements,omitempty"`
-	AutoPlan           *bool               `yaml:"auto_plan,omitempty"`
+
+// Config represents the cultivator configuration
+type Config struct {
+	Version  int                 `yaml:"version"`
+	Projects []ProjectConfig     `yaml:"projects"`
+	Settings GlobalSettings      `yaml:"settings"`
+	Hooks    map[string][]string `yaml:"hooks,omitempty"`
 }
 
-// GlobalSettings repres       `yaml:"auto_plan"`
+// ProjectConfig represents a single project/directory to manage
+type ProjectConfig struct {
+	Name              string   `yaml:"name"`
+	Dir               string   `yaml:"dir"`
+	TerragruntVersion string   `yaml:"terragrunt_version,omitempty"`
+	TerraformVersion  string   `yaml:"terraform_version,omitempty"`
+	Workflow          string   `yaml:"workflow,omitempty"`
+	ApplyRequirements []string `yaml:"apply_requirements,omitempty"`
+	AutoPlan          *bool    `yaml:"auto_plan,omitempty"`
+}
+
+// GlobalSettings represents global configuration settings
+type GlobalSettings struct {
+	AutoPlan        bool          `yaml:"auto_plan"`
 	LockTimeout     time.Duration `yaml:"-"`
 	LockTimeoutStr  string        `yaml:"lock_timeout,omitempty"`
 	ParallelPlan    bool          `yaml:"parallel_plan"`
 	MaxParallel     int           `yaml:"max_parallel,omitempty"`
-	RequireApproval bool          `yaml:"parallel_plan"`
-	MaxParallel     int    `yaml:"max_parallel,omitempty"`
-	RequireApproval bool   `yaml:"require_approval"`
+	RequireApproval bool          `yaml:"require_approval"`
 }
 
 // LoadConfig loads the cultivator configuration from a file
 func LoadConfig(path string) (*Config, error) {
-// GlobalSettings represents global configuration settings
-type GlobalSettings struct {
-	AutoPlan        bool          `yaml:"auto_plan"`
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		return nil, custErrors.NewFileError("read", path, err)
 	}
 
-	RequireApproval bool          `yaml:"require_approval"`
-}
 	var config Config
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("failed to parse config file: %w", err)
+		return nil, custErrors.NewParseError("YAML configuration", err).
+			WithContext("file_path", path)
 	}
 
-	// Set defaults
-	if config.Version == 0 {
-		config.Version = 1
-	}
-	
-	// Parse lock timeout
-	config.Settings.LockTimeout = lock.ParseDuration(config.Settings.LockTimeoutStr)
-	if config.Settings.MaxParallel == 0 {
 	// Apply defaults and validate
 	config.applyDefaults()
-		config.Settings.MaxParallel = 5
+
 	return &config, nil
 }
-	}
+
 // applyDefaults sets default values for configuration (DRY principle - centralized defaults)
 func (c *Config) applyDefaults() {
 	if c.Version == 0 {
@@ -86,14 +76,12 @@ func (c *Config) applyDefaults() {
 		c.Settings.MaxParallel = defaultMaxParallel
 	}
 }
-	return &config, nil
-}
 
 // GetProject returns the project config for a given directory
 func (c *Config) GetProject(dir string) *ProjectConfig {
+	for i := range c.Projects {
+		if c.Projects[i].Dir == dir {
 			return &c.Projects[i]
-		if project.Dir == dir {
-			return &project
 		}
 	}
 	return nil

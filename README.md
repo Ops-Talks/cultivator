@@ -53,6 +53,11 @@ jobs:
         uses: autero1/action-terragrunt@v1
         with:
           terragrunt-version: 0.55.0
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.0
           
       - name: Run Cultivator
         uses: cultivator-dev/cultivator-action@v1
@@ -163,8 +168,8 @@ cultivator/
 ## Requirements
 
 - Terragrunt >= 0.50.0
-- Terraform >= 1.5.0
-- Go >= 1.21 (for building from source)
+- OpenTofu >= 1.6.0 (open-source Terraform alternative) or Terraform >= 1.5.0
+- Go >= 1.25 (for building from source)
 
 ## Contributing
 

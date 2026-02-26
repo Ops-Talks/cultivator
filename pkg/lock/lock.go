@@ -1,3 +1,4 @@
+// Package lock manages distributed lock operations for module processing.
 package lock
 
 import (
@@ -5,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 )
 
 // ParseDuration parses a duration string (like "10m", "1h")
@@ -12,12 +15,12 @@ func ParseDuration(s string) time.Duration {
 	if s == "" {
 		return 10 * time.Minute
 	}
-	
+
 	d, err := time.ParseDuration(s)
 	if err != nil {
 		return 10 * time.Minute
 	}
-	
+
 	return d
 }
 
@@ -45,7 +48,7 @@ func NewManager(timeout time.Duration) *Manager {
 }
 
 // Acquire attempts to acquire a lock for a module
-func (m *Manager) Acquire(ctx context.Context, module, user string, pr int) error {
+func (m *Manager) Acquire(_ context.Context, module, user string, pr int) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -108,7 +111,8 @@ func (m *Manager) GetLock(module string) (*Lock, error) {
 
 	lock, exists := m.locks[module]
 	if !exists {
-		return nil, fmt.Errorf("no lock found for module %s", module)
+		return nil, custErrors.NewNotFoundError("lock", module).
+			WithContext("module", module)
 	}
 
 	return lock, nil

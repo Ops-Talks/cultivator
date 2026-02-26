@@ -1,3 +1,4 @@
+// Package cmd provides command-line interface definitions for Cultivator.
 package cmd
 
 import (
@@ -45,9 +46,9 @@ func newRunCommand() *cobra.Command {
 		Use:   "run",
 		Short: "Run cultivator based on GitHub event",
 		Long:  "Automatically detects the GitHub event type and runs the appropriate action",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
-			
+
 			fmt.Println("Running Cultivator...")
 
 			// Load configuration
@@ -84,7 +85,7 @@ func newPlanCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plan",
 		Short: "Run terragrunt plan",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			if all {
 				fmt.Println("Running plan-all...")
 			} else if module != "" {
@@ -110,7 +111,7 @@ func newApplyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "apply",
 		Short: "Run terragrunt apply",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			if all {
 				fmt.Println("Running apply-all...")
 			} else if module != "" {
@@ -133,7 +134,7 @@ func newDetectCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "detect",
 		Short: "Detect changed Terragrunt modules",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			fmt.Println("Detecting changed modules...")
 			// TODO: Implement detection logic
 			return nil
@@ -147,17 +148,17 @@ func newValidateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate cultivator configuration",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			fmt.Printf("Validating configuration: %s\n", configPath)
 
 			cfg, err := config.LoadConfig(configPath)
 			if err != nil {
-				return fmt.Errorf("Configuration is invalid: %w", err)
+				return fmt.Errorf("configuration is invalid: %w", err)
 			}
 
 			// Validate configuration
 			if err := validateConfig(cfg); err != nil {
-				return fmt.Errorf("Validation failed: %w", err)
+				return fmt.Errorf("validation failed: %w", err)
 			}
 
 			fmt.Println("Configuration is valid")
@@ -196,10 +197,13 @@ func newVersionCommand(version, commit, date string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			fmt.Printf("Cultivator %s\n", version)
 			fmt.Printf("Commit: %s\n", commit)
-	
+			fmt.Printf("Built: %s\n", date)
+		},
+	}
+}
 
 // Helper functions
 
@@ -209,7 +213,4 @@ func loadConfig(path string) (*config.Config, error) {
 
 func createOrchestrator(cfg *config.Config, ghToken string) (*orchestrator.Orchestrator, error) {
 	return orchestrator.NewOrchestrator(cfg, ghToken, os.Stdout, os.Stderr)
-}		fmt.Printf("Built: %s\n", date)
-		},
-	}
 }

@@ -1,21 +1,26 @@
+// Package events handles GitHub webhook event processing and type definitions.
 package events
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 )
 
 // EventType represents the type of GitHub event
 type EventType string
 
 const (
-	EventPullRequest   EventType = "pull_request"
-	EventIssueComment  EventType = "issue_comment"
-	EventPush          EventType = "push"
+	// EventPullRequest represents pull request events.
+	EventPullRequest EventType = "pull_request"
+	// EventIssueComment represents issue comment events.
+	EventIssueComment EventType = "issue_comment"
+	// EventPush represents push events.
+	EventPush EventType = "push"
 )
 
 // Event represents a GitHub event
@@ -39,7 +44,8 @@ func ParseEvent() (*Event, error) {
 	repository := os.Getenv("GITHUB_REPOSITORY")
 
 	if eventName == "" {
-		return nil, fmt.Errorf("GITHUB_EVENT_NAME not set")
+		return nil, custErrors.NewValidationError("GITHUB_EVENT_NAME environment variable not set").
+			WithContext("context", "GitHub webhook event parsing")
 	}
 
 	event := &Event{
@@ -192,9 +198,9 @@ func (e *Event) ShouldAutoPlan() bool {
 	}
 
 	// Auto plan on PR opened, synchronize (new commits), reopened
-	return e.Action == "opened" || 
-	       e.Action == "synchronize" || 
-	       e.Action == "reopened"
+	return e.Action == "opened" ||
+		e.Action == "synchronize" ||
+		e.Action == "reopened"
 }
 
 // GetPRNumberFromEnv gets PR number from environment if not in event

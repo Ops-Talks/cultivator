@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestChangeDetector_isTerragruntFile(t *testing.T) {
+func TestChangeDetector_isRelevantFile(t *testing.T) {
 	detector := &ChangeDetector{}
 
 	tests := []struct {
@@ -23,7 +23,7 @@ func TestChangeDetector_isTerragruntFile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := detector.isTerragruntFile(tt.filename)
+			result := detector.isRelevantFile(tt.filename)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

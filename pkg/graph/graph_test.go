@@ -28,7 +28,7 @@ func TestGraph_AddDependency(t *testing.T) {
 
 func TestGraph_TopologicalSort(t *testing.T) {
 	g := NewGraph()
-	
+
 	// vpc <- database <- app
 	g.AddDependency("database", "vpc")
 	g.AddDependency("app", "database")
@@ -42,7 +42,7 @@ func TestGraph_TopologicalSort(t *testing.T) {
 
 func TestGraph_CircularDependency(t *testing.T) {
 	g := NewGraph()
-	
+
 	// Create circular dependency
 	g.AddDependency("module1", "module2")
 	g.AddDependency("module2", "module3")
@@ -55,7 +55,7 @@ func TestGraph_CircularDependency(t *testing.T) {
 
 func TestGraph_GetAffectedModules(t *testing.T) {
 	g := NewGraph()
-	
+
 	// vpc <- database <- app
 	g.AddDependency("database", "vpc")
 	g.AddDependency("app", "database")
@@ -75,7 +75,7 @@ func TestGraph_GetAffectedModules(t *testing.T) {
 
 func TestGraph_GetExecutionGroups(t *testing.T) {
 	g := NewGraph()
-	
+
 	// Create a graph:
 	// vpc
 	// ├── database
@@ -102,7 +102,7 @@ func TestGraph_GetExecutionGroups(t *testing.T) {
 
 func TestGraph_Subgraph(t *testing.T) {
 	g := NewGraph()
-	
+
 	g.AddDependency("app", "database")
 	g.AddDependency("database", "vpc")
 	g.AddDependency("cache", "vpc")

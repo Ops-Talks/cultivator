@@ -4,7 +4,7 @@ Welcome to Cultivator! This section will guide you through installation, configu
 
 ## Prerequisites
 
-- **Go 1.21+** (for building from source)
+- **Go 1.25+** (for building from source)
 - **Git** (2.0+)
 - **Docker** (optional, for containerized deployment)
 - **GitHub Account** with repository access

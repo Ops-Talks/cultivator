@@ -1,3 +1,4 @@
+// Package module provides module source implementations for git and HTTP repositories.
 package module
 
 import (
@@ -5,6 +6,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	custErrors "github.com/cultivator-dev/cultivator/pkg/errors"
 )
 
 // GitModuleSource handles Terraform sources from Git repositories
@@ -27,7 +30,8 @@ func (g *GitModuleSource) Type() string {
 func (g *GitModuleSource) Parse(source string) (*SourceInfo, error) {
 	// Remove "git::" prefix
 	if !strings.HasPrefix(source, "git::") {
-		return nil, fmt.Errorf("git source must start with 'git::'")
+		return nil, custErrors.NewValidationError("git source must start with 'git::'").
+			WithContext("source", source)
 	}
 
 	sourceWithoutPrefix := strings.TrimPrefix(source, "git::")
@@ -44,7 +48,8 @@ func (g *GitModuleSource) Parse(source string) (*SourceInfo, error) {
 	// Remove subpath and query params to get the repository URL
 	repoURL := g.extractRepositoryURL(sourceWithoutPrefix)
 	if repoURL == "" {
-		return nil, fmt.Errorf("invalid git source: %s", source)
+		return nil, custErrors.NewValidationError(fmt.Sprintf("invalid git source: %s", source)).
+			WithContext("source", source)
 	}
 
 	return &SourceInfo{
@@ -68,13 +73,17 @@ func (g *GitModuleSource) FetchVersion(ctx context.Context, source string) (stri
 	cmd := exec.CommandContext(ctx, "git", "ls-remote", "--resolve", info.URL, info.Ref)
 	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch git version: %w", err)
+		return "", custErrors.NewExternalError("git ls-remote", err).
+			WithContext("url", info.URL).
+			WithContext("ref", info.Ref)
 	}
 
 	// Output format: "<SHA>\t<ref>"
 	parts := strings.Fields(string(output))
 	if len(parts) == 0 {
-		return "", fmt.Errorf("no output from git ls-remote")
+		return "", custErrors.NewValidationError("no output from git ls-remote").
+			WithContext("url", info.URL).
+			WithContext("ref", info.Ref)
 	}
 
 	return parts[0], nil // Return the commit SHA

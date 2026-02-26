@@ -1,7 +1,9 @@
+// Package executor runs Terragrunt commands with proper error handling and output redirection.
 package executor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -22,12 +24,12 @@ type Result struct {
 
 // Executor executes Terragrunt commands
 type Executor struct {
-	workingDir        string
-	terragruntBinary  string
-	terraformBinary   string
-	sourceParser      *module.SourceParser // For handling external modules
-	stdout            io.Writer
-	stderr            io.Writer
+	workingDir       string
+	terragruntBinary string
+	terraformBinary  string
+	sourceParser     *module.SourceParser // For handling external modules
+	stdout           io.Writer
+	stderr           io.Writer
 }
 
 const (
@@ -113,7 +115,8 @@ func extractExitCode(err error) int {
 		return 0
 	}
 
-	if exitError, ok := err.(*exec.ExitError); ok {
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) {
 		return exitError.ExitCode()
 	}
 
@@ -151,7 +154,7 @@ func (e *Executor) CheckVersion() (string, error) {
 // This should be called before running plan/apply to ensure modules are available
 func (e *Executor) PrepareExternalModules(ctx context.Context, externalModules []module.SourceInfo) error {
 	for _, moduleInfo := range externalModules {
-		if err := e.checkoutExternalModule(ctx, moduleInfo); err != nil {
+		if err := e.checkoutExternalModule(ctx, &moduleInfo); err != nil {
 			return fmt.Errorf("failed to prepare external module %s: %w", moduleInfo.RawSource, err)
 		}
 	}
@@ -181,12 +184,12 @@ func (e *Executor) checkoutExternalModule(ctx context.Context, sourceInfo *modul
 	}
 
 	// Download and extract the module
-	fmt.Fprintf(e.stdout, "Fetching external module: %s\n", sourceInfo.RawSource)
+	_, _ = fmt.Fprintf(e.stdout, "Fetching external module: %s\n", sourceInfo.RawSource)
 	if err := source.Checkout(ctx, sourceInfo.RawSource, moduleCacheDir); err != nil {
 		return fmt.Errorf("failed to checkout module: %w", err)
 	}
 
-	fmt.Fprintf(e.stdout, "Module ready: %s\n", moduleCacheDir)
+	_, _ = fmt.Fprintf(e.stdout, "Module ready: %s\n", moduleCacheDir)
 	return nil
 }
 
@@ -200,7 +203,7 @@ func (e *Executor) getModuleCacheDir(url string) string {
 
 // isModuleCached checks if a module is already cached and up-to-date
 // DRY: single location for cache validation logic
-func (e *Executor) isModuleCached(ctx context.Context, sourceInfo *module.SourceInfo, cachePath string, source module.ModuleSource) bool {
+func (e *Executor) isModuleCached(_ context.Context, _ *module.SourceInfo, cachePath string, source module.ModuleSource) bool {
 	// Check if cache directory exists
 	if _, err := os.Stat(cachePath); err != nil {
 		return false
@@ -222,4 +225,3 @@ func (e *Executor) hashString(s string) string {
 	}
 	return fmt.Sprintf("%s-%d-%s", string(s[0]), len(s), string(s[len(s)-1]))
 }
-
