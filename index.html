@@ -527,9 +527,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#target-specific-modules" class="md-nav__link">
+  <a href="#target-specific-stacks" class="md-nav__link">
     <span class="md-ellipsis">
-      Target Specific Modules
+      Target Specific Stacks
     </span>
   </a>
   
@@ -1219,9 +1219,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#target-specific-modules" class="md-nav__link">
+  <a href="#target-specific-stacks" class="md-nav__link">
     <span class="md-ellipsis">
-      Target Specific Modules
+      Target Specific Stacks
     </span>
   </a>
   
@@ -1339,11 +1339,11 @@
 
 <h1 id="cultivator">Cultivator<a class="headerlink" href="#cultivator" title="Permanent link">&para;</a></h1>
 <p><img alt="Cultivator" src="assets/logo.svg" /></p>
-<p><strong>Cultivator</strong> is a lightweight CLI that orchestrates <strong>Terragrunt</strong> module discovery, filtering, and execution across CI/CD systems and local environments. It brings consistency and intelligence to multi-module Terraform/OpenTofu deployments.</p>
+<p><strong>Cultivator</strong> is a lightweight CLI that orchestrates <strong>Terragrunt</strong> stack discovery, filtering, and execution across CI/CD systems and local environments.</p>
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
-<p>✅ <strong>Automatic Module Discovery</strong> — Find all <code>terragrunt.hcl</code> files recursively<br />
+<p>✅ <strong>Automatic Stack Discovery</strong> — Find all <code>terragrunt.hcl</code> files recursively<br />
 ✅ <strong>Smart Filtering</strong> — Scope execution by environment, paths, and custom tags<br />
-✅ <strong>Dependency-Aware</strong> — Respects Terragrunt dependencies, runs modules in correct order<br />
+✅ <strong>Dependency-Aware</strong> — Respects Terragrunt dependencies, runs stacks in correct order<br />
 ✅ <strong>Parallel Execution</strong> — Configurable worker pool for fast, safe concurrent runs<br />
 ✅ <strong>No Server Required</strong> — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)<br />
 ✅ <strong>Secret Redaction</strong> — Automatically masks sensitive data in logs<br />
@@ -1351,9 +1351,9 @@
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Cultivator solves the complexity of orchestrating Terragrunt:</p>
 <ul>
-<li><strong>Discovers</strong> all Terragrunt modules under a root directory</li>
-<li><strong>Filters</strong> modules by environment, path patterns, and tags</li>
-<li><strong>Respects</strong> module dependencies and executes in correct order</li>
+<li><strong>Discovers</strong> all Terragrunt stacks under a root directory</li>
+<li><strong>Filters</strong> stacks by environment, path patterns, and tags</li>
+<li><strong>Respects</strong> stack dependencies and executes in correct order</li>
 <li><strong>Executes</strong> Terragrunt commands (<code>plan</code>, <code>apply</code>, <code>destroy</code>) in parallel when safe</li>
 <li><strong>Reports</strong> results with clear exit codes and formatted output</li>
 </ul>
@@ -1386,7 +1386,7 @@
 <h3 id="multi-environment-deployment">Multi-Environment Deployment<a class="headerlink" href="#multi-environment-deployment" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--tags<span class="o">=</span>critical<span class="w"> </span>--auto-approve
 </span></code></pre></div>
-<h3 id="target-specific-modules">Target Specific Modules<a class="headerlink" href="#target-specific-modules" title="Permanent link">&para;</a></h3>
+<h3 id="target-specific-stacks">Target Specific Stacks<a class="headerlink" href="#target-specific-stacks" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>--include<span class="o">=</span>envs/prod/database<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--include<span class="o">=</span>envs/prod/app
@@ -1418,7 +1418,7 @@
 <td>❌</td>
 </tr>
 <tr>
-<td><strong>Module discovery</strong></td>
+<td><strong>Stack discovery</strong></td>
 <td>✅</td>
 <td>❌</td>
 <td>✅</td>

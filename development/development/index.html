@@ -1146,9 +1146,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#test-single-module" class="md-nav__link">
+  <a href="#test-single-stack" class="md-nav__link">
     <span class="md-ellipsis">
-      Test Single Module
+      Test Single Stack
     </span>
   </a>
   
@@ -1853,9 +1853,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#test-single-module" class="md-nav__link">
+  <a href="#test-single-stack" class="md-nav__link">
     <span class="md-ellipsis">
-      Test Single Module
+      Test Single Stack
     </span>
   </a>
   
@@ -2245,7 +2245,7 @@
 <strong>Module</strong>: <code>github.com/Ops-Talks/cultivator</code><br />
 <strong>External Dependency</strong>: <code>gopkg.in/yaml.v3</code> v3.0.1</p>
 <p><strong>Core Functionality</strong>:
-- ✅ Module discovery (recursive walk for <code>terragrunt.hcl</code>)
+- ✅ Stack discovery (recursive walk for <code>terragrunt.hcl</code>)
 - ✅ Scope filtering (environment, paths, tags)
 - ✅ Dependency graph (topological sorting)
 - ✅ Parallel execution (configurable worker pool)
@@ -2258,15 +2258,15 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    ↓
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Config Loader (merge cultivator.yml + env vars + CLI flags)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ↓
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Module Discovery (find all terragrunt.hcl files)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Stack Discovery (find all terragrunt.hcl files)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ↓
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Scope Filter (apply --env, --include, --exclude, --tags)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    ↓
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Dependency Graph (parse dependencies, build execution order)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    ↓
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Executor (parallel worker pool)
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├─→ Run Terragrunt command per module
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    ├─→ Capture output on per-module basis
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├─→ Run Terragrunt command per stack
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    ├─→ Capture output on per-stack basis
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    └─→ Handle locks for concurrent operations
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    ↓
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>Output Formatter (redact secrets, format text/JSON)
@@ -2288,7 +2288,7 @@
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│   ├── constants/
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│   │   └── constants.go         # Version, defaults, etc.
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│   ├── detector/
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│   │   ├── detector.go          # Module discovery
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│   │   ├── detector.go          # Stack discovery
 </span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│   │   └── detector_test.go
 </span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│   ├── errors/
 </span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│   │   └── errors.go            # Custom error types
@@ -2342,12 +2342,12 @@
 </span></code></pre></div></p>
 <p><strong>Test Coverage</strong>: 73.8%</p>
 <h3 id="2-detector-package-pkgdetector">2. Detector Package (<code>pkg/detector/</code>)<a class="headerlink" href="#2-detector-package-pkgdetector" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Discover Terragrunt modules in the filesystem</p>
+<p><strong>Purpose</strong>: Discover Terragrunt stacks in the filesystem</p>
 <p><strong>Responsibilities</strong>:
 - Recursively walk directory tree from root
 - Find all <code>terragrunt.hcl</code> files
-- Parse module metadata (filters, tags)
-- Build list of available modules</p>
+- Parse stack metadata (filters, tags)
+- Build list of available stacks</p>
 <p><strong>Example</strong>:
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">detector</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">detector</span><span class="p">.</span><span class="nx">NewDetector</span><span class="p">(</span><span class="s">&quot;live&quot;</span><span class="p">)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">modules</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">detector</span><span class="p">.</span><span class="nx">Discover</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
@@ -2369,7 +2369,7 @@
 <h3 id="4-graph-package-pkggraph">4. Graph Package (<code>pkg/graph/</code>)<a class="headerlink" href="#4-graph-package-pkggraph" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Build dependency graph and determine execution order</p>
 <p><strong>Responsibilities</strong>:
-- Accept module list + dependencies
+- Accept stack list + dependencies
 - Perform topological sort
 - Detect circular dependencies
 - Provide execution plan groups</p>
@@ -2382,14 +2382,14 @@
 <h3 id="5-executor-package-pkgexecutor">5. Executor Package (<code>pkg/executor/</code>)<a class="headerlink" href="#5-executor-package-pkgexecutor" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Execute Terragrunt commands and capture results</p>
 <p><strong>Responsibilities</strong>:
-- Run <code>terragrunt plan</code>, <code>apply</code>, <code>destroy</code> per module
+- Run <code>terragrunt plan</code>, <code>apply</code>, <code>destroy</code> per stack
 - Handle Terragrunt initialization
-- Capture stdout/stderr per module
+- Capture stdout/stderr per stack
 - Report results (success/failure/error messages)</p>
 <p><strong>Example</strong>:
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">exec</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">executor</span><span class="p">.</span><span class="nx">NewExecutor</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="p">)</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">exec</span><span class="p">.</span><span class="nx">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;plan&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;envs/dev/vpc&quot;</span><span class="p">)</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1">// Returns: {Module: &quot;envs/dev/vpc&quot;, Status: &quot;success&quot;, Output: &quot;...&quot;}</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1">// Returns: {Stack: &quot;envs/dev/vpc&quot;, Status: &quot;success&quot;, Output: &quot;...&quot;}</span>
 </span></code></pre></div></p>
 <p><strong>Test Coverage</strong>: 65.4%</p>
 <h3 id="6-formatter-package-pkgformatter">6. Formatter Package (<code>pkg/formatter/</code>)<a class="headerlink" href="#6-formatter-package-pkgformatter" title="Permanent link">&para;</a></h3>
@@ -2402,13 +2402,13 @@
 <p><strong>Example</strong>:
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nx">formatter</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">formatter</span><span class="p">.</span><span class="nx">NewFormatter</span><span class="p">(</span><span class="s">&quot;json&quot;</span><span class="p">)</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">output</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">formatter</span><span class="p">.</span><span class="nx">Format</span><span class="p">(</span><span class="nx">results</span><span class="p">)</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1">// Returns: {&quot;modules&quot;: [{&quot;name&quot;: &quot;vpc&quot;, &quot;status&quot;: &quot;success&quot;, ...}]}</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1">// Returns: {&quot;stacks&quot;: [{&quot;name&quot;: &quot;vpc&quot;, &quot;status&quot;: &quot;success&quot;, ...}]}</span>
 </span></code></pre></div></p>
 <p><strong>Test Coverage</strong>: 73.9%</p>
 <h3 id="7-lock-package-pkglock">7. Lock Package (<code>pkg/lock/</code>)<a class="headerlink" href="#7-lock-package-pkglock" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Prevent concurrent operations on the same module</p>
+<p><strong>Purpose</strong>: Prevent concurrent operations on the same stack</p>
 <p><strong>Responsibilities</strong>:
-- Create file-based locks per module
+- Create file-based locks per stack
 - Implement lock timeout and retry logic
 - Provide clear error messages on lock contention</p>
 <p><strong>Example</strong>:
@@ -2421,7 +2421,7 @@
 <p><strong>Purpose</strong>: Coordinate the entire Cultivator workflow</p>
 <p><strong>Responsibilities</strong>:
 - Load configuration
-- Discover modules
+- Discover stacks
 - Apply filters
 - Build graph
 - Execute in parallel (respecting dependencies)
@@ -2429,12 +2429,12 @@
 <p><strong>Workflow</strong>:
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>1. Load config + parse CLI flags
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>2. Initialize detector
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>3. Discover all modules
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>3. Discover all stacks
 </span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>4. Apply scope filters (env, include, exclude, tags)
 </span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>5. Parse dependencies
 </span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>6. Build execution graph
 </span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>7. Create worker pool (parallelism N)
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>8. Execute groups sequentially, modules within groups concurrently
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>8. Execute groups sequentially, stacks within groups concurrently
 </span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>9. Collect results
 </span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>10. Format output
 </span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>11. Return exit code
@@ -2572,13 +2572,13 @@
 <li>Start with function/type name</li>
 <li>Use clear, English prose</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// NodeGraph represents a directed acyclic graph of module dependencies.</span>
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// NodeGraph represents a directed acyclic graph of stack dependencies.</span>
 </span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="c1">// It supports topological sorting and circular dependency detection.</span>
 </span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="kd">type</span><span class="w"> </span><span class="nx">NodeGraph</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="c1">// ...</span>
 </span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="p">}</span>
 </span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1">// AddNode adds a module node to the graph.</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1">// AddNode adds a stack node to the graph.</span>
 </span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><span class="nx">NodeGraph</span><span class="p">)</span><span class="w"> </span><span class="nx">AddNode</span><span class="p">(</span><span class="nx">id</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="c1">// ...</span>
 </span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="p">}</span>
@@ -2588,7 +2588,7 @@
 <div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug
 </span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div>
-<h3 id="test-single-module">Test Single Module<a class="headerlink" href="#test-single-module" title="Permanent link">&para;</a></h3>
+<h3 id="test-single-stack">Test Single Stack<a class="headerlink" href="#test-single-stack" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--include<span class="o">=</span>envs/dev/vpc<span class="w"> </span>--non-interactive
 </span></code></pre></div>
 <h3 id="run-terragrunt-manually-to-debug">Run Terragrunt Manually to Debug<a class="headerlink" href="#run-terragrunt-manually-to-debug" title="Permanent link">&para;</a></h3>
@@ -2627,7 +2627,7 @@
 - [ ] Metrics/telemetry export
 - [ ] Web UI for plan visualization
 - [ ] Custom hooks (pre/post execution)
-- [ ] Parallel module fetching optimization
+- [ ] Parallel stack discovery optimization
 - [ ] Better error messages and recovery suggestions</p>
 <h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2637,7 +2637,7 @@
 <li><strong><a href="https://go.dev/wiki/CodeReviewComments">Go Code Review Comments</a></strong> - Go best practices</li>
 <li>Clean ANSI codes from output</li>
 <li>Truncate long outputs</li>
-<li>Format module lists</li>
+<li>Format stack lists</li>
 </ul>
 <h2 id="development-workflow_1">Development Workflow<a class="headerlink" href="#development-workflow_1" title="Permanent link">&para;</a></h2>
 <h3 id="build-and-test">Build and Test<a class="headerlink" href="#build-and-test" title="Permanent link">&para;</a></h3>
@@ -2755,9 +2755,9 @@
 </ol>
 <h3 id="performance-improvements">Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Parallel execution</strong> - Run independent modules in parallel</li>
+<li><strong>Parallel execution</strong> - Run independent stacks in parallel</li>
 <li><strong>Caching</strong> - Cache Terraform/Terragrunt downloads</li>
-<li><strong>Incremental plans</strong> - Only plan truly affected modules</li>
+<li><strong>Incremental plans</strong> - Only plan truly affected stacks</li>
 </ol>
 <h2 id="common-development-tasks">Common Development Tasks<a class="headerlink" href="#common-development-tasks" title="Permanent link">&para;</a></h2>
 <h3 id="adding-a-new-command">Adding a New Command<a class="headerlink" href="#adding-a-new-command" title="Permanent link">&para;</a></h3>

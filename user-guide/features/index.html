@@ -649,9 +649,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#module-discovery" class="md-nav__link">
+  <a href="#stack-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      Module Discovery
+      Stack Discovery
     </span>
   </a>
   
@@ -985,9 +985,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#module-discovery" class="md-nav__link">
+  <a href="#stack-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      Module Discovery
+      Stack Discovery
     </span>
   </a>
   
@@ -1058,8 +1058,8 @@
 
 <h1 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h1>
 <p>Cultivator provides practical features for automating Terragrunt workflows in CI.</p>
-<h2 id="module-discovery">Module Discovery<a class="headerlink" href="#module-discovery" title="Permanent link">&para;</a></h2>
-<p>Cultivator discovers modules by walking the root directory and locating <code>terragrunt.hcl</code> files.</p>
+<h2 id="stack-discovery">Stack Discovery<a class="headerlink" href="#stack-discovery" title="Permanent link">&para;</a></h2>
+<p>Cultivator discovers stacks by walking the root directory and locating <code>terragrunt.hcl</code> files.</p>
 <h2 id="scope-filters">Scope Filters<a class="headerlink" href="#scope-filters" title="Permanent link">&para;</a></h2>
 <p>Limit execution to specific areas:</p>
 <ul>
@@ -1068,7 +1068,7 @@
 <li><code>--tags</code> for tag filtering (via <code>cultivator:tags</code> comments)</li>
 </ul>
 <h2 id="parallel-execution">Parallel Execution<a class="headerlink" href="#parallel-execution" title="Permanent link">&para;</a></h2>
-<p>Run modules concurrently with a configurable worker pool:</p>
+<p>Run stacks concurrently with a configurable worker pool:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 </span></code></pre></div>
 <h2 id="consistent-output">Consistent Output<a class="headerlink" href="#consistent-output" title="Permanent link">&para;</a></h2>

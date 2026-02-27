@@ -787,9 +787,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-module-discovery" class="md-nav__link">
+  <a href="#2-stack-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Module Discovery
+      2. Stack Discovery
     </span>
   </a>
   
@@ -1175,9 +1175,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-module-discovery" class="md-nav__link">
+  <a href="#2-stack-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Module Discovery
+      2. Stack Discovery
     </span>
   </a>
   
@@ -1383,7 +1383,7 @@
 <h1 id="architecture-design">Architecture Design<a class="headerlink" href="#architecture-design" title="Permanent link">&para;</a></h1>
 <p>Understand how Cultivator works under the hood.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Cultivator is a <strong>CLI-first tool</strong> that orchestrates Terragrunt module discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI) or locally, and delegates state management entirely to Terraform/OpenTofu backends.</p>
+<p>Cultivator is a <strong>CLI-first tool</strong> that orchestrates Terragrunt stack discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI) or locally, and delegates state management entirely to Terraform/OpenTofu backends.</p>
 <p>Unlike PR-based automation, Cultivator is <strong>job-triggered</strong>: you call it explicitly in your CI workflow, providing flags to control scope and behavior.</p>
 <h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2>
 <h3 id="1-config-loader">1. Config Loader<a class="headerlink" href="#1-config-loader" title="Permanent link">&para;</a></h3>
@@ -1392,17 +1392,17 @@
 <li>Merges configuration with CLI flags and environment variables</li>
 <li>Validates configuration against schema</li>
 </ul>
-<h3 id="2-module-discovery">2. Module Discovery<a class="headerlink" href="#2-module-discovery" title="Permanent link">&para;</a></h3>
+<h3 id="2-stack-discovery">2. Stack Discovery<a class="headerlink" href="#2-stack-discovery" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Walks the root directory recursively</li>
 <li>Finds all <code>terragrunt.hcl</code> files</li>
-<li>Builds list of available modules</li>
+<li>Builds list of available stacks</li>
 </ul>
 <h3 id="3-scope-filter">3. Scope Filter<a class="headerlink" href="#3-scope-filter" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Filters modules by <code>--env</code> (environment)</li>
-<li>Filters modules by <code>--include</code> / <code>--exclude</code> (path patterns)</li>
-<li>Filters modules by <code>--tags</code> (tag comments in <code>terragrunt.hcl</code>)</li>
+<li>Filters stacks by <code>--env</code> (environment)</li>
+<li>Filters stacks by <code>--include</code> / <code>--exclude</code> (path patterns)</li>
+<li>Filters stacks by <code>--tags</code> (tag comments in <code>terragrunt.hcl</code>)</li>
 </ul>
 <h3 id="4-dependency-graph">4. Dependency Graph<a class="headerlink" href="#4-dependency-graph" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1415,7 +1415,7 @@
 <li>Runs Terragrunt commands (<code>plan</code>, <code>apply</code>, <code>destroy</code>)</li>
 <li>Manages parallel execution via worker pool</li>
 <li>Handles locks to prevent concurrent applies</li>
-<li>Captures output on per-module, per-command basis</li>
+<li>Captures output on per-stack, per-command basis</li>
 </ul>
 <h3 id="6-output-formatter">6. Output Formatter<a class="headerlink" href="#6-output-formatter" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1428,7 +1428,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    ↓
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Config Loader → Parse flags + env vars + cultivator.yml
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ↓
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Module Discovery → Find all terragrunt.hcl files
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Stack Discovery → Find all terragrunt.hcl files
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ↓
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Scope Filter → Apply --env, --include, --exclude, --tags
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    ↓
@@ -1443,9 +1443,9 @@
 <h2 id="key-design-principles">Key Design Principles<a class="headerlink" href="#key-design-principles" title="Permanent link">&para;</a></h2>
 <h3 id="1-stateless-operation">1. Stateless Operation<a class="headerlink" href="#1-stateless-operation" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Cultivator does not manage state, backends, or locks beyond module-level coordination</li>
+<li>Cultivator does not manage state, backends, or locks beyond stack-level coordination</li>
 <li>All state is owned by Terraform/OpenTofu</li>
-<li>Locks are per-module filesystem locks to prevent concurrent writes</li>
+<li>Locks are per-stack filesystem locks to prevent concurrent writes</li>
 </ul>
 <h3 id="2-explicit-control">2. Explicit Control<a class="headerlink" href="#2-explicit-control" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1455,20 +1455,20 @@
 </ul>
 <h3 id="3-filter-first">3. Filter-First<a class="headerlink" href="#3-filter-first" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Start with all modules, then filter by environment/path/tags</li>
+<li>Start with all stacks, then filter by environment/path/tags</li>
 <li>Filters are composable (combine multiple <code>--include</code>, <code>--exclude</code>, <code>--tags</code>)</li>
-<li>Results show exactly which modules will be affected</li>
+<li>Results show exactly which stacks will be affected</li>
 </ul>
 <h3 id="4-dependency-aware">4. Dependency-Aware<a class="headerlink" href="#4-dependency-aware" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Respects Terragrunt <code>dependency</code> blocks</li>
-<li>Runs modules in correct order (topological sort)</li>
-<li>Prevents applying module A before its dependency B</li>
+<li>Runs stacks in correct order (topological sort)</li>
+<li>Prevents applying stack A before its dependency B</li>
 </ul>
 <h3 id="5-parallel-by-default">5. Parallel by Default<a class="headerlink" href="#5-parallel-by-default" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Configurable worker pool (default: 4 workers)</li>
-<li>Runs independent modules concurrently</li>
+<li>Runs independent stacks concurrently</li>
 <li>Respects dependency graph for safe parallelism</li>
 </ul>
 <h3 id="6-output-agnostic">6. Output Agnostic<a class="headerlink" href="#6-output-agnostic" title="Permanent link">&para;</a></h3>
@@ -1479,7 +1479,7 @@
 </ul>
 <h2 id="configuration-reference">Configuration Reference<a class="headerlink" href="#configuration-reference" title="Permanent link">&para;</a></h2>
 <p>Cultivator reads from <code>cultivator.yml</code> in the repository root:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span><span class="w">                    </span><span class="c1"># Root directory to scan for modules</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span><span class="w">                    </span><span class="c1"># Root directory to scan for stacks</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">               </span><span class="c1"># Worker pool size</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">output_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span><span class="w">          </span><span class="c1"># &#39;text&#39; or &#39;json&#39;</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">non_interactive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">       </span><span class="c1"># Equivalent to -input=false</span>
@@ -1493,9 +1493,9 @@
 <p>CLI flags and environment variables override the config file. Flags take highest precedence.</p>
 <p>See <a href="../../getting-started/configuration/">Configuration</a> for full reference.</p>
 <h2 id="locking-mechanism">Locking Mechanism<a class="headerlink" href="#locking-mechanism" title="Permanent link">&para;</a></h2>
-<p>Cultivator uses <strong>file-based locks</strong> to prevent concurrent applies on the same module:</p>
+<p>Cultivator uses <strong>file-based locks</strong> to prevent concurrent applies on the same stack:</p>
 <ul>
-<li>Lock file: <code>.terraform/cultivator.lock</code> (per module)</li>
+<li>Lock file: <code>.terraform/cultivator.lock</code> (per stack)</li>
 <li>Timeout: 30 minutes (configurable)</li>
 <li>Retry: Exponential backoff</li>
 <li>Failure: Prints clear error message with lock holder details</li>
@@ -1511,7 +1511,7 @@
 <h3 id="access-control">Access Control<a class="headerlink" href="#access-control" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Cultivator respects IAM permissions of the CI runner</li>
-<li>If the CI job lacks permissions to modify a module, Terraform will error</li>
+<li>If the CI job lacks permissions to modify a stack, Terraform will error</li>
 <li>No additional RBAC layer in Cultivator itself</li>
 </ul>
 <h3 id="state-backend-protection">State Backend Protection<a class="headerlink" href="#state-backend-protection" title="Permanent link">&para;</a></h3>

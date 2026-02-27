@@ -707,9 +707,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#module-discovery" class="md-nav__link">
+  <a href="#stack-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      Module Discovery
+      Stack Discovery
     </span>
   </a>
   
@@ -1190,9 +1190,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#module-discovery" class="md-nav__link">
+  <a href="#stack-discovery" class="md-nav__link">
     <span class="md-ellipsis">
-      Module Discovery
+      Stack Discovery
     </span>
   </a>
   
@@ -1319,8 +1319,8 @@
 <li><strong><a href="../getting-started/configuration/">Configuration</a></strong> - Configure your setup</li>
 </ul>
 <h2 id="quick-overview">Quick Overview<a class="headerlink" href="#quick-overview" title="Permanent link">&para;</a></h2>
-<p>Cultivator is a lightweight CLI that discovers Terragrunt modules and orchestrates execution:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>You call cultivator → Discovers modules → Applies filters → Executes Terragrunt → Shows results
+<p>Cultivator is a lightweight CLI that discovers Terragrunt stacks and orchestrates execution:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>You call cultivator → Discovers stacks → Applies filters → Executes Terragrunt → Shows results
 </span></code></pre></div>
 <h2 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
 <h3 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
@@ -1345,8 +1345,8 @@
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--tags<span class="o">=</span>critical<span class="w"> </span>--auto-approve
 </span></code></pre></div></p>
 <h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h2>
-<h3 id="module-discovery">Module Discovery<a class="headerlink" href="#module-discovery" title="Permanent link">&para;</a></h3>
-<p>Cultivator recursively walks the root directory, finds all <code>terragrunt.hcl</code> files, and maintains a registry of available modules.</p>
+<h3 id="stack-discovery">Stack Discovery<a class="headerlink" href="#stack-discovery" title="Permanent link">&para;</a></h3>
+<p>Cultivator recursively walks the root directory, finds all <code>terragrunt.hcl</code> files, and maintains a registry of available stacks.</p>
 <h3 id="scope-filters">Scope Filters<a class="headerlink" href="#scope-filters" title="Permanent link">&para;</a></h3>
 <p>Use multiple filters to narrow execution:
 - <code>--env=dev</code> - by environment variable
@@ -1354,9 +1354,9 @@
 - <code>--exclude=experimental</code> - exclude paths
 - <code>--tags=critical,prod</code> - by inline tags (e.g., <code># cultivator:tags=critical,prod</code>)</p>
 <h3 id="dependency-ordering">Dependency Ordering<a class="headerlink" href="#dependency-ordering" title="Permanent link">&para;</a></h3>
-<p>Cultivator parses <code>dependency</code> blocks in Terragrunt configs and runs modules in the correct order automatically.</p>
+<p>Cultivator parses <code>dependency</code> blocks in Terragrunt configs and runs stacks in the correct order automatically.</p>
 <h3 id="parallelism">Parallelism<a class="headerlink" href="#parallelism" title="Permanent link">&para;</a></h3>
-<p>Run independent modules concurrently. Default: 4 workers. Override with <code>--parallelism=N</code>.</p>
+<p>Run independent stacks concurrently. Default: 4 workers. Override with <code>--parallelism=N</code>.</p>
 <h3 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>text</code> (default) - human-readable logs</li>

@@ -773,9 +773,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#no-modules-discovered" class="md-nav__link">
+  <a href="#no-stacks-discovered" class="md-nav__link">
     <span class="md-ellipsis">
-      No modules discovered
+      No stacks discovered
     </span>
   </a>
   
@@ -1253,9 +1253,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#no-modules-discovered" class="md-nav__link">
+  <a href="#no-stacks-discovered" class="md-nav__link">
     <span class="md-ellipsis">
-      No modules discovered
+      No stacks discovered
     </span>
   </a>
   
@@ -1575,7 +1575,7 @@
 </span></code></pre></div>
 <hr />
 <h2 id="tag-based-filtering">Tag-based filtering<a class="headerlink" href="#tag-based-filtering" title="Permanent link">&para;</a></h2>
-<p>Run only modules that carry a specific tag (defined via <code># cultivator:tags=</code> comments in <code>terragrunt.hcl</code>):</p>
+<p>Run only stacks that carry a specific tag (defined via <code># cultivator:tags=</code> comments in <code>terragrunt.hcl</code>):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">plan:networking</span><span class="p">:</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">plan</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
@@ -1605,7 +1605,7 @@
 <p>The binary was not installed or <code>/usr/local/bin</code> is not in <code>PATH</code>. Run <code>cultivator doctor</code> as part of <code>before_script</code> to catch this early.</p>
 <h3 id="terragrunt-command-not-found"><code>terragrunt: command not found</code><a class="headerlink" href="#terragrunt-command-not-found" title="Permanent link">&para;</a></h3>
 <p>Cultivator delegates execution to Terragrunt. Both binaries must be present in the same job. <code>cultivator doctor</code> will report if Terragrunt is missing.</p>
-<h3 id="no-modules-discovered">No modules discovered<a class="headerlink" href="#no-modules-discovered" title="Permanent link">&para;</a></h3>
+<h3 id="no-stacks-discovered">No stacks discovered<a class="headerlink" href="#no-stacks-discovered" title="Permanent link">&para;</a></h3>
 <p>Check that <code>--root</code> points to the directory containing your <code>terragrunt.hcl</code> files and that <code>--env</code> matches the subdirectory structure.</p>
 <hr />
 <h2 id="further-reading">Further reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>

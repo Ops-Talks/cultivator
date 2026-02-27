@@ -1489,7 +1489,7 @@
 <p>This design keeps Cultivator simple and focused on orchestration while leveraging Terragrunt's robust module handling.</p>
 <h2 id="how-module-sourcing-works">How Module Sourcing Works<a class="headerlink" href="#how-module-sourcing-works" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Cultivator discovers</strong> <code>terragrunt.hcl</code> files under the root directory</li>
+<li><strong>Cultivator discovers</strong> <code>terragrunt.hcl</code> files under the root directory (Terragrunt stacks)</li>
 <li><strong>Terragrunt parses</strong> module sources from <code>terragrunt.hcl</code></li>
 <li><strong>Terragrunt downloads</strong> external modules (using <code>terraform get</code>)</li>
 <li><strong>Terragrunt initializes</strong> the working directory</li>
@@ -1562,9 +1562,9 @@
 <div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod
 </span></code></pre></div></p>
 <p>Cultivator:
-1. Discovers <code>terragrunt.hcl</code> files
+1. Discovers <code>terragrunt.hcl</code> files (stacks)
 2. Respects dependency graph
-3. <strong>For each module</strong>, calls <code>terragrunt plan</code>
+3. <strong>For each stack</strong>, calls <code>terragrunt plan</code>
 4. Terragrunt handles module downloads and initialization</p>
 <h2 id="caching-and-performance">Caching and Performance<a class="headerlink" href="#caching-and-performance" title="Permanent link">&para;</a></h2>
 <p>Terragrunt caches downloaded modules in <code>.terragrunt-cache/</code> by default:</p>
@@ -1578,7 +1578,7 @@
 </span></code></pre></div></p>
 <p>(Note: This passes through to Terragrunt's <code>--init-cache-dir</code> flag)</p>
 <h2 id="dependency-resolution">Dependency Resolution<a class="headerlink" href="#dependency-resolution" title="Permanent link">&para;</a></h2>
-<p>If module A depends on module B (via <code>dependency</code> blocks), Cultivator ensures B runs and completes before A:</p>
+<p>If stack A depends on stack B (via <code>dependency</code> blocks), Cultivator ensures B runs and completes before A:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Module A</span>
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="err">dependency</span><span class="w"> </span><span class="s2">&quot;base&quot;</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="na">config_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../base&quot;</span>
@@ -1588,7 +1588,7 @@
 </span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="na">vpc_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">dependency.base.outputs.vpc_id</span>
 </span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>Cultivator parses this graph and executes modules in the correct order.</p>
+<p>Cultivator parses this graph and executes stacks in the correct order.</p>
 <h2 id="troubleshooting-module-issues">Troubleshooting Module Issues<a class="headerlink" href="#troubleshooting-module-issues" title="Permanent link">&para;</a></h2>
 <h3 id="module-not-found">Module Not Found<a class="headerlink" href="#module-not-found" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Error: Failed to download module from git::https://...
