@@ -617,11 +617,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/workflows/" class="md-nav__link">
+      <a href="../user-guide/cli-reference/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Workflows
+    CLI Reference
   </span>
   
 
@@ -1981,12 +1981,11 @@
 </span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--root<span class="o">=</span>live
 </span></code></pre></div>
 <p>Check what config is loaded:
-<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Cultivator looks for (in order):</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="c1"># 1. .cultivator.yaml</span>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="c1"># 2. .cultivator.yml</span>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># 3. cultivator.yaml</span>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># 4. cultivator.yml</span>
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>ls<span class="w"> </span>-la<span class="w"> </span>.cultivator.*<span class="w"> </span>cultivator.*
+<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Run without config file (uses defaults + env + flags)</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Run with config file (explicit)</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--config<span class="o">=</span>cultivator.yml<span class="w"> </span>--env<span class="o">=</span>prod
 </span></code></pre></div></p>
 <h2 id="advanced-questions">Advanced Questions<a class="headerlink" href="#advanced-questions" title="Permanent link">&para;</a></h2>
 <h3 id="can-i-use-cultivator-with-helmkustomize">Can I use Cultivator with Helm/Kustomize?<a class="headerlink" href="#can-i-use-cultivator-with-helmkustomize" title="Permanent link">&para;</a></h3>

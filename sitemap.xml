@@ -56,6 +56,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://Ops-Talks.github.io/cultivator/user-guide/cli-reference/</loc>
+         <lastmod>2026-02-27</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://Ops-Talks.github.io/cultivator/user-guide/features/</loc>
          <lastmod>2026-02-27</lastmod>
          <changefreq>daily</changefreq>
@@ -67,11 +72,6 @@
     </url>
     <url>
          <loc>https://Ops-Talks.github.io/cultivator/user-guide/gitlab-pipelines/</loc>
-         <lastmod>2026-02-27</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://Ops-Talks.github.io/cultivator/user-guide/workflows/</loc>
          <lastmod>2026-02-27</lastmod>
          <changefreq>daily</changefreq>
     </url>
