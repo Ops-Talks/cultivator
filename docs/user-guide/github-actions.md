@@ -272,7 +272,7 @@ plan:
         cultivator-version: v0.2.0
 
     - run: |
-        # Only plan modules tagged with "networking"
+        # Only plan stacks tagged with "networking"
         cultivator plan \
           --root infrastructure \
           --tags networking \

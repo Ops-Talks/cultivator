@@ -98,10 +98,10 @@ settings:
 
 Comment these on your PR to trigger actions:
 
-- `/cultivator plan` - Run plan on changed modules
+- `/cultivator plan` - Run plan on changed stacks
 - `/cultivator apply` - Apply changes
-- `/cultivator plan-all` - Plan all modules
-- `/cultivator apply-all` - Apply all modules
+- `/cultivator plan-all` - Plan all stacks
+- `/cultivator apply-all` - Apply all stacks
 - `/cultivator unlock` - Remove locks
 
 ## Example PR Workflow
@@ -131,7 +131,7 @@ Comment these on your PR to trigger actions:
 - Check AWS credentials are configured correctly
 - Verify Terragrunt/Terraform versions match
 
-### Module not detected
+### Stack not detected
 - Ensure the changed file is in a directory with `terragrunt.hcl`
 - Check file extensions (`.hcl`, `.tf`, `.tfvars`)
 

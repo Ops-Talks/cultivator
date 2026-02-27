@@ -40,7 +40,7 @@ destroy:
 ### `root`
 - **Type**: String
 - **Default**: `.`
-- **Description**: Root directory used to discover `terragrunt.hcl` modules
+- **Description**: Root directory used to discover `terragrunt.hcl` stacks
 
 ### `env`
 - **Type**: String
@@ -60,7 +60,7 @@ destroy:
 ### `parallelism`
 - **Type**: Integer
 - **Default**: number of CPUs
-- **Description**: Maximum number of modules to execute in parallel
+- **Description**: Maximum number of stacks to execute in parallel
 
 ### `output_format`
 - **Type**: String

@@ -167,7 +167,7 @@ apply:prod:
 
 ## Tag-based filtering
 
-Run only modules that carry a specific tag (defined via `# cultivator:tags=` comments in `terragrunt.hcl`):
+Run only stacks that carry a specific tag (defined via `# cultivator:tags=` comments in `terragrunt.hcl`):
 
 ```yaml
 plan:networking:
@@ -215,7 +215,7 @@ The binary was not installed or `/usr/local/bin` is not in `PATH`. Run `cultivat
 ### `terragrunt: command not found`
 Cultivator delegates execution to Terragrunt. Both binaries must be present in the same job. `cultivator doctor` will report if Terragrunt is missing.
 
-### No modules discovered
+### No stacks discovered
 Check that `--root` points to the directory containing your `terragrunt.hcl` files and that `--env` matches the subdirectory structure.
 
 ---

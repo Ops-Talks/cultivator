@@ -10,7 +10,7 @@ This design keeps Cultivator simple and focused on orchestration while leveragin
 
 ## How Module Sourcing Works
 
-1. **Cultivator discovers** `terragrunt.hcl` files under the root directory
+1. **Cultivator discovers** `terragrunt.hcl` files under the root directory (Terragrunt stacks)
 2. **Terragrunt parses** module sources from `terragrunt.hcl`
 3. **Terragrunt downloads** external modules (using `terraform get`)
 4. **Terragrunt initializes** the working directory
@@ -113,9 +113,9 @@ cultivator plan --root=live --env=prod
 ```
 
 Cultivator:
-1. Discovers `terragrunt.hcl` files
+1. Discovers `terragrunt.hcl` files (stacks)
 2. Respects dependency graph
-3. **For each module**, calls `terragrunt plan`
+3. **For each stack**, calls `terragrunt plan`
 4. Terragrunt handles module downloads and initialization
 
 ## Caching and Performance
@@ -138,7 +138,7 @@ cultivator plan --root=live --init-cache-dir
 
 ## Dependency Resolution
 
-If module A depends on module B (via `dependency` blocks), Cultivator ensures B runs and completes before A:
+If stack A depends on stack B (via `dependency` blocks), Cultivator ensures B runs and completes before A:
 
 ```hcl
 # Module A
@@ -151,7 +151,7 @@ inputs = {
 }
 ```
 
-Cultivator parses this graph and executes modules in the correct order.
+Cultivator parses this graph and executes stacks in the correct order.
 
 ## Troubleshooting Module Issues
 

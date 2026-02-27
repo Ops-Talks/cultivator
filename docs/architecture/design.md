@@ -4,7 +4,7 @@ Understand how Cultivator works under the hood.
 
 ## Overview
 
-Cultivator is a **CLI-first tool** that orchestrates Terragrunt module discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI) or locally, and delegates state management entirely to Terraform/OpenTofu backends.
+Cultivator is a **CLI-first tool** that orchestrates Terragrunt stack discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI) or locally, and delegates state management entirely to Terraform/OpenTofu backends.
 
 Unlike PR-based automation, Cultivator is **job-triggered**: you call it explicitly in your CI workflow, providing flags to control scope and behavior.
 
@@ -15,15 +15,15 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 - Merges configuration with CLI flags and environment variables
 - Validates configuration against schema
 
-### 2. Module Discovery
+### 2. Stack Discovery
 - Walks the root directory recursively
 - Finds all `terragrunt.hcl` files
-- Builds list of available modules
+- Builds list of available stacks
 
 ### 3. Scope Filter
-- Filters modules by `--env` (environment)
-- Filters modules by `--include` / `--exclude` (path patterns)
-- Filters modules by `--tags` (tag comments in `terragrunt.hcl`)
+- Filters stacks by `--env` (environment)
+- Filters stacks by `--include` / `--exclude` (path patterns)
+- Filters stacks by `--tags` (tag comments in `terragrunt.hcl`)
 
 ### 4. Dependency Graph
 - Parses `terragrunt.hcl` files
@@ -34,7 +34,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 - Runs Terragrunt commands (`plan`, `apply`, `destroy`)
 - Manages parallel execution via worker pool
 - Handles locks to prevent concurrent applies
-- Captures output on per-module, per-command basis
+- Captures output on per-stack, per-command basis
 
 ### 6. Output Formatter
 - Formats results as text or JSON
@@ -43,12 +43,12 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 
 ## Data Flow
 
-```
+```md
 CLI Invocation (plan/apply/destroy)
     ↓
 Config Loader → Parse flags + env vars + cultivator.yml
     ↓
-Module Discovery → Find all terragrunt.hcl files
+Stack Discovery → Find all terragrunt.hcl files
     ↓
 Scope Filter → Apply --env, --include, --exclude, --tags
     ↓
@@ -64,9 +64,9 @@ Exit Code (0 = success, 1 = failure, 2 = usage error)
 ## Key Design Principles
 
 ### 1. Stateless Operation
-- Cultivator does not manage state, backends, or locks beyond module-level coordination
+- Cultivator does not manage state, backends, or locks beyond stack-level coordination
 - All state is owned by Terraform/OpenTofu
-- Locks are per-module filesystem locks to prevent concurrent writes
+- Locks are per-stack filesystem locks to prevent concurrent writes
 
 ### 2. Explicit Control
 - No automatic triggers or webhooks
@@ -74,18 +74,18 @@ Exit Code (0 = success, 1 = failure, 2 = usage error)
 - Flags control what runs and how
 
 ### 3. Filter-First
-- Start with all modules, then filter by environment/path/tags
+- Start with all stacks, then filter by environment/path/tags
 - Filters are composable (combine multiple `--include`, `--exclude`, `--tags`)
-- Results show exactly which modules will be affected
+- Results show exactly which stacks will be affected
 
 ### 4. Dependency-Aware
 - Respects Terragrunt `dependency` blocks
-- Runs modules in correct order (topological sort)
-- Prevents applying module A before its dependency B
+- Runs stacks in correct order (topological sort)
+- Prevents applying stack A before its dependency B
 
 ### 5. Parallel by Default
 - Configurable worker pool (default: 4 workers)
-- Runs independent modules concurrently
+- Runs independent stacks concurrently
 - Respects dependency graph for safe parallelism
 
 ### 6. Output Agnostic
@@ -98,7 +98,7 @@ Exit Code (0 = success, 1 = failure, 2 = usage error)
 Cultivator reads from `cultivator.yml` in the repository root:
 
 ```yaml
-root: live                    # Root directory to scan for modules
+root: live                    # Root directory to scan for stacks
 parallelism: 4               # Worker pool size
 output_format: text          # 'text' or 'json'
 non_interactive: false       # Equivalent to -input=false
@@ -116,9 +116,9 @@ See [Configuration](../getting-started/configuration.md) for full reference.
 
 ## Locking Mechanism
 
-Cultivator uses **file-based locks** to prevent concurrent applies on the same module:
+Cultivator uses **file-based locks** to prevent concurrent applies on the same stack:
 
-- Lock file: `.terraform/cultivator.lock` (per module)
+- Lock file: `.terraform/cultivator.lock` (per stack)
 - Timeout: 30 minutes (configurable)
 - Retry: Exponential backoff
 - Failure: Prints clear error message with lock holder details
@@ -134,7 +134,7 @@ This is a safety mechanism; actual state locking is managed by Terraform/OpenTof
 
 ### Access Control
 - Cultivator respects IAM permissions of the CI runner
-- If the CI job lacks permissions to modify a module, Terraform will error
+- If the CI job lacks permissions to modify a stack, Terraform will error
 - No additional RBAC layer in Cultivator itself
 
 ### State Backend Protection

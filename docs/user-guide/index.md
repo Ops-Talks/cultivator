@@ -12,10 +12,10 @@ Learn how to use Cultivator to automate Terragrunt workflows in CI and locally.
 
 ## Quick Overview
 
-Cultivator is a lightweight CLI that discovers Terragrunt modules and orchestrates execution:
+Cultivator is a lightweight CLI that discovers Terragrunt stacks and orchestrates execution:
 
 ```
-You call cultivator → Discovers modules → Applies filters → Executes Terragrunt → Shows results
+You call cultivator → Discovers stacks → Applies filters → Executes Terragrunt → Shows results
 ```
 
 ## Use Cases
@@ -51,8 +51,8 @@ cultivator apply --root=live --env=prod --tags=critical --auto-approve
 
 ## Key Concepts
 
-### Module Discovery
-Cultivator recursively walks the root directory, finds all `terragrunt.hcl` files, and maintains a registry of available modules.
+### Stack Discovery
+Cultivator recursively walks the root directory, finds all `terragrunt.hcl` files, and maintains a registry of available stacks.
 
 ### Scope Filters
 Use multiple filters to narrow execution:
@@ -62,10 +62,10 @@ Use multiple filters to narrow execution:
 - `--tags=critical,prod` - by inline tags (e.g., `# cultivator:tags=critical,prod`)
 
 ### Dependency Ordering
-Cultivator parses `dependency` blocks in Terragrunt configs and runs modules in the correct order automatically.
+Cultivator parses `dependency` blocks in Terragrunt configs and runs stacks in the correct order automatically.
 
 ### Parallelism
-Run independent modules concurrently. Default: 4 workers. Override with `--parallelism=N`.
+Run independent stacks concurrently. Default: 4 workers. Override with `--parallelism=N`.
 
 ### Output Formats
 - `text` (default) - human-readable logs

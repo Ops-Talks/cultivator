@@ -84,7 +84,7 @@ Automatically run `terragrunt plan` when PR is opened or updated.
 How long to wait for a lock before timing out. Format: `5m`, `1h`, etc.
 
 #### `parallel_plan` (default: `true`)
-Run plan operations in parallel for independent modules.
+Run plan operations in parallel for independent stacks.
 
 #### `max_parallel` (default: `5`)
 Maximum number of parallel operations.

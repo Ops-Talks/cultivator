@@ -2,9 +2,9 @@
 
 Cultivator provides practical features for automating Terragrunt workflows in CI.
 
-## Module Discovery
+## Stack Discovery
 
-Cultivator discovers modules by walking the root directory and locating `terragrunt.hcl` files.
+Cultivator discovers stacks by walking the root directory and locating `terragrunt.hcl` files.
 
 ## Scope Filters
 
@@ -16,7 +16,7 @@ Limit execution to specific areas:
 
 ## Parallel Execution
 
-Run modules concurrently with a configurable worker pool:
+Run stacks concurrently with a configurable worker pool:
 
 ```yaml
 parallelism: 4

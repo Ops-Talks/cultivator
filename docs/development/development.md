@@ -8,7 +8,7 @@
 **External Dependency**: `gopkg.in/yaml.v3` v3.0.1
 
 **Core Functionality**:
-- ✅ Module discovery (recursive walk for `terragrunt.hcl`)
+- ✅ Stack discovery (recursive walk for `terragrunt.hcl`)
 - ✅ Scope filtering (environment, paths, tags)
 - ✅ Dependency graph (topological sorting)
 - ✅ Parallel execution (configurable worker pool)
@@ -24,15 +24,15 @@ User invokes Cultivator
     ↓
 Config Loader (merge cultivator.yml + env vars + CLI flags)
     ↓
-Module Discovery (find all terragrunt.hcl files)
+Stack Discovery (find all terragrunt.hcl files)
     ↓
 Scope Filter (apply --env, --include, --exclude, --tags)
     ↓
 Dependency Graph (parse dependencies, build execution order)
     ↓
 Executor (parallel worker pool)
-    ├─→ Run Terragrunt command per module
-    ├─→ Capture output on per-module basis
+    ├─→ Run Terragrunt command per stack
+    ├─→ Capture output on per-stack basis
     └─→ Handle locks for concurrent operations
     ↓
 Output Formatter (redact secrets, format text/JSON)
@@ -57,7 +57,7 @@ cultivator/
 │   ├── constants/
 │   │   └── constants.go         # Version, defaults, etc.
 │   ├── detector/
-│   │   ├── detector.go          # Module discovery
+│   │   ├── detector.go          # Stack discovery
 │   │   └── detector_test.go
 │   ├── errors/
 │   │   └── errors.go            # Custom error types
@@ -118,13 +118,13 @@ log.Printf("Executing in root: %s", cfg.Root)
 **Test Coverage**: 73.8%
 
 ### 2. Detector Package (`pkg/detector/`)
-**Purpose**: Discover Terragrunt modules in the filesystem
+**Purpose**: Discover Terragrunt stacks in the filesystem
 
 **Responsibilities**:
 - Recursively walk directory tree from root
 - Find all `terragrunt.hcl` files
-- Parse module metadata (filters, tags)
-- Build list of available modules
+- Parse stack metadata (filters, tags)
+- Build list of available stacks
 
 **Example**:
 ```go
@@ -156,7 +156,7 @@ modules, _ := parser.ParseDependencies("live")
 **Purpose**: Build dependency graph and determine execution order
 
 **Responsibilities**:
-- Accept module list + dependencies
+- Accept stack list + dependencies
 - Perform topological sort
 - Detect circular dependencies
 - Provide execution plan groups
@@ -174,16 +174,16 @@ groups, _ := graph.ExecutionGroups()
 **Purpose**: Execute Terragrunt commands and capture results
 
 **Responsibilities**:
-- Run `terragrunt plan`, `apply`, `destroy` per module
+- Run `terragrunt plan`, `apply`, `destroy` per stack
 - Handle Terragrunt initialization
-- Capture stdout/stderr per module
+- Capture stdout/stderr per stack
 - Report results (success/failure/error messages)
 
 **Example**:
 ```go
 exec := executor.NewExecutor(cfg, logger)
 result, _ := exec.Execute(ctx, "plan", "envs/dev/vpc")
-// Returns: {Module: "envs/dev/vpc", Status: "success", Output: "..."}
+// Returns: {Stack: "envs/dev/vpc", Status: "success", Output: "..."}
 ```
 
 **Test Coverage**: 65.4%
@@ -201,16 +201,16 @@ result, _ := exec.Execute(ctx, "plan", "envs/dev/vpc")
 ```go
 formatter := formatter.NewFormatter("json")
 output, _ := formatter.Format(results)
-// Returns: {"modules": [{"name": "vpc", "status": "success", ...}]}
+// Returns: {"stacks": [{"name": "vpc", "status": "success", ...}]}
 ```
 
 **Test Coverage**: 73.9%
 
 ### 7. Lock Package (`pkg/lock/`)
-**Purpose**: Prevent concurrent operations on the same module
+**Purpose**: Prevent concurrent operations on the same stack
 
 **Responsibilities**:
-- Create file-based locks per module
+- Create file-based locks per stack
 - Implement lock timeout and retry logic
 - Provide clear error messages on lock contention
 
@@ -228,7 +228,7 @@ lock.Acquire(ctx)  // Waits up to 30 minutes
 
 **Responsibilities**:
 - Load configuration
-- Discover modules
+- Discover stacks
 - Apply filters
 - Build graph
 - Execute in parallel (respecting dependencies)
@@ -238,12 +238,12 @@ lock.Acquire(ctx)  // Waits up to 30 minutes
 ```
 1. Load config + parse CLI flags
 2. Initialize detector
-3. Discover all modules
+3. Discover all stacks
 4. Apply scope filters (env, include, exclude, tags)
 5. Parse dependencies
 6. Build execution graph
 7. Create worker pool (parallelism N)
-8. Execute groups sequentially, modules within groups concurrently
+8. Execute groups sequentially, stacks within groups concurrently
 9. Collect results
 10. Format output
 11. Return exit code
@@ -396,13 +396,13 @@ _ = executor.Run(ctx, cmd)  // Never do this
 - Use clear, English prose
 
 ```go
-// NodeGraph represents a directed acyclic graph of module dependencies.
+// NodeGraph represents a directed acyclic graph of stack dependencies.
 // It supports topological sorting and circular dependency detection.
 type NodeGraph struct {
     // ...
 }
 
-// AddNode adds a module node to the graph.
+// AddNode adds a stack node to the graph.
 func (g *NodeGraph) AddNode(id string) error {
     // ...
 }
@@ -416,7 +416,7 @@ export CULTIVATOR_LOG_LEVEL=debug
 ./cultivator plan --root=live --env=dev
 ```
 
-### Test Single Module
+### Test Single Stack
 ```bash
 ./cultivator plan --root=live --include=envs/dev/vpc --non-interactive
 ```
@@ -465,7 +465,7 @@ Planned enhancements:
 - [ ] Metrics/telemetry export
 - [ ] Web UI for plan visualization
 - [ ] Custom hooks (pre/post execution)
-- [ ] Parallel module fetching optimization
+- [ ] Parallel stack discovery optimization
 - [ ] Better error messages and recovery suggestions
 
 ## Resources
@@ -476,7 +476,7 @@ Planned enhancements:
 - **[Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)** - Go best practices
 - Clean ANSI codes from output
 - Truncate long outputs
-- Format module lists
+- Format stack lists
 
 ## Development Workflow
 
@@ -606,9 +606,9 @@ jobs:
 6. **RBAC** - Role-based access control for environments
 
 ### Performance Improvements
-1. **Parallel execution** - Run independent modules in parallel
+1. **Parallel execution** - Run independent stacks in parallel
 2. **Caching** - Cache Terraform/Terragrunt downloads
-3. **Incremental plans** - Only plan truly affected modules
+3. **Incremental plans** - Only plan truly affected stacks
 
 ## Common Development Tasks
 

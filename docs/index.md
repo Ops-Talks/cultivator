@@ -2,13 +2,13 @@
 
 ![Cultivator](assets/logo.svg)
 
-**Cultivator** is a lightweight CLI that orchestrates **Terragrunt** module discovery, filtering, and execution across CI/CD systems and local environments. It brings consistency and intelligence to multi-module Terraform/OpenTofu deployments.
+**Cultivator** is a lightweight CLI that orchestrates **Terragrunt** stack discovery, filtering, and execution across CI/CD systems and local environments.
 
 ## Key Features
 
-✅ **Automatic Module Discovery** — Find all `terragrunt.hcl` files recursively  
+✅ **Automatic Stack Discovery** — Find all `terragrunt.hcl` files recursively  
 ✅ **Smart Filtering** — Scope execution by environment, paths, and custom tags  
-✅ **Dependency-Aware** — Respects Terragrunt dependencies, runs modules in correct order  
+✅ **Dependency-Aware** — Respects Terragrunt dependencies, runs stacks in correct order  
 ✅ **Parallel Execution** — Configurable worker pool for fast, safe concurrent runs  
 ✅ **No Server Required** — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)  
 ✅ **Secret Redaction** — Automatically masks sensitive data in logs  
@@ -18,9 +18,9 @@
 
 Cultivator solves the complexity of orchestrating Terragrunt:
 
-- **Discovers** all Terragrunt modules under a root directory
-- **Filters** modules by environment, path patterns, and tags
-- **Respects** module dependencies and executes in correct order
+- **Discovers** all Terragrunt stacks under a root directory
+- **Filters** stacks by environment, path patterns, and tags
+- **Respects** stack dependencies and executes in correct order
 - **Executes** Terragrunt commands (`plan`, `apply`, `destroy`) in parallel when safe
 - **Reports** results with clear exit codes and formatted output
 
@@ -68,7 +68,7 @@ git push origin feature-branch
 cultivator apply --root=live --env=prod --tags=critical --auto-approve
 ```
 
-### Target Specific Modules
+### Target Specific Stacks
 ```bash
 cultivator plan --root=live \
   --include=envs/prod/database \
@@ -86,7 +86,7 @@ cultivator plan --root=live --exclude=experimental --non-interactive
 |---------|-----------|-----------------|----------|
 | **CLI-based** | ✅ | ✅ | ❌ (webhook) |
 | **Works locally** | ✅ | ✅ | ❌ |
-| **Module discovery** | ✅ | ❌ | ✅ |
+| **Stack discovery** | ✅ | ❌ | ✅ |
 | **Dependency graph** | ✅ | ❌ | ✅ |
 | **CI/CD agnostic** | ✅ | ✅ | ❌ (GitHub only) |
 | **Parallel execution** | ✅ | Partial | ✅ |

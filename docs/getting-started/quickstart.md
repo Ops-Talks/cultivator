@@ -56,7 +56,7 @@ jobs:
 ## Common Commands
 
 ```bash
-# Plan dev modules
+# Plan dev stacks
 cultivator plan --root=live --env=dev --non-interactive
 
 # Apply changes

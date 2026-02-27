@@ -6,7 +6,7 @@ Learn the key commands and workflows for Cultivator.
 
 ### Plan
 
-Run `terragrunt plan` on matching modules.
+Run `terragrunt plan` on matching stacks.
 
 ```bash
 cultivator plan --root=live --env=dev --non-interactive
@@ -18,7 +18,7 @@ cultivator plan --root=live --env=dev --non-interactive
 
 ### Apply
 
-Run `terragrunt apply` on matching modules.
+Run `terragrunt apply` on matching stacks.
 
 ```bash
 cultivator apply --root=live --env=dev --non-interactive --auto-approve
@@ -30,7 +30,7 @@ cultivator apply --root=live --env=dev --non-interactive --auto-approve
 
 ### Destroy
 
-Run `terragrunt destroy` on matching modules.
+Run `terragrunt destroy` on matching stacks.
 
 ```bash
 cultivator destroy --root=live --env=dev --non-interactive --auto-approve
@@ -48,19 +48,19 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ./cultivator plan --root=live --env=prod --non-interactive
 ```
 
-### Plan specific modules
+### Plan specific stacks
 
 ```bash
 ./cultivator plan --root=live --include=envs/prod/app1,envs/prod/app2 --non-interactive
 ```
 
-### Plan excluding experimental modules
+### Plan excluding experimental stacks
 
 ```bash
 ./cultivator plan --root=live --exclude=experimental --non-interactive
 ```
 
-### Plan only modules with specific tags
+### Plan only stacks with specific tags
 
 ```bash
 ./cultivator plan --root=live --tags=critical --non-interactive
@@ -80,8 +80,8 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 
 ## Exit Codes
 
-- `0` - Success (all modules executed successfully)
-- `1` - Failure (one or more modules failed)
+- `0` - Success (all stacks executed successfully)
+- `1` - Failure (one or more stacks failed)
 - `2` - Usage error (invalid flags or arguments)
 
 ## Standard Workflow

@@ -3,7 +3,7 @@
 ## General Questions
 
 ### What is Cultivator?
-Cultivator is a **CLI thatorch orchestrates Terragrunt execution** in CI/CD pipelines and local environments. It discovers modules, applies filters, respects dependencies, and orchestrates parallel execution of `plan`, `apply`, and `destroy` operations.
+Cultivator is a **CLI thatorch orchestrates Terragrunt execution** in CI/CD pipelines and local environments. It discovers stacks, applies filters, respects dependencies, and orchestrates parallel execution of `plan`, `apply`, and `destroy` operations.
 
 ### How is it different from Atlantis or other GitHub automation tools?
 Unlike Atlantis (which is comment-triggered automation in GitHub):
@@ -61,8 +61,8 @@ cultivator apply --root=live --env=dev --non-interactive --auto-approve
 
 (Approval is enforced at the CI level via branch protection rules, not by Cultivator)
 
-### Can I run all modules?
-Yes. Omit filters to run all discovered modules:
+### Can I run all stacks?
+Yes. Omit filters to run all discovered stacks:
 ```bash
 cultivator plan --root=live
 ```
@@ -82,18 +82,18 @@ cultivator plan --root=live --tags=critical
 cultivator plan --root=live --env=prod --tags=critical --exclude=experimental
 ```
 
-###What if a module fails in the middle?
+###What if a stack fails in the middle?
 Cultivator stops execution and reports:
-- Which module failed
+- Which stack failed
 - The error output
 - Exit code `1` (failure)
 
 To retry:
 1. Fix the underlying issue (Terraform/Terragrunt/infrastructure)
 2. Run Cultivator again with the same flags
-3. It will re-attempt all modules (unchanged ones may be skipped by Terraform caching)
+3. It will re-attempt all stacks (unchanged ones may be skipped by Terraform caching)
 
-### How do I handle dependencies between modules?
+### How do I handle dependencies between stacks?
 Cultivator automatically parses `dependency` blocks in `terragrunt.hcl`:
 
 ```hcl
@@ -106,7 +106,7 @@ inputs = {
 }
 ```
 
-Cultivator ensures the VPC module runs before dependent modules. You don't need to specify order manually.
+Cultivator ensures the VPC stack runs before dependent stacks. You don't need to specify order manually.
 
 ### Can I run Cultivator locally?
 Yes! Cultivator is a local CLI tool. Useful for:
@@ -178,15 +178,15 @@ Error: error configuring Terraform AWS Provider: ...
 
 ## Output and Debugging
 
-### How do I see which modules will be affected?
+### How do I see which stacks will be affected?
 ```bash
 cultivator plan --root=live --env=prod --output-format=json
 ```
 
 The JSON output includes:
-- List of discovered modules
-- Modules affected by filters
-- Plan summary per module
+- List of discovered stacks
+- Stacks affected by filters
+- Plan summary per stack
 
 ### How do I capture output for CI logs?
 Cultivator writes to stdout/stderr. CI systems capture automatically:
@@ -209,14 +209,14 @@ Set verbose logging:
 CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
 ```
 
-Or check output format to see per-module details:
+Or check output format to see per-stack details:
 ```bash
 cultivator plan --root=live --output-format=json | jq .
 ```
 
 ## Troubleshooting
 
-### Cultivator doesn't find any modules
+### Cultivator doesn't find any stacks
 Check:
 ```bash
 # Verify the root directory exists
@@ -229,14 +229,14 @@ find live -name terragrunt.hcl
 cultivator plan --root=./live
 ```
 
-### Module execution fails with "dependency not found"
+### Stack execution fails with "dependency not found"
 Example error:
 ```
 Error: dependency "vpc" not found
 ```
 
 Solution:
-- Verify the referenced module's `config_path` exists
+- Verify the referenced stack's `config_path` exists
 - Ensure all dependencies are under the same root
 - Check spelling in `dependency` blocks
 
@@ -246,7 +246,7 @@ Error: failed to acquire lock (timeout after 30m)
 ```
 
 Causes:
-- Another `apply` is running on the same module
+- Another `apply` is running on the same stack
 - Previous `apply` crashed without releasing lock
 
 Solutions:
