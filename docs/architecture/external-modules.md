@@ -1,27 +1,26 @@
 # External Modules
 
-Learn about Cultivator's support for external Terraform modules.
+Understand how Cultivator handles external Terraform modules sourced from private and public repositories.
 
 ## Overview
 
-Cultivator can automatically download and manage external Terraform modules, whether they come from:
+Cultivator does **not** download or manage external Terraform modules directly. Instead, **Terragrunt handles all module sourcing**, and Cultivator orchestrates Terragrunt's execution.
 
-- **Public Registry**: Terraform Registry, GitHub, HTTP sources
-- **Private Registry**: Custom registries, private repositories
-- **Local Sources**: Git repositories, S3, etc.
+This design keeps Cultivator simple and focused on orchestration while leveraging Terragrunt's robust module handling.
 
-## Configuration
+## How Module Sourcing Works
 
-Define external modules in your Terragrunt configuration:
+1. **Cultivator discovers** `terragrunt.hcl` files under the root directory
+2. **Terragrunt parses** module sources from `terragrunt.hcl`
+3. **Terragrunt downloads** external modules (using `terraform get`)
+4. **Terragrunt initializes** the working directory
+5. **Cultivator executes** `terragrunt plan/apply/destroy`
 
-```hcl
-terraform {
-  source = "github.com/example/module.git//path?ref=v1.0.0"
-}
-```
+## Module Source Types
 
-Or using the Terraform Registry:
+Terragrunt supports module sources from:
 
+### Public Registry
 ```hcl
 terraform {
   source = "terraform-aws-modules/vpc/aws"
@@ -29,105 +28,230 @@ terraform {
 }
 ```
 
-## Module Preparation
-
-Cultivator automatically prepares external modules before execution:
-
-1. **Download**: Fetches module source
-2. **Cache**: Stores for reuse
-3. **Initialize**: Runs `terraform init`
-4. **Validate**: Checks module syntax
-
-## Execution Flow
-
-```
-Change Detection
-    ↓
-Module Parsing (discover external module sources)
-    ↓
-Dependency Resolution (build execution graph)
-    ↓
-Module Preparation (download, init, validate)
-    ↓
-Plan/Apply Execution
+### GitHub (Public)
+```hcl
+terraform {
+  source = "github.com/example/module.git//path?ref=v1.0.0"
+}
 ```
 
-## Caching
-
-External modules are cached to improve performance:
-
-```
-/tmp/cultivator-cache/
-├── github.com/
-│   └── example/
-│       └── module.git/
-├── registry.terraform.io/
-│   └── terraform-aws-modules/
-│       └── vpc/
-│           └── aws/
+### GitHub (Private)
+```hcl
+terraform {
+  source = "git::https://github.com/your-org/module.git//path?ref=v1.0.0"
+}
 ```
 
-Cache location: `${TMPDIR}/cultivator-cache` or `/tmp/cultivator-cache`
+### Custom Git Repository
+```hcl
+terraform {
+  source = "git::ssh://git@github.example.com/module.git//path?ref=main"
+}
+```
 
-## Authentication
+### HTTP Source
+```hcl
+terraform {
+  source = "https://example.com/modules/vpc.tar.gz"
+}
+```
 
-For private modules, provide credentials:
+### Local Path
+```hcl
+terraform {
+  source = "../shared-modules/vpc"
+}
+```
 
-### GitHub Modules
+## Authentication for Private Modules
 
+Terragrunt uses Git credentials to fetch private modules. Configure in your CI environment:
+
+### GitHub (HTTPS + Personal Access Token)
 ```bash
-export GITHUB_TOKEN=ghp_xxxxxxx
+# In GitHub Actions secrets
+git config --global url."https://ghp_xxxxx:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 ```
 
-### Private Registry
-
+Or use SSH:
 ```bash
-export TF_REGISTRY_AUTH_TOKEN_example_com=xxxxxxxxx
+# In GitHub Actions via actions/checkout with SSH key
+- uses: actions/checkout@v4
+  with:
+    ssh-key: ${{ secrets.SSH_KEY }}
 ```
 
-### AWS (via CodeArtifact)
-
+### GitLab (Terraform Registry)
 ```bash
-# Configure AWS credentials in GitHub Secrets
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
+# Set CI_JOB_TOKEN in .gitlab-ci.yml
+git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/".insteadOf "https://gitlab.com/"
 ```
 
-## Troubleshooting
+### AWS CodeArtifact
+```bash
+# Retrieve credentials and configure git
+aws codeartifact login --tool git --domain your-domain --repository your-repo --region us-east-1
+```
+
+## Cultivator's Role
+
+Cultivator **coordinates execution** but doesn't manage module versioning or caching:
+
+```
+Cultivator (orchestration)
+    ↓
+Terragrunt (module sourcing, state management)
+    ↓
+Terraform/OpenTofu (module execution, state backend)
+    ↓
+External Module (downloaded and executed)
+```
+
+When you run:
+```bash
+cultivator plan --root=live --env=prod
+```
+
+Cultivator:
+1. Discovers `terragrunt.hcl` files
+2. Respects dependency graph
+3. **For each module**, calls `terragrunt plan`
+4. Terragrunt handles module downloads and initialization
+
+## Caching and Performance
+
+Terragrunt caches downloaded modules in `.terragrunt-cache/` by default:
+
+```
+.terragrunt-cache/
+└── [hash]/
+    └── modules/
+        └── [downloaded module files]
+```
+
+To skip cache:
+```bash
+cultivator plan --root=live --init-cache-dir
+```
+
+(Note: This passes through to Terragrunt's `--init-cache-dir` flag)
+
+## Dependency Resolution
+
+If module A depends on module B (via `dependency` blocks), Cultivator ensures B runs and completes before A:
+
+```hcl
+# Module A
+dependency "base" {
+  config_path = "../base"
+}
+
+inputs = {
+  vpc_id = dependency.base.outputs.vpc_id
+}
+```
+
+Cultivator parses this graph and executes modules in the correct order.
+
+## Troubleshooting Module Issues
 
 ### Module Not Found
-
 ```
-Error: Invalid source address
-
-The source address is invalid: ...
+Error: Failed to download module from git::https://...
 ```
 
-Solutions:
-- Check module source URL is correct
-- Verify network connectivity
-- Check authentication credentials
+**Solutions:**
+- Verify the repository URL is correct
+- Check network connectivity from CI runner
+- Verify Git credentials are configured
+- Ensure the ref/tag exists
 
-### Version Constraints
-
+### Version Constraint Errors
 ```
 Error: Unsupported version constraint
 ```
 
-Solutions:
-- Update Terraform to latest version
-- Check version constraint syntax
-- Consult [version constraint docs](https://www.terraform.io/language/settings/version-constraints)
+**Solutions:**
+- Update Terraform to latest
+- Check version constraint syntax (see [Terraform version constraints](https://www.terraform.io/language/settings/version-constraints))
+- Verify the module provides the requested version
 
-### Large Module Downloads
-
-For very large modules, you may need to increase timeouts:
-
-```yaml
-settings:
-  executor_timeout: 10m
+### Permission Denied
 ```
+Error: ssh: Permission denied (publickey)
+```
+
+**Solutions (GitHub Actions):**
+```yaml
+- uses: actions/checkout@v4
+  with:
+    ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+- name: Trust GitHub's SSH key
+  run: |
+    mkdir -p ~/.ssh
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
+```
+
+**Solutions (GitLab CI):**
+```yaml
+before_script:
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | base64 -d | ssh-add -
+  - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+```
+
+### Slow Downloads
+If modules are slow to download, consider:
+- Using `git clone --depth 1` for shallow clones (Terragrunt controls this)
+- Caching `.terragrunt-cache/` in your CI system
+- Using a faster module repository mirror
+- Compressing large modules
+
+## Best Practices
+
+### 1. Version All External Modules
+```hcl
+terraform {
+  source = "github.com/your-org/module.git//path?ref=v1.2.3"
+  #                                              ^^^^^^^^^^^^^^
+  #                          Always use exact versions
+}
+```
+
+### 2. Separate Module Repository from Infrastructure Repo
+- Keep modules in a dedicated Git repository
+- Tag releases explicitly
+- Update module versions deliberately (not `?ref=main`)
+
+### 3. Use Dependency Blocks for Cross-Module Data
+```hcl
+dependency "vpc" {
+  config_path = "../vpc"
+}
+
+inputs = {
+  vpc_id = dependency.vpc.outputs.vpc_id
+}
+```
+
+**Not:** Hardcoding outputs or using `data` blocks across modules.
+
+### 4. Cache `.terragrunt-cache/` in CI
+```yaml
+# GitHub Actions
+- uses: actions/cache@v4
+  with:
+    path: .terragrunt-cache
+    key: terragrunt-cache-${{ hashFiles('**/terragrunt.hcl') }}
+```
+
+### 5. Document Module Requirements
+In your module's README, list:
+- External dependencies
+- Minimum Terraform/Terragrunt versions
+- Required credentials or environment variables
 
 ---
 
-See [Architecture](design.md) for how modules are integrated.
+See [Design](design.md) for Cultivator's overall architecture and [Configuration](../getting-started/configuration.md) for runtime options.

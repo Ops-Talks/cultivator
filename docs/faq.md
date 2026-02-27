@@ -3,104 +3,357 @@
 ## General Questions
 
 ### What is Cultivator?
-Cultivator is a CI/CD automation tool for Terragrunt that runs plan and apply operations directly from Pull Requests, similar to Atlantis or Digger.
+Cultivator is a **CLI thatorch orchestrates Terragrunt execution** in CI/CD pipelines and local environments. It discovers modules, applies filters, respects dependencies, and orchestrates parallel execution of `plan`, `apply`, and `destroy` operations.
 
-### How is it different from Atlantis?
-Atlantis is designed for Terraform. Cultivator was built specifically for Terragrunt, supporting:
-- Terragrunt dependencies between modules
-- Run-all operations
-- Hierarchical configurations with inheritance
-- Impact detection when parent configs change
+### How is it different from Atlantis or other GitHub automation tools?
+Unlike Atlantis (which is comment-triggered automation in GitHub):
+- **Atlantis**: Webhook-based; comments on PRs trigger automation inside GitHub
+- **Cultivator**: CLI-based; you explicitly call it from CI jobs (GitHub Actions, GitLab CI, etc.)
+
+**Advantages of Cultivator's approach:**
+- Works in any CI system (GitHub Actions, GitLab CI, local development)
+- Simpler to debug (just run the CLI command locally)
+- Better separation of concerns (CI orchestrates, Cultivator executes)
+- No GitHub-specific logic in the tool
 
 ### Do I need a separate server?
-No! Cultivator runs in your existing CI/CD (GitHub Actions, GitLab CI, etc). No separate infrastructure needed.
+No. Cultivator is a **CLI binary** that runs inside your existing CI/CD system. No additional infrastructure or webhooks required.
 
-## Installation
-
-### Can I use Cultivator with existing GitHub Actions?
-Yes! Cultivator is designed to work alongside other workflows. Just add the Cultivator workflow to your repository.
+## Installation and Setup
 
 ### What versions of Terragrunt are supported?
-Cultivator supports Terragrunt 0.40.0+. For best results, use recent versions (1.0+).
+Cultivator supports Terragrunt **v0.50.0+**. For best results, use recent versions (v1.0+).
 
 ### What about OpenTofu/Terraform version?
-Cultivator works with any OpenTofu or Terraform version that your Terragrunt version supports.
+Cultivator works with any OpenTofu or Terraform version supported by your Terragrunt version.
+- **Recommended**: OpenTofu v1.6+ or Terraform v1.5+
+- Older versions may work but are not tested
+
+### Can I build Cultivator from source?
+Yes. Clone the repository and run:
+```bash
+go build -o cultivator ./cmd/cultivator
+```
+**Requires Go 1.25+**
+
+### Can I run Cultivator in Docker?
+Yes. A Dockerfile is included:
+```bash
+make docker-build          # Builds docker image
+docker run cultivator:latest plan --help
+```
 
 ## Usage
 
 ### How do I run a plan?
-Comment on a PR:
-```
-cultivator plan
+```bash
+cultivator plan --root=live --env=dev --non-interactive
 ```
 
-### How do I apply changes?
-Comment on a PR:
+Then review the output, test locally, and proceed to apply.
+
+### How do I approve and apply changes?
+In your CI workflow:
+```bash
+# After PR review
+cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
-cultivator apply
-```
+
+(Approval is enforced at the CI level via branch protection rules, not by Cultivator)
 
 ### Can I run all modules?
-Yes:
+Yes. Omit filters to run all discovered modules:
+```bash
+cultivator plan --root=live
 ```
-cultivator plan --all
-cultivator apply --all
+
+Or filter by specific criteria:
+```bash
+# By environment
+cultivator plan --root=live --env=prod
+
+# By path
+cultivator plan --root=live --include=envs/prod/*
+
+# By tag
+cultivator plan --root=live --tags=critical
+
+# Combination
+cultivator plan --root=live --env=prod --tags=critical --exclude=experimental
 ```
 
-### What if a module fails?
-Cultivator will post the error in the PR comment. Fix the issue and comment again to retry.
+###What if a module fails in the middle?
+Cultivator stops execution and reports:
+- Which module failed
+- The error output
+- Exit code `1` (failure)
 
-## Security
+To retry:
+1. Fix the underlying issue (Terraform/Terragrunt/infrastructure)
+2. Run Cultivator again with the same flags
+3. It will re-attempt all modules (unchanged ones may be skipped by Terraform caching)
 
-### Is my OpenTofu/Terraform state safe?
-Yes. Cultivator requires proper AWS/Azure/GCP credentials in GitHub Secrets. Only authorized users can run operations.
+### How do I handle dependencies between modules?
+Cultivator automatically parses `dependency` blocks in `terragrunt.hcl`:
+
+```hcl
+dependency "vpc" {
+  config_path = "../vpc"
+}
+
+inputs = {
+  vpc_id = dependency.vpc.outputs.vpc_id
+}
+```
+
+Cultivator ensures the VPC module runs before dependent modules. You don't need to specify order manually.
+
+### Can I run Cultivator locally?
+Yes! Cultivator is a local CLI tool. Useful for:
+- **Local development**: Test changes before pushing
+- **Debugging**: Run the exact same command as CI
+- **Manual operations**: Apply changes immediately without CI jobs
+
+```bash
+./cultivator plan --root=live --env=dev
+./cultivator apply --root=live --env=dev --auto-approve
+```
+
+## Security and Permissions
+
+### How do I handle Terraform/cloud credentials in CI?
+Use CI secrets management:
+
+**GitHub Actions:**
+```yaml
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+**GitLab CI:**
+```yaml
+variables:
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+```
+
+Cultivator doesn't manage credentials—it passes them through to Terragrunt/Terraform.
+
+### Is my state safe?
+Yes. Cultivator does **not** manage state:
+- All state is stored in your Terraform/OpenTofu backend (S3, Terraform Cloud, etc.)
+- Cultivator only orchestrates `plan` and `apply` commands
+- Backend authentication is handled by Terragrunt/Terraform
 
 ### What about sensitive outputs?
-Cultivator automatically redacts sensitive data marked in Terragrunt outputs. Additionally, outputs marked as `sensitive = true` are hidden.
+Mark sensitive outputs in Terraform:
+```hcl
+output "database_password" {
+  value       = aws_db_instance.main.password
+  sensitive   = true
+  description = "Database password (hidden)"
+}
+```
 
-### How do comments get validated?
-GitHub webhook signatures are validated. Only authorized collaborators can trigger operations (configurable).
+Cultivator respects `sensitive = true` and Terragrunt's redaction patterns.
+
+### Who can run Cultivator?
+In your CI workflow, you control who can trigger jobs:
+
+**GitHub Actions:**
+- PR authors (via `pull_request` event)
+- Maintainers (via branch protection + required reviews)
+
+**GitLab CI:**
+- Developers (via `only:` rules)
+- Protected branches (via branch protection)
+
+Permissions check:
+```bash
+# If the CI user lacks cloud credentials, Terraform will error
+# Example: AWS STS error due to invalid credentials
+Error: error configuring Terraform AWS Provider: ...
+```
+
+## Output and Debugging
+
+### How do I see which modules will be affected?
+```bash
+cultivator plan --root=live --env=prod --output-format=json
+```
+
+The JSON output includes:
+- List of discovered modules
+- Modules affected by filters
+- Plan summary per module
+
+### How do I capture output for CI logs?
+Cultivator writes to stdout/stderr. CI systems capture automatically:
+
+**GitHub Actions:**
+- Logs visible in the job's "Run cultivator plan" step
+
+**GitLab CI:**
+- Logs visible in the job's output section
+
+**Local:**
+- Logs printed to terminal; save with redirects:
+  ```bash
+  cultivator plan --root=live > cultivator.log 2>&1
+  ```
+
+### How do I debug Cultivator in detail?
+Set verbose logging:
+```bash
+CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
+```
+
+Or check output format to see per-module details:
+```bash
+cultivator plan --root=live --output-format=json | jq .
+```
 
 ## Troubleshooting
 
-### Cultivator doesn't respond to my comment
-- Check your workflow file is in `.github/workflows/`
-- Verify the repository has permissions for the workflow
-- Check that you're commenting on a PR (not an issue)
+### Cultivator doesn't find any modules
+Check:
+```bash
+# Verify the root directory exists
+ls -la live/
 
-### Plan/Apply fails with module not found
-- Verify your Terragrunt structure
-- Check file paths are relative to repo root
-- Ensure `terragrunt.hcl` files exist
+# Look for terragrunt.hcl files
+find live -name terragrunt.hcl
+
+# Run with explicit root
+cultivator plan --root=./live
+```
+
+### Module execution fails with "dependency not found"
+Example error:
+```
+Error: dependency "vpc" not found
+```
+
+Solution:
+- Verify the referenced module's `config_path` exists
+- Ensure all dependencies are under the same root
+- Check spelling in `dependency` blocks
 
 ### Lock timeout errors
-- Check if another apply is in progress
-- Verify lock storage is accessible
-- Adjust `lock_timeout` in `cultivator.yml` if needed
+```
+Error: failed to acquire lock (timeout after 30m)
+```
 
-### Sensitive data appears in PR comment
-- Mark outputs as `sensitive = true` in Terraform
-- Update redaction patterns in configuration
-- Report the issue if it's a known sensitive pattern
+Causes:
+- Another `apply` is running on the same module
+- Previous `apply` crashed without releasing lock
+
+Solutions:
+```bash
+# Check for stale locks
+find live -name ".terraform/cultivator.lock" -mtime +1
+
+# Remove stale locks (use carefully!)
+find live -name ".terraform/cultivator.lock" -delete
+
+# Increase timeout in cultivator.yml
+timeout: 1h
+```
+
+### Environment variables not being used
+Verify precedence: **CLI flags > environment variables > config file**
+
+```bash
+# Example: This flag overrides CULTIVATOR_ENV
+cultivator plan --env=prod --root=live
+```
+
+Check what config is loaded:
+```bash
+# Cultivator looks for (in order):
+# 1. .cultivator.yaml
+# 2. .cultivator.yml
+# 3. cultivator.yaml
+# 4. cultivator.yml
+ls -la .cultivator.* cultivator.*
+```
 
 ## Advanced Questions
 
-### Can I customize the output format?
-Currently, formatting is fixed. Custom formatting is a planned feature.
+### Can I use Cultivator with Helm/Kustomize?
+No, Cultivator is designed for **Terraform/Terragrunt only**. 
 
-### How do I integrate with other tools?
-Cultivator can be used alongside other GitHub Actions. It respects branch protection rules and requires reviews when configured.
+For Helm/Kustomize orchestration, consider:
+- ArgoCD
+- Flux
+- Helm Operator
 
-### Can I run custom scripts?
-Not directly. You can pre/post process with GitHub Actions before calling Cultivator.
+### Can I run custom scripts before/after Cultivator?
+Yes, in your CI workflow:
+
+**GitHub Actions:**
+```yaml
+- name: Pre-flight checks
+  run: ./scripts/validate.sh
+
+- name: Run Cultivator
+  run: cultivator plan --root=live --env=prod
+
+- name: Post-execution analysis
+  run: ./scripts/analyze-logs.sh
+```
+
+**GitLab CI:**
+```yaml
+script:
+  - ./scripts/validate.sh
+  - cultivator plan --root=live --env=prod
+  - ./scripts/analyze-logs.sh
+```
 
 ### How do I monitor Cultivator runs?
-Check GitHub Actions logs and PR comments. GitHub also provides workflow run history and analytics.
+- **GitHub Actions**: Check "Actions" → workflow run → job logs
+- **GitLab CI**: Check "CI/CD" → pipeline → job logs
+- **Local**: Check stdout/stderr and saved logs
 
-## Support
+### Can I integrate Cultivator with Slack/PagerDuty?
+Yes, add a post-step in your CI workflow:
 
-Still have questions?
+**GitHub Actions (Slack):**
+```yaml
+- name: Notify Slack on failure
+  if: failure()
+  uses: slackapi/slack-github-action@v1
+  with:
+    payload: |
+      {"text": "Cultivator plan failed"}
+```
 
-- **Documentation**: Check our [full documentation](/)
+**GitLab CI (Slack):**
+```yaml
+on_failure:
+  - curl -X POST -H 'Content-type: application/json' \
+    https://hooks.slack.com/... \
+    --data '{"text":"Cultivator failed"}'
+```
+
+## Support and Contribution
+
+### Where do I find more help?
+- **Documentation**: [Full documentation](/)
 - **Issues**: [GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)
+- **Contributing**: [Contributing Guide](../CONTRIBUTING.md)
+
+### How do I report bugs?
+1. Search [existing issues](https://github.com/Ops-Talks/cultivator/issues)
+2. Create a new issue with:
+   - Cultivator version: `cultivator version`
+   - Terragrunt version: `terragrunt version`
+   - OS/environment details
+   - Steps to reproduce
+   - Actual vs. expected output
+
+### Can I contribute?
+Yes! See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.

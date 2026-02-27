@@ -2,54 +2,128 @@
 
 ![Cultivator](assets/logo.svg)
 
-**Cultivator** is a Go-based CLI that orchestrates **Terragrunt** pipelines in CI (GitHub Actions and GitLab CI). It standardizes `plan`, `apply`, and `destroy` runs without requiring a separate backend.
+**Cultivator** is a lightweight CLI that orchestrates **Terragrunt** module discovery, filtering, and execution across CI/CD systems and local environments. It brings consistency and intelligence to multi-module Terraform/OpenTofu deployments.
+
+## Key Features
+
+✅ **Automatic Module Discovery** — Find all `terragrunt.hcl` files recursively  
+✅ **Smart Filtering** — Scope execution by environment, paths, and custom tags  
+✅ **Dependency-Aware** — Respects Terragrunt dependencies, runs modules in correct order  
+✅ **Parallel Execution** — Configurable worker pool for fast, safe concurrent runs  
+✅ **No Server Required** — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)  
+✅ **Secret Redaction** — Automatically masks sensitive data in logs  
+✅ **Multi-Format Output** — Human-readable text or machine-parseable JSON  
 
 ## Overview
 
-Cultivator focuses on predictable CI execution for Terragrunt repositories:
+Cultivator solves the complexity of orchestrating Terragrunt:
 
-- Module discovery from a root layout
-- Filters by environment, include/exclude paths, and tags
-- Parallel execution with configurable limits
-- Text or JSON output for CI logs
-- Stateless operation using existing Terragrunt/Terraform backends
+- **Discovers** all Terragrunt modules under a root directory
+- **Filters** modules by environment, path patterns, and tags
+- **Respects** module dependencies and executes in correct order
+- **Executes** Terragrunt commands (`plan`, `apply`, `destroy`) in parallel when safe
+- **Reports** results with clear exit codes and formatted output
+
+Unlike webhook-based automation, Cultivator is a **CLI you invoke explicitly** from CI jobs or locally.
 
 ## Quick Links
 
 <div class="grid cards" markdown>
 
-- **[Getting Started](getting-started/index.md)** - Installation and first steps
-- **[User Guide](user-guide/index.md)** - How to use Cultivator
-- **[Architecture](architecture/design.md)** - How it works under the hood
-- **[Development](development/contributing.md)** - Contribute to the project
+- **[Getting Started](getting-started/index.md)** - Installation, configuration, first steps
+- **[User Guide](user-guide/index.md)** - Commands, workflows, CI integrations
+- **[Architecture](architecture/design.md)** - Technical design and internals
+- **[FAQ](faq.md)** - Common questions answered
 
 </div>
 
-## How It Works
+## Typical Workflow
 
-```
-1. CI triggers a pipeline job
-2. Cultivator discovers Terragrunt modules
-3. Terragrunt runs per module (plan/apply/destroy)
-4. Results are logged with a consistent exit code
-```
-
-## Example Usage
-
+### 1. Local Development
 ```bash
-# Run plan for dev modules
-cultivator plan --root=live --env=dev --non-interactive
-
-# Apply changes with auto-approve
-cultivator apply --root=live --env=dev --non-interactive --auto-approve
+./cultivator plan --root=live --env=dev
+# Review plan, iterate on infrastructure code
 ```
+
+### 2. Create Pull Request
+```bash
+git push origin feature-branch
+# CI automatically runs: cultivator plan --root=live --env=dev
+```
+
+### 3. Review & Merge
+```bash
+# Team reviews plan output, merges to main after approval
+```
+
+### 4. Production Deployment  
+```bash
+# CI automatically runs: cultivator apply --root=live --env=prod --auto-approve
+```
+
+## Use Case Examples
+
+### Multi-Environment Deployment
+```bash
+cultivator apply --root=live --env=prod --tags=critical --auto-approve
+```
+
+### Target Specific Modules
+```bash
+cultivator plan --root=live \
+  --include=envs/prod/database \
+  --include=envs/prod/app
+```
+
+### Exclude Experimental Infrastructure
+```bash
+cultivator plan --root=live --exclude=experimental --non-interactive
+```
+
+## What's Different?
+
+| Feature | Cultivator | Raw Terragrunt | Atlantis |
+|---------|-----------|-----------------|----------|
+| **CLI-based** | ✅ | ✅ | ❌ (webhook) |
+| **Works locally** | ✅ | ✅ | ❌ |
+| **Module discovery** | ✅ | ❌ | ✅ |
+| **Dependency graph** | ✅ | ❌ | ✅ |
+| **CI/CD agnostic** | ✅ | ✅ | ❌ (GitHub only) |
+| **Parallel execution** | ✅ | Partial | ✅ |
+| **No server required** | ✅ | ✅ | ❌ |
+
+## Getting Started
+
+### Build Locally
+```bash
+go build -o cultivator ./cmd/cultivator
+./cultivator version
+```
+
+### Run in Docker
+```bash
+make docker-build
+docker run cultivator:latest plan --help
+```
+
+### Integrate with CI/CD
+- **[GitHub Actions](user-guide/github-actions.md)** — Full workflow examples
+- **[GitLab CI/CD](user-guide/gitlab-pipelines.md)** — Full pipeline examples
 
 ## Getting Help
 
-- **Documentation**: Check the [User Guide](user-guide/index.md)
-- **Issues**: [GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)
+- **[User Guide](user-guide/index.md)** — Learn all commands and features
+- **[FAQ](faq.md)** — Common questions answered
+- **[GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)** — Report bugs
+- **[GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)** — Ask questions
+- **[Contributing Guide](../CONTRIBUTING.md)** — Contribute to the project
+
+## Requirements
+
+- **Terragrunt** v0.50.0+ (recommended: v1.0+)
+- **OpenTofu** v1.6+ or **Terraform** v1.5+
+- **Go** v1.25+ (only to build from source)
 
 ## License
 
-Cultivator is licensed under the MIT License. See [LICENSE](https://github.com/Ops-Talks/cultivator/blob/main/LICENSE) for details.
+Cultivator is licensed under the MIT License. See [LICENSE](../LICENSE) for details.

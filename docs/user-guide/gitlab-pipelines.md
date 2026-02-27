@@ -1,10 +1,232 @@
-# GitLab Pipelines Integration
+# GitLab CI/CD Integration
 
-This guide shows how to integrate Cultivator with GitLab CI/CD pipelines.
+This guide shows how to run Cultivator inside GitLab CI/CD pipelines.
 
-## Setup
+Cultivator is a CLI binary that orchestrates Terragrunt. To use it in a pipeline you need three things in the same job environment:
 
-### Option 1: Using Docker Image (Recommended)
+1. The `cultivator` binary
+2. The `terragrunt` binary
+3. `terraform` (or OpenTofu)
+
+---
+
+## Minimal example
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - validate
+  - plan
+  - apply
+
+variables:
+  CULTIVATOR_VERSION: "v0.2.0"
+  TERRAGRUNT_VERSION: "0.67.0"
+  TERRAFORM_VERSION: "1.10.0"
+  # Cultivator settings
+  CULTIVATOR_ROOT: "infrastructure"
+  CULTIVATOR_PARALLELISM: "4"
+  CULTIVATOR_OUTPUT_FORMAT: "json"
+
+.install_tools: &install_tools
+  before_script:
+    # Install Terraform
+    - wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    # Install Terragrunt
+    - wget -q -O /usr/local/bin/terragrunt
+        https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+    - chmod +x /usr/local/bin/terragrunt
+    # Install Cultivator
+    - wget -q -O /usr/local/bin/cultivator
+        https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+    - chmod +x /usr/local/bin/cultivator
+    # Verify
+    - cultivator doctor
+
+doctor:
+  stage: validate
+  image: alpine:3.21
+  <<: *install_tools
+  script:
+    - cultivator doctor
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+plan:
+  stage: plan
+  image: alpine:3.21
+  <<: *install_tools
+  script:
+    - cultivator plan
+        --root "$CULTIVATOR_ROOT"
+        --env "$CI_ENVIRONMENT_NAME"
+        --parallelism "$CULTIVATOR_PARALLELISM"
+        --output-format "$CULTIVATOR_OUTPUT_FORMAT"
+        --non-interactive
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+apply:
+  stage: apply
+  image: alpine:3.21
+  <<: *install_tools
+  script:
+    - cultivator apply
+        --root "$CULTIVATOR_ROOT"
+        --env "$CI_ENVIRONMENT_NAME"
+        --parallelism "$CULTIVATOR_PARALLELISM"
+        --output-format "$CULTIVATOR_OUTPUT_FORMAT"
+        --non-interactive
+        --auto-approve
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  environment:
+    name: production
+```
+
+---
+
+## Using a config file
+
+Instead of passing all flags on the command line, you can commit a `.cultivator.yaml` at the repo root:
+
+```yaml
+# .cultivator.yaml
+root: infrastructure
+parallelism: 4
+output_format: json
+non_interactive: true
+```
+
+The pipeline script then becomes simply:
+
+```yaml
+script:
+  - cultivator plan --env "$CI_ENVIRONMENT_NAME"
+```
+
+See [Configuration](../getting-started/configuration.md) for all available options.
+
+---
+
+## Environment-based deployments
+
+Use GitLab environments to drive which Terragrunt stack is targeted:
+
+```yaml
+stages:
+  - plan
+  - apply
+
+.cultivator_base:
+  image: alpine:3.21
+  before_script:
+    - apk add --no-cache wget unzip
+    - *install_tools  # see minimal example above
+
+plan:dev:
+  extends: .cultivator_base
+  stage: plan
+  script:
+    - cultivator plan --root infrastructure --env dev --non-interactive
+  environment:
+    name: dev
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+plan:prod:
+  extends: .cultivator_base
+  stage: plan
+  script:
+    - cultivator plan --root infrastructure --env prod --non-interactive
+  environment:
+    name: prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+apply:prod:
+  extends: .cultivator_base
+  stage: apply
+  script:
+    - cultivator apply --root infrastructure --env prod --non-interactive --auto-approve
+  environment:
+    name: prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  needs:
+    - plan:prod
+```
+
+---
+
+## Tag-based filtering
+
+Run only modules that carry a specific tag (defined via `# cultivator:tags=` comments in `terragrunt.hcl`):
+
+```yaml
+plan:networking:
+  stage: plan
+  script:
+    - cultivator plan --root infrastructure --env prod --tags networking --non-interactive
+```
+
+---
+
+## Caching
+
+Cache the Terragrunt plugin directory to speed up runs:
+
+```yaml
+cache:
+  key: terragrunt-$CI_COMMIT_REF_SLUG
+  paths:
+    - .terragrunt-cache/
+```
+
+---
+
+## Cloud credentials
+
+Add credentials as CI/CD variables (**Settings → CI/CD → Variables**) and expose them as environment variables in the job:
+
+```yaml
+plan:
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+    AWS_DEFAULT_REGION: us-east-1
+```
+
+Terragrunt (called by Cultivator) will pick them up automatically.
+
+---
+
+## Troubleshooting
+
+### `cultivator: command not found`
+The binary was not installed or `/usr/local/bin` is not in `PATH`. Run `cultivator doctor` as part of `before_script` to catch this early.
+
+### `terragrunt: command not found`
+Cultivator delegates execution to Terragrunt. Both binaries must be present in the same job. `cultivator doctor` will report if Terragrunt is missing.
+
+### No modules discovered
+Check that `--root` points to the directory containing your `terragrunt.hcl` files and that `--env` matches the subdirectory structure.
+
+---
+
+## Further reading
+
+- [Quickstart](../getting-started/quickstart.md) — local usage
+- [Configuration](../getting-started/configuration.md) — all options and precedence
+- [Workflows](workflows.md) — available commands and flags
+- [GitLab CI/CD documentation](https://docs.gitlab.com/ee/ci/)
+
 
 The easiest way to use Cultivator in GitLab CI is via Docker image.
 
