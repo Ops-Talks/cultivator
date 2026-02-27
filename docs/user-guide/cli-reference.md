@@ -1,4 +1,4 @@
-# Workflows
+# CLI Reference
 
 Learn the key commands and workflows for Cultivator.
 

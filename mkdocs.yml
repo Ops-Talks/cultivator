@@ -106,7 +106,7 @@ nav:
   - User Guide:
     - Overview: user-guide/index.md
     - Features: user-guide/features.md
-    - Workflows: user-guide/workflows.md
+    - CLI Reference: user-guide/cli-reference.md
     - GitHub Actions: user-guide/github-actions.md
     - GitLab Pipelines: user-guide/gitlab-pipelines.md
   - Architecture:

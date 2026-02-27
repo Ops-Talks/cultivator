@@ -280,12 +280,11 @@ cultivator plan --env=prod --root=live
 
 Check what config is loaded:
 ```bash
-# Cultivator looks for (in order):
-# 1. .cultivator.yaml
-# 2. .cultivator.yml
-# 3. cultivator.yaml
-# 4. cultivator.yml
-ls -la .cultivator.* cultivator.*
+# Run without config file (uses defaults + env + flags)
+cultivator plan --root=live --env=prod
+
+# Run with config file (explicit)
+cultivator plan --config=cultivator.yml --env=prod
 ```
 
 ## Advanced Questions

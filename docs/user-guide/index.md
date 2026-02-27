@@ -5,7 +5,7 @@ Learn how to use Cultivator to automate Terragrunt workflows in CI and locally.
 ## Sections
 
 - **[Features](features.md)** - What Cultivator can do
-- **[Workflows](workflows.md)** - How to use Cultivator commands
+- **[CLI Reference](cli-reference.md)** - How to use Cultivator commands
 - **[GitHub Actions](github-actions.md)** - Integrate with GitHub Actions
 - **[GitLab Pipelines](gitlab-pipelines.md)** - Integrate with GitLab CI/CD
 - **[Configuration](../getting-started/configuration.md)** - Configure your setup
@@ -92,7 +92,7 @@ Run Cultivator directly in your terminal:
 ## Getting Help
 
 - **[Features](features.md)** - Explore what Cultivator can do
-- **[Workflows](workflows.md)** - Deep dive into commands, flags, and exit codes
+- **[CLI Reference](cli-reference.md)** - Deep dive into commands, flags, and exit codes
 - **[Configuration](../getting-started/configuration.md)** - Full config file reference
 - **[FAQ](../faq.md)** - Common questions answered
 - **[Architecture](../architecture/design.md)** - Understand how Cultivator works

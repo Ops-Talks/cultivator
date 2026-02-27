@@ -11,7 +11,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 ## Core Components
 
 ### 1. Config Loader
-- Reads `cultivator.yml` / `.cultivator.yaml` from repository root
+- Loads built-in defaults, optional config file (`--config`), environment variables, and CLI flags
 - Merges configuration with CLI flags and environment variables
 - Validates configuration against schema
 
@@ -46,7 +46,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 ```md
 CLI Invocation (plan/apply/destroy)
     ↓
-Config Loader → Parse flags + env vars + cultivator.yml
+Config Loader → Parse defaults + optional --config file + env vars + flags
     ↓
 Stack Discovery → Find all terragrunt.hcl files
     ↓

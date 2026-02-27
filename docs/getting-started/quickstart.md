@@ -83,7 +83,7 @@ jobs:
 ## Next Steps
 
 - Learn about [configuration](configuration.md)
-- Review [workflows](../user-guide/workflows.md)
+- Review [CLI reference](../user-guide/cli-reference.md)
 
 ## Common Commands
 

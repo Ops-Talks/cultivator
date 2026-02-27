@@ -1,35 +1,41 @@
 # GitHub Actions Integration
 
-This guide shows how to run Cultivator inside GitHub Actions workflows.
+This guide shows how to run Cultivator in GitHub Actions using a GitHub-native workflow model.
 
-Like with GitLab CI, you need three binaries in the same job environment:
+Unlike GitLab CI, GitHub Actions uses:
 
-1. The `cultivator` binary
-2. The `terragrunt` binary
-3. `terraform` (or OpenTofu)
+- `on:` events (`pull_request`, `workflow_dispatch`)
+- job-level `if:` expressions
+- explicit `permissions` for API operations
+- PR comments usually posted via `actions/github-script`
 
 ---
 
-## Minimal example
+## Recommended workflow
 
 ```yaml
 # .github/workflows/cultivator.yml
 
-name: Terragrunt
+name: Cultivator
 
 on:
   pull_request:
-    branches: [ main, develop ]
-  push:
-    branches: [ main ]
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 env:
-  CULTIVATOR_VERSION: v0.2.0
-  TERRAGRUNT_VERSION: 0.67.0
-  TERRAFORM_VERSION: 1.10.0
-  CULTIVATOR_ROOT: infrastructure
-  CULTIVATOR_PARALLELISM: 4
-  CULTIVATOR_OUTPUT_FORMAT: json
+  CULTIVATOR_VERSION: v0.2.7
+  TOFU_VERSION: 1.11.5
+  TERRAGRUNT_VERSION: 0.99.0
+  CULTIVATOR_ROOT: providers
+  CULTIVATOR_ENV: ""
+  CULTIVATOR_PARALLELISM: "4"
+  CULTIVATOR_OUTPUT_FORMAT: text
 
 jobs:
   doctor:
@@ -40,289 +46,393 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install tools
+        shell: bash
         run: |
-          # Terraform
-          wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin
-          rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          
-          # Terragrunt
-          wget -q -O /usr/local/bin/terragrunt \
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y wget unzip curl
+
+          wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          sudo unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          rm tofu_${TOFU_VERSION}_linux_amd64.zip
+
+          wget -q -O terragrunt \
             https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
-          chmod +x /usr/local/bin/terragrunt
-          
-          # Cultivator
-          wget -q -O /usr/local/bin/cultivator \
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+          wget -q -O cultivator \
             https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
-          chmod +x /usr/local/bin/cultivator
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
 
       - name: Run doctor
-        run: cultivator doctor
+        run: cultivator doctor --root "$CULTIVATOR_ROOT"
 
   plan:
     name: Plan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    needs: doctor
+    if: (github.event_name == 'pull_request' && github.event.action != 'closed') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install tools
+        shell: bash
         run: |
-          wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          
-          wget -q -O /usr/local/bin/terragrunt \
-            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
-          chmod +x /usr/local/bin/terragrunt
-          
-          wget -q -O /usr/local/bin/cultivator \
-            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
-          chmod +x /usr/local/bin/cultivator
+          set -euo pipefail
 
-      - name: Determine environment
-        id: env
+          sudo apt-get update
+          sudo apt-get install -y wget unzip curl
+
+          wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          sudo unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          rm tofu_${TOFU_VERSION}_linux_amd64.zip
+
+          wget -q -O terragrunt \
+            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+          wget -q -O cultivator \
+            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
+
+      - name: Run plan
+        shell: bash
         run: |
-          if [ "${{ github.base_ref }}" == "main" ]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
-          else
-            echo "environment=dev" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          args=(
+            --root "$CULTIVATOR_ROOT"
+            --parallelism "$CULTIVATOR_PARALLELISM"
+            --output-format "$CULTIVATOR_OUTPUT_FORMAT"
+            --non-interactive=true
+          )
+
+          if [[ -n "$CULTIVATOR_ENV" ]]; then
+            args+=(--env "$CULTIVATOR_ENV")
           fi
 
-      - name: Plan
-        run: |
-          cultivator plan \
-            --root "${{ env.CULTIVATOR_ROOT }}" \
-            --env "${{ steps.env.outputs.environment }}" \
-            --parallelism "${{ env.CULTIVATOR_PARALLELISM }}" \
-            --output-format "${{ env.CULTIVATOR_OUTPUT_FORMAT }}" \
-            --non-interactive
+          cultivator plan "${args[@]}" | tee plan_output.txt
 
-      - name: Comment PR
+      - name: Upload plan output
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-output
+          path: plan_output.txt
+
+      - name: Comment plan on PR
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            // Optional: post plan output to PR comment
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            const plan = fs.existsSync('plan_output.txt')
+              ? fs.readFileSync('plan_output.txt', 'utf8')
+              : 'No plan output file found.';
+
+            const body = [
+              '## Cultivator Plan',
+              '',
+              '```text',
+              plan.slice(0, 65000),
+              '```'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Cultivator plan completed. See workflow run for details.'
+              issue_number: context.issue.number,
+              body
             });
 
   apply:
     name: Apply
     runs-on: ubuntu-latest
-    needs: plan
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: doctor
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
 
       - name: Install tools
+        shell: bash
         run: |
-          wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          unzip -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-          
-          wget -q -O /usr/local/bin/terragrunt \
-            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
-          chmod +x /usr/local/bin/terragrunt
-          
-          wget -q -O /usr/local/bin/cultivator \
-            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
-          chmod +x /usr/local/bin/cultivator
+          set -euo pipefail
 
-      - name: Apply
+          sudo apt-get update
+          sudo apt-get install -y wget unzip curl
+
+          wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          sudo unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          rm tofu_${TOFU_VERSION}_linux_amd64.zip
+
+          wget -q -O terragrunt \
+            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+          wget -q -O cultivator \
+            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
+
+      - name: Run apply
+        shell: bash
         run: |
-          cultivator apply \
-            --root "${{ env.CULTIVATOR_ROOT }}" \
-            --env prod \
-            --parallelism "${{ env.CULTIVATOR_PARALLELISM }}" \
-            --output-format "${{ env.CULTIVATOR_OUTPUT_FORMAT }}" \
-            --non-interactive \
-            --auto-approve
+          set -euo pipefail
+
+          args=(
+            --root "$CULTIVATOR_ROOT"
+            --parallelism "$CULTIVATOR_PARALLELISM"
+            --output-format "$CULTIVATOR_OUTPUT_FORMAT"
+            --non-interactive=true
+            --auto-approve=true
+          )
+
+          if [[ -n "$CULTIVATOR_ENV" ]]; then
+            args+=(--env "$CULTIVATOR_ENV")
+          fi
+
+          cultivator apply "${args[@]}" | tee apply_output.txt
+
+      - name: Upload apply output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apply-output
+          path: apply_output.txt
+
+      - name: Comment apply on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const output = fs.existsSync('apply_output.txt')
+              ? fs.readFileSync('apply_output.txt', 'utf8')
+              : 'No apply output file found.';
+
+            const body = [
+              '## Cultivator Apply',
+              '',
+              '```text',
+              output.slice(0, 65000),
+              '```'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
 ```
 
 ---
 
-## DRY: Reusing tool installation
+## Using the composite action
 
-To avoid repeating the installation steps, use a composite action:
-
-```yaml
-# .github/actions/install-tools/action.yml
-
-name: Install tools
-description: Install terraform, terragrunt, and cultivator
-
-inputs:
-  terraform-version:
-    required: true
-  terragrunt-version:
-    required: true
-  cultivator-version:
-    required: true
-
-runs:
-  using: composite
-  steps:
-    - run: |
-        wget -q https://releases.hashicorp.com/terraform/${{ inputs.terraform-version }}/terraform_${{ inputs.terraform-version }}_linux_amd64.zip
-        unzip -q terraform_${{ inputs.terraform-version }}_linux_amd64.zip -d /usr/local/bin
-        rm terraform_${{ inputs.terraform-version }}_linux_amd64.zip
-      shell: bash
-
-    - run: |
-        wget -q -O /usr/local/bin/terragrunt \
-          https://github.com/gruntwork-io/terragrunt/releases/download/v${{ inputs.terragrunt-version }}/terragrunt_linux_amd64
-        chmod +x /usr/local/bin/terragrunt
-      shell: bash
-
-    - run: |
-        wget -q -O /usr/local/bin/cultivator \
-          https://github.com/Ops-Talks/cultivator/releases/download/${{ inputs.cultivator-version }}/cultivator-linux-amd64
-        chmod +x /usr/local/bin/cultivator
-      shell: bash
-```
-
-Then in your workflow:
+If you prefer shorter workflows, you can call the composite action defined in this repository at `examples/action.yml`.
 
 ```yaml
+name: Cultivator (Composite Action)
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  plan:
+  doctor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/install-tools
+      - name: Doctor with composite action
+        uses: ./examples
         with:
-          terraform-version: 1.10.0
-          terragrunt-version: 0.67.0
-          cultivator-version: v0.2.0
+          command: doctor
+          root: providers
 
-      - run: cultivator plan --root infrastructure --env dev --non-interactive
+  plan:
+    runs-on: ubuntu-latest
+    needs: doctor
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Plan with composite action
+        uses: ./examples
+        with:
+          command: plan
+          root: providers
+          env: dev
+          parallelism: '4'
+          output-format: text
+          non-interactive: 'true'
+
+  apply:
+    runs-on: ubuntu-latest
+    needs: doctor
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply with composite action
+        uses: ./examples
+        with:
+          command: apply
+          root: providers
+          env: prod
+          parallelism: '4'
+          output-format: text
+          non-interactive: 'true'
+          auto-approve: 'true'
+
+      - name: Comment apply on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'Cultivator apply finished. See job logs and artifacts for details.'
+            });
+```
+
+Notes:
+
+- `uses: ./examples` works because `examples/action.yml` defines a local action.
+- You can move this action to `.github/actions/cultivator/action.yml` and then use `uses: ./.github/actions/cultivator`.
+- To use a config file, pass `config-file: cultivator.yml` (or any path).
+- In this example, `apply` runs only after a PR is merged (`pull_request` `closed` with `merged == true`).
+- A PR that is only closed (without merge) has `merged == false`, so `apply` does not run.
+- For strict "approved + merged" enforcement, configure branch protection with required approvals before merge.
+
+---
+
+## Optional: use a config file
+
+A config file is optional in GitHub Actions. If you use one, pass it explicitly with `--config`.
+
+```yaml
+- name: Plan with config file
+  run: |
+    cultivator plan \
+      --config=cultivator.yml \
+      --non-interactive=true
 ```
 
 ---
 
-## Using secrets for cloud credentials
+## Key differences vs GitLab CI
 
-Store credentials in **Settings → Secrets and variables → Actions**, then expose them:
+- GitHub uses `on:` events; GitLab uses `rules:` and pipeline sources.
+- GitHub PR comments are usually posted with `actions/github-script` and `secrets.GITHUB_TOKEN`.
+- GitHub requires explicit `permissions` in workflow for PR write operations.
+- GitHub environment approvals are configured in repository environments (`environment: production`).
 
-```yaml
-plan:
-  runs-on: ubuntu-latest
-  env:
-    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    AWS_REGION: us-east-1
-  steps:
-    - uses: actions/checkout@v4
-    - run: |
-        wget -q -O /usr/local/bin/cultivator \
-          https://github.com/Ops-Talks/cultivator/releases/download/v0.2.0/cultivator-linux-amd64
-        chmod +x /usr/local/bin/cultivator
-    - run: cultivator plan --root infrastructure --env dev --non-interactive
-```
+## Execution flow on Pull Request
 
----
+When a PR is opened or updated:
 
-## Environment-based strategy matrix
+1. `doctor` runs first.
+2. `plan` runs only after `doctor` succeeds (`needs: doctor`).
+3. `apply` is skipped (it runs only when the PR is merged).
+4. Plan output is uploaded as artifact.
+5. PR comment is posted only for non-fork PRs in this example.
 
-Run plan/apply for multiple environments in parallel:
+When a PR is merged (event `pull_request` + action `closed` + `merged == true`):
 
-```yaml
-plan:
-  runs-on: ubuntu-latest
-  strategy:
-    matrix:
-      environment: [ dev, staging, prod ]
-    max-parallel: 2
-  steps:
-    - uses: actions/checkout@v4
+1. `doctor` runs.
+2. `apply` runs after `doctor`.
+3. Apply output is uploaded as artifact.
+4. A new PR comment is created with the `apply` result.
 
-    - uses: ./.github/actions/install-tools
-      with:
-        terraform-version: 1.10.0
-        terragrunt-version: 0.67.0
-        cultivator-version: v0.2.0
+When a PR is closed without merge (`merged == false`):
 
-    - run: |
-        cultivator plan \
-          --root infrastructure \
-          --env ${{ matrix.environment }} \
-          --non-interactive
-```
+1. The workflow can still be triggered by the `closed` action.
+2. The `apply` job is skipped by the `if` condition.
+3. No infrastructure change is executed.
+
+## Approval vs merge
+
+GitHub Actions can reliably gate on `merged == true` in this event. Approval is a repository policy concern.
+
+- If branch protection requires approvals, a merged PR is also approved by policy.
+- If branch protection does not require approvals, a PR may be merged without approval.
+
+## Branch protection (recommended)
+
+To enforce the policy "only run apply after approved and merged PR", configure branch protection on `main`:
+
+1. Require at least 1 approval before merge.
+2. Require status checks to pass (for example `doctor` and `plan`).
+3. Optionally require conversation resolution before merge.
+
+With these settings, merge is blocked until approval and successful checks, and this workflow runs `apply` only after merge (`merged == true`).
 
 ---
 
-## Tag-based filtering
+## Secrets and credentials
+
+Store cloud credentials in **Settings → Secrets and variables → Actions** and expose them in the job:
 
 ```yaml
-plan:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/install-tools
-      with:
-        terraform-version: 1.10.0
-        terragrunt-version: 0.67.0
-        cultivator-version: v0.2.0
-
-    - run: |
-        # Only plan stacks tagged with "networking"
-        cultivator plan \
-          --root infrastructure \
-          --tags networking \
-          --non-interactive
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: us-east-1
 ```
 
----
-
-## Caching
-
-Cache the Terragrunt plugin directory to speed up runs:
-
-```yaml
-plan:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-
-    - name: Cache .terragrunt-cache
-      uses: actions/cache@v4
-      with:
-        path: .terragrunt-cache
-        key: terragrunt-${{ github.ref }}-${{ github.sha }}
-        restore-keys: |
-          terragrunt-${{ github.ref }}-
-          terragrunt-
-```
+Cultivator does not manage credentials; Terragrunt/OpenTofu/Terraform reads them from the environment.
 
 ---
 
 ## Troubleshooting
 
 ### `cultivator: command not found`
-The binary was not added to `PATH`. Verify the installation step ran and `/usr/local/bin` is in `PATH`.
+Verify install step ran successfully and binary was moved to `/usr/local/bin`.
 
 ### `terragrunt: command not found`
-Cultivator needs both binaries. Add it to the install step and verify it's executable.
+Cultivator delegates to Terragrunt. Install both binaries in the same job.
 
-### Workflow not triggering
-Check the `on` conditions in your workflow file. Example: `if: github.event_name == 'push'` won't trigger on PRs.
+### PR comment step fails with 403
+Ensure workflow includes:
 
-### Secrets not available
-Ensure secrets are defined in **Settings → Secrets and variables → Actions** and referenced correctly as `${{ secrets.SECRET_NAME }}`.
+```yaml
+permissions:
+  pull-requests: write
+```
+
+### No stacks discovered
+Check `CULTIVATOR_ROOT` and optional `CULTIVATOR_ENV` filter.
 
 ---
 
 ## Further reading
 
-- [Quickstart](../getting-started/quickstart.md) — local usage
-- [Configuration](../getting-started/configuration.md) — all options
-- [Workflows](workflows.md) — available commands and flags
+- [Quickstart](../getting-started/quickstart.md)
+- [Configuration](../getting-started/configuration.md)
+- [CLI Reference](cli-reference.md)
 - [GitHub Actions documentation](https://docs.github.com/en/actions)
 - [GitLab CI equivalent](gitlab-pipelines.md)
