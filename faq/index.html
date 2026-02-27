@@ -939,6 +939,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#why-not-just-use-shell-scripts-with-terragrunt-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why not just use shell scripts with Terragrunt directly?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#do-i-need-a-separate-server" class="md-nav__link">
     <span class="md-ellipsis">
       Do I need a separate server?
@@ -1372,6 +1381,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#why-not-just-use-shell-scripts-with-terragrunt-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why not just use shell scripts with Terragrunt directly?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#do-i-need-a-separate-server" class="md-nav__link">
     <span class="md-ellipsis">
       Do I need a separate server?
@@ -1763,7 +1781,7 @@
 <h1 id="frequently-asked-questions">Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permanent link">&para;</a></h1>
 <h2 id="general-questions">General Questions<a class="headerlink" href="#general-questions" title="Permanent link">&para;</a></h2>
 <h3 id="what-is-cultivator">What is Cultivator?<a class="headerlink" href="#what-is-cultivator" title="Permanent link">&para;</a></h3>
-<p>Cultivator is a <strong>CLI thatorch orchestrates Terragrunt execution</strong> in CI/CD pipelines and local environments. It discovers stacks, applies filters, respects dependencies, and orchestrates parallel execution of <code>plan</code>, <code>apply</code>, and <code>destroy</code> operations.</p>
+<p>Cultivator is a <strong>CLI that orchestrates Terragrunt execution</strong> in CI/CD pipelines and local environments. It discovers stacks, applies filters, respects dependencies, and orchestrates parallel execution of <code>plan</code>, <code>apply</code>, and <code>destroy</code> operations.</p>
 <h3 id="how-is-it-different-from-atlantis-or-other-github-automation-tools">How is it different from Atlantis or other GitHub automation tools?<a class="headerlink" href="#how-is-it-different-from-atlantis-or-other-github-automation-tools" title="Permanent link">&para;</a></h3>
 <p>Unlike Atlantis (which is comment-triggered automation in GitHub):
 - <strong>Atlantis</strong>: Webhook-based; comments on PRs trigger automation inside GitHub
@@ -1773,6 +1791,13 @@
 - Simpler to debug (just run the CLI command locally)
 - Better separation of concerns (CI orchestrates, Cultivator executes)
 - No GitHub-specific logic in the tool</p>
+<h3 id="why-not-just-use-shell-scripts-with-terragrunt-directly">Why not just use shell scripts with Terragrunt directly?<a class="headerlink" href="#why-not-just-use-shell-scripts-with-terragrunt-directly" title="Permanent link">&para;</a></h3>
+<p>While you can write custom bash scripts to orchestrate Terragrunt stacks, you'll need to:
+- Manually list and maintain every stack in your pipeline
+- Implement discovery, filtering, and dependency logic yourself
+- Handle parallelization with complex semaphore patterns
+- Rewrite scripts for different CI systems</p>
+<p>Cultivator automates all of this. See <a href="../#why-cultivator">Why Cultivator?</a> for detailed comparison with practical examples.</p>
 <h3 id="do-i-need-a-separate-server">Do I need a separate server?<a class="headerlink" href="#do-i-need-a-separate-server" title="Permanent link">&para;</a></h3>
 <p>No. Cultivator is a <strong>CLI binary</strong> that runs inside your existing CI/CD system. No additional infrastructure or webhooks required.</p>
 <h2 id="installation-and-setup">Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Permanent link">&para;</a></h2>
