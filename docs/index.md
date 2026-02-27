@@ -80,6 +80,100 @@ cultivator plan --root=live \
 cultivator plan --root=live --exclude=experimental --non-interactive
 ```
 
+## Why Cultivator?
+
+### The Problem: Managing Multiple Stacks Without Orchestration
+
+Managing Terragrunt stacks across environments typically requires custom pipeline scripts:
+
+```yaml
+# Without Cultivator: Manual stack management
+plan:
+  script:
+    # Manual discovery
+    - STACKS=$(find live/prod -name "terragrunt.hcl" -type f)
+    
+    # Manual filtering
+    - FILTERED=()
+    - for stack in $STACKS; do
+        if [[ "$stack" == *"prod"* ]] && [[ "$stack" != *"experimental"* ]]; then
+          FILTERED+=("$stack")
+        fi
+      done
+    
+    # Sequential execution (slow!)
+    - FAILED=()
+    - for stack in "${FILTERED[@]}"; do
+        DIR=$(dirname "$stack")
+        cd "$DIR"
+        if ! terragrunt plan; then
+          FAILED+=("$DIR")
+        fi
+        cd -
+      done
+    
+    # Manual error reporting
+    - if [ ${#FAILED[@]} -gt 0 ]; then
+        echo "Failed stacks: ${FAILED[*]}"
+        exit 1
+      fi
+```
+
+**Problems:**
+- ❌ **Manual maintenance** — Update pipeline when adding/removing stacks
+- ❌ **No filtering** — Complex bash logic for environment/tag filtering
+- ❌ **Sequential execution** — Slow; implementing parallelization is complex
+- ❌ **No dependency handling** — Must manually order stacks
+- ❌ **Inconsistent errors** — Hard to parse failures across stacks
+- ❌ **Not portable** — Rewrite for each CI system
+
+### The Solution: Automated Orchestration
+
+Cultivator automates discovery, filtering, and execution:
+
+```yaml
+# With Cultivator: One command
+plan:
+  script:
+    - cultivator plan --root=live --env=prod --exclude=experimental --parallelism=8 --non-interactive
+```
+
+**Benefits:**
+- ✅ **Automatic discovery** — Finds all stacks with `terragrunt.hcl`
+- ✅ **Smart filtering** — By environment, path patterns, and tags
+- ✅ **Parallel execution** — Safe concurrent runs with configurable workers
+- ✅ **Dependency awareness** — Parses and respects stack dependencies
+- ✅ **Structured output** — JSON or text format with clear exit codes
+- ✅ **Same everywhere** — Identical command works in CI and locally
+
+### Real-World Example
+
+```bash
+# Scenario: Run plan on production stacks tagged "critical", exclude experiments
+
+# Without Cultivator:
+# - Write ~50 lines of bash
+# - Parse terragrunt.hcl for tags manually
+# - Implement dependency graph
+# - Handle parallel execution with semaphores
+# - Aggregate errors and format output
+
+# With Cultivator:
+cultivator plan --root=live --env=prod --tags=critical --exclude=experimental --parallelism=4
+```
+
+### Key Advantages Over Shell Scripts
+
+| Requirement | Shell Scripts | Cultivator |
+|-------------|---------------|------------|
+| **Add new stack** | Update pipeline code | Automatic discovery |
+| **Filter by env** | Manual bash logic | `--env=prod` |
+| **Filter by tags** | Parse HCL manually | `--tags=critical` |
+| **Parallel execution** | Implement semaphores | `--parallelism=8` |
+| **Handle dependencies** | Manual ordering | Automatic graph parsing |
+| **Local testing** | Rewrite for local use | Same command everywhere |
+| **Error reporting** | Custom aggregation | Structured JSON/text output |
+
 ## What's Different?
 
 | Feature | Cultivator | Raw Terragrunt | Atlantis |

@@ -3,7 +3,7 @@
 ## General Questions
 
 ### What is Cultivator?
-Cultivator is a **CLI thatorch orchestrates Terragrunt execution** in CI/CD pipelines and local environments. It discovers stacks, applies filters, respects dependencies, and orchestrates parallel execution of `plan`, `apply`, and `destroy` operations.
+Cultivator is a **CLI that orchestrates Terragrunt execution** in CI/CD pipelines and local environments. It discovers stacks, applies filters, respects dependencies, and orchestrates parallel execution of `plan`, `apply`, and `destroy` operations.
 
 ### How is it different from Atlantis or other GitHub automation tools?
 Unlike Atlantis (which is comment-triggered automation in GitHub):
@@ -15,6 +15,15 @@ Unlike Atlantis (which is comment-triggered automation in GitHub):
 - Simpler to debug (just run the CLI command locally)
 - Better separation of concerns (CI orchestrates, Cultivator executes)
 - No GitHub-specific logic in the tool
+
+### Why not just use shell scripts with Terragrunt directly?
+While you can write custom bash scripts to orchestrate Terragrunt stacks, you'll need to:
+- Manually list and maintain every stack in your pipeline
+- Implement discovery, filtering, and dependency logic yourself
+- Handle parallelization with complex semaphore patterns
+- Rewrite scripts for different CI systems
+
+Cultivator automates all of this. See [Why Cultivator?](index.md#why-cultivator) for detailed comparison with practical examples.
 
 ### Do I need a separate server?
 No. Cultivator is a **CLI binary** that runs inside your existing CI/CD system. No additional infrastructure or webhooks required.
