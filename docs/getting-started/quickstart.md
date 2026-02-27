@@ -2,6 +2,8 @@
 
 Get Cultivator running in your repository in a few minutes.
 
+No `cultivator.yml` is required for the first run.
+
 ## Step 1: Build the CLI
 
 ```bash
@@ -14,7 +16,37 @@ go build -o cultivator ./cmd/cultivator
 ./cultivator plan --root=live --env=dev --non-interactive
 ```
 
-## Step 3: Add a CI job
+If your Terragrunt root is the current directory, you can also run:
+
+```bash
+./cultivator plan --non-interactive
+```
+
+## Step 3 (optional): Create a config file
+
+Create `cultivator.yml` in the repository root only if you want defaults:
+
+```yaml
+root: live
+parallelism: 4
+output_format: text
+non_interactive: true
+
+plan:
+  destroy: false
+apply:
+  auto_approve: false
+destroy:
+  auto_approve: false
+```
+
+Use it explicitly:
+
+```bash
+./cultivator plan --config=cultivator.yml
+```
+
+## Step 4: Add a CI job
 
 Example GitHub Actions workflow for `plan` on pull requests:
 

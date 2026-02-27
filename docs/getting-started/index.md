@@ -2,6 +2,8 @@
 
 Welcome to Cultivator! This section will guide you through installation, configuration, and your first Terragrunt plan.
 
+You can start using Cultivator without any configuration file. A `cultivator.yml` is optional.
+
 ## Prerequisites
 
 - **Go 1.25+** (for building from source)
@@ -12,9 +14,18 @@ Welcome to Cultivator! This section will guide you through installation, configu
 
 ## Choose Your Path
 
-- **Quickest Start**: [Use GitHub Action](quickstart.md)
+- **Quickest Start**: [Run locally in minutes](quickstart.md)
 - **Full Installation**: [Installation Guide](installation.md)
 - **Configuration Details**: [Configuration Reference](configuration.md)
+
+## Minimal Path (No config file)
+
+```bash
+go build -o cultivator ./cmd/cultivator
+./cultivator plan --root=live --env=dev --non-interactive
+```
+
+If needed, add a config file later and pass it with `--config`.
 
 ## Next Steps
 

@@ -1,21 +1,24 @@
 # Configuration
 
-Complete reference for Cultivator configuration.
+Complete reference for Cultivator runtime configuration.
 
-## Configuration File
+## Is `cultivator.yml` required?
 
-Cultivator looks for a config file in this order:
+No. Configuration file is optional.
 
-- `.cultivator.yaml`
-- `.cultivator.yml`
-- `cultivator.yaml`
-- `cultivator.yml`
+Cultivator runs with defaults plus CLI flags and environment variables.
 
-Place the config file in the root of your repository.
+## Using a config file
 
-## Simple Configuration
+When using a file, pass it explicitly via `--config`:
 
-For basic local CLI usage:
+```bash
+cultivator plan --config=cultivator.yml
+```
+
+Supported filename is up to you (`cultivator.yml`, `.cultivator.yaml`, etc.).
+
+## Minimal config example
 
 ```yaml
 root: live
@@ -29,72 +32,26 @@ exclude:
   - envs/prod/experimental
 
 tags:
-  - app
+  - critical
 
 plan:
   destroy: false
 apply:
   auto_approve: false
 destroy:
-  auto_approve: true
+  auto_approve: false
 ```
 
-## Complete Schema (GitHub/GitLab)
+## Precedence order
 
-For CI/CD pipelines, use the full schema:
+Highest to lowest:
 
-```yaml
-version: 1
+1. CLI flags
+2. Environment variables
+3. Config file (when passed with `--config`)
+4. Built-in defaults
 
-projects:
-  - name: production
-    dir: envs/prod
-    terragrunt_version: 0.55.0
-    terraform_version: 1.7.0
-    auto_plan: true
-    apply_requirements:
-      - approved
-      - mergeable
-
-  - name: staging
-    dir: envs/staging
-    terragrunt_version: 0.55.0
-    terraform_version: 1.7.0
-    auto_plan: true
-
-settings:
-  auto_plan: true
-  lock_timeout: 10m
-  parallel_plan: true
-  max_parallel: 5
-  require_approval: true
-  delete_plans: false
-
-hooks:
-  pre_plan:
-    - echo "Starting plan..."
-    - terragrunt validate-all
-    
-  post_plan:
-    - echo "Plan completed"
-    - ./scripts/notify-slack.sh
-    
-  pre_apply:
-    - echo "Starting apply..."
-    - ./scripts/backup-state.sh
-    
-  post_apply:
-    - echo "Apply completed"
-    - ./scripts/update-docs.sh
-    
-  on_error:
-    - echo "Error occurred"
-    - ./scripts/notify-error.sh
-```
-
-## Configuration Reference
-
-### Root Level (Simple Mode)
+## Supported keys
 
 #### `root`
 - **Type**: String
@@ -147,47 +104,6 @@ hooks:
 - **Default**: `false`
 - **Description**: Add `-auto-approve` to `terragrunt destroy`
 
-### Root Level (CI/CD Mode)
-
-#### `version` (required)
-Version of the config schema. Currently `1`.
-
-#### `projects` (required)
-List of Terragrunt project definitions.
-
-##### Project Fields
-
-- **`name`** (required): Unique identifier for the project
-- **`dir`** (required): Path to directory containing Terragrunt files
-- **`terragrunt_version`** (optional): Specific Terragrunt version
-- **`terraform_version`** (optional): Specific Terraform version
-- **`workflow`** (optional): Workflow type (`default` or `custom`)
-- **`auto_plan`** (optional): Auto-run plan on PR
-- **`apply_requirements`** (optional): Requirements for apply
-  - `approved`: PR must have at least one approval
-  - `mergeable`: PR must be in mergeable state
-  - `status_checks`: All status checks must pass
-
-#### `settings` (optional)
-Global settings for all projects.
-
-- **`auto_plan`** (default: `true`): Auto-run plan on PR open/update
-- **`lock_timeout`** (default: `10m`): Lock timeout duration
-- **`parallel_plan`** (default: `true`): Run plans in parallel
-- **`max_parallel`** (default: `5`): Maximum parallel operations
-- **`require_approval`** (default: `true`): Require PR approval before apply
-- **`delete_plans`** (default: `false`): Delete plan files after apply
-
-#### `hooks` (optional)
-Custom commands at different stages.
-
-Hook types:
-- **`pre_plan`**: Before running plan
-- **`post_plan`**: After successful plan
-- **`pre_apply`**: Before running apply
-- **`post_apply`**: After successful apply
-- **`on_error`**: When any operation fails
-
 ## Environment Variables
 
 Environment variables override the config file:
@@ -203,11 +119,6 @@ Environment variables override the config file:
 - `CULTIVATOR_PLAN_DESTROY`
 - `CULTIVATOR_APPLY_AUTO_APPROVE`
 - `CULTIVATOR_DESTROY_AUTO_APPROVE`
-
-CI/CD-specific:
-- `CULTIVATOR_CONFIG`: Path to config file
-- `GITHUB_TOKEN`: GitHub API token
-- `CULTIVATOR_LOG_LEVEL`: Log level (`debug`, `info`, `warn`, `error`)
 
 Example:
 

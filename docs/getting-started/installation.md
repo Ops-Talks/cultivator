@@ -80,7 +80,18 @@ go build -o cultivator ./cmd/cultivator
 
 ## Configuration
 
-Create a `.cultivator.yaml` (or `cultivator.yml`) in your repository root. See [Configuration](configuration.md) for details.
+Configuration file is optional.
+
+- Without file: pass everything via flags and/or environment variables.
+- With file: create one (for example `cultivator.yml`) and pass it explicitly with `--config`.
+
+Example:
+
+```bash
+./bin/cultivator plan --config=cultivator.yml
+```
+
+See [Configuration](configuration.md) for supported keys and precedence.
 
 ## Next Steps
 
