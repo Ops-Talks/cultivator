@@ -1,97 +1,73 @@
 # Cultivator
 
-**Cultivator** is a Go-based CLI that orchestrates **Terragrunt** pipelines in CI (GitHub Actions and GitLab CI). It standardizes `plan`, `apply`, and `destroy` runs without requiring a separate backend.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Go Version](https://img.shields.io/badge/Go-1.25%2B-blue.svg)](https://golang.org)
+[![Release](https://img.shields.io/github/v/release/Ops-Talks/cultivator.svg)](https://github.com/Ops-Talks/cultivator/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Ops-Talks/cultivator/test.yml?branch=main)](https://github.com/Ops-Talks/cultivator/actions)
+[![GitHub Stars](https://img.shields.io/github/stars/Ops-Talks/cultivator.svg)](https://github.com/Ops-Talks/cultivator)
 
-## Why Cultivator?
+**Cultivator** is a lightweight CLI that orchestrates **Terragrunt** stack discovery, filtering, and execution across CI/CD systems and local environments.
 
-Terragrunt repositories often need a simple, repeatable way to execute `plan` and `apply` across multiple modules. Cultivator focuses on:
+## ✨ Why Cultivator?
 
-- Module discovery from a root layout
-- Consistent CLI flags and CI-friendly defaults
-- Optional filtering by environment, path, and tags
-- Stateless execution that relies on Terragrunt/Terraform backends
+- 🚀 **CLI-first**: Works in GitHub Actions, GitLab CI, and locally
+- 🔍 **Smart Discovery**: Finds all Terragrunt stacks automatically
+- 🎯 **Flexible Filtering**: Environment, path patterns, and custom tags
+- ⚡ **Parallel Execution**: Configurable worker pool with dependency awareness
+- 🔒 **No Server**: Pure CLI; uses existing Terraform/OpenTofu backends
+- 📊 **Multiple Formats**: Human-readable or JSON output
 
-## Features
+## 🚀 Quick Start
 
-- **Terragrunt-first CLI** - `plan`, `apply`, and `destroy` from one entrypoint
-- **Module discovery** - finds `terragrunt.hcl` modules under a root directory
-- **Scope filters** - filter by environment, include/exclude paths, or tags
-- **Parallel execution** - configurable worker pool for faster runs
-- **CI-ready output** - text or JSON logs with consistent exit codes
-- **No backend** - uses existing Terragrunt/Terraform state backends
-
-## Quick Start
-
-### Build locally
-
+### Build
 ```bash
 go build -o cultivator ./cmd/cultivator
 ```
 
-### Run a plan
-
+### Plan
 ```bash
 ./cultivator plan --root=live --env=dev --non-interactive
 ```
 
-### Apply changes
-
+### Apply
 ```bash
 ./cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
 
-### Destroy
+## 📋 Requirements
+
+- **Terragrunt** v0.50.0+ (recommended: v1.0+)
+- **OpenTofu** v1.6+ or **Terraform** v1.5+
+- **Go** v1.25+ (for building from source)
+
+## 📚 Documentation
+
+Full documentation is available at: **[https://ops-talks.github.io/cultivator](https://ops-talks.github.io/cultivator)**
+
+- [Getting Started](https://ops-talks.github.io/cultivator/getting-started/) - Installation and configuration
+- [User Guide](https://ops-talks.github.io/cultivator/user-guide/) - Commands, workflows, CI integration
+- [Architecture](https://ops-talks.github.io/cultivator/architecture/design/) - Design and internals
+- [FAQ](https://ops-talks.github.io/cultivator/faq/) - Common questions
+
+## 🛠️ Development
 
 ```bash
-./cultivator destroy --root=live --env=dev --non-interactive --auto-approve
+# Clone
+git clone https://github.com/Ops-Talks/cultivator.git
+cd cultivator
+
+# Build
+go build -o cultivator ./cmd/cultivator
+
+# Test
+go test ./...
+
+# Lint
+golangci-lint run
 ```
 
-## Configuration
+For detailed development guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Create a `.cultivator.yaml`, `.cultivator.yml`, `cultivator.yaml`, or `cultivator.yml` file in your repository root:
+## 📄 License
 
-```yaml
-root: live
-parallelism: 4
-output_format: text
-non_interactive: true
-
-plan:
-  destroy: false
-apply:
-  auto_approve: true
-destroy:
-  auto_approve: true
-```
-
-Environment variables and CLI flags override the config file. Flags take precedence over environment variables.
-
-## Project Structure
-
-```
-cultivator/
-├── cmd/
-│   └── cultivator/          # CLI entry point
-├── internal/
-│   ├── cli/                 # CLI parsing and orchestration
-│   ├── config/              # Config load/merge
-│   ├── discovery/           # Module discovery
-│   ├── runner/              # Terragrunt execution
-│   └── logging/             # Output formatting
-├── docs/                    # Documentation
-└── mkdocs.yml               # MkDocs configuration
-```
-
-## Requirements
-
-- Terragrunt >= 0.50.0
-- OpenTofu >= 1.6.0 or Terraform >= 1.5.0
-- Go >= 1.25 (for building from source)
-
-## Contributing
-
-Contributions are welcome. Please read the [Contributing Guide](CONTRIBUTING.md) for details.
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE)
