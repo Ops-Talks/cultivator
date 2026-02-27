@@ -560,62 +560,47 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration-file" class="md-nav__link">
+  <a href="#is-cultivatoryml-required" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration File
+      Is cultivator.yml required?
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#simple-configuration" class="md-nav__link">
+  <a href="#using-a-config-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Simple Configuration
+      Using a config file
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#complete-schema-githubgitlab" class="md-nav__link">
+  <a href="#minimal-config-example" class="md-nav__link">
     <span class="md-ellipsis">
-      Complete Schema (GitHub/GitLab)
+      Minimal config example
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-reference" class="md-nav__link">
+  <a href="#precedence-order" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Reference
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration Reference">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#root-level-simple-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      Root Level (Simple Mode)
+      Precedence order
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#root-level-cicd-mode" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#supported-keys" class="md-nav__link">
     <span class="md-ellipsis">
-      Root Level (CI/CD Mode)
+      Supported keys
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1039,62 +1024,47 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration-file" class="md-nav__link">
+  <a href="#is-cultivatoryml-required" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration File
+      Is cultivator.yml required?
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#simple-configuration" class="md-nav__link">
+  <a href="#using-a-config-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Simple Configuration
+      Using a config file
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#complete-schema-githubgitlab" class="md-nav__link">
+  <a href="#minimal-config-example" class="md-nav__link">
     <span class="md-ellipsis">
-      Complete Schema (GitHub/GitLab)
+      Minimal config example
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-reference" class="md-nav__link">
+  <a href="#precedence-order" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Reference
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration Reference">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#root-level-simple-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      Root Level (Simple Mode)
+      Precedence order
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#root-level-cicd-mode" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#supported-keys" class="md-nav__link">
     <span class="md-ellipsis">
-      Root Level (CI/CD Mode)
+      Supported keys
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1144,89 +1114,45 @@
 
 
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
-<p>Complete reference for Cultivator configuration.</p>
-<h2 id="configuration-file">Configuration File<a class="headerlink" href="#configuration-file" title="Permanent link">&para;</a></h2>
-<p>Cultivator looks for a config file in this order:</p>
-<ul>
-<li><code>.cultivator.yaml</code></li>
-<li><code>.cultivator.yml</code></li>
-<li><code>cultivator.yaml</code></li>
-<li><code>cultivator.yml</code></li>
-</ul>
-<p>Place the config file in the root of your repository.</p>
-<h2 id="simple-configuration">Simple Configuration<a class="headerlink" href="#simple-configuration" title="Permanent link">&para;</a></h2>
-<p>For basic local CLI usage:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">output_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">non_interactive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">include</span><span class="p">:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">envs/prod</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nt">exclude</span><span class="p">:</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">envs/prod/experimental</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">tags</span><span class="p">:</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nt">plan</span><span class="p">:</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">destroy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nt">apply</span><span class="p">:</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="nt">destroy</span><span class="p">:</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<p>Complete reference for Cultivator runtime configuration.</p>
+<h2 id="is-cultivatoryml-required">Is <code>cultivator.yml</code> required?<a class="headerlink" href="#is-cultivatoryml-required" title="Permanent link">&para;</a></h2>
+<p>No. Configuration file is optional.</p>
+<p>Cultivator runs with defaults plus CLI flags and environment variables.</p>
+<h2 id="using-a-config-file">Using a config file<a class="headerlink" href="#using-a-config-file" title="Permanent link">&para;</a></h2>
+<p>When using a file, pass it explicitly via <code>--config</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--config<span class="o">=</span>cultivator.yml
 </span></code></pre></div>
-<h2 id="complete-schema-githubgitlab">Complete Schema (GitHub/GitLab)<a class="headerlink" href="#complete-schema-githubgitlab" title="Permanent link">&para;</a></h2>
-<p>For CI/CD pipelines, use the full schema:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">projects</span><span class="p">:</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">production</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">envs/prod</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">terragrunt_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.55.0</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">terraform_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.7.0</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">auto_plan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">apply_requirements</span><span class="p">:</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">approved</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mergeable</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">staging</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">envs/staging</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">terragrunt_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.55.0</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="nt">terraform_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.7.0</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">auto_plan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nt">settings</span><span class="p">:</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nt">auto_plan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="nt">lock_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10m</span>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nt">parallel_plan</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="nt">max_parallel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="nt">require_approval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="nt">delete_plans</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="nt">hooks</span><span class="p">:</span>
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="nt">pre_plan</span><span class="p">:</span>
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;Starting plan...&quot;</span>
-</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">terragrunt validate-all</span>
-</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>
-</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">  </span><span class="nt">post_plan</span><span class="p">:</span>
-</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;Plan completed&quot;</span>
-</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./scripts/notify-slack.sh</span>
-</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>
-</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">  </span><span class="nt">pre_apply</span><span class="p">:</span>
-</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;Starting apply...&quot;</span>
-</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./scripts/backup-state.sh</span>
-</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>
-</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">  </span><span class="nt">post_apply</span><span class="p">:</span>
-</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;Apply completed&quot;</span>
-</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./scripts/update-docs.sh</span>
-</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>
-</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="w">  </span><span class="nt">on_error</span><span class="p">:</span>
-</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;Error occurred&quot;</span>
-</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./scripts/notify-error.sh</span>
+<p>Supported filename is up to you (<code>cultivator.yml</code>, <code>.cultivator.yaml</code>, etc.).</p>
+<h2 id="minimal-config-example">Minimal config example<a class="headerlink" href="#minimal-config-example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">output_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">non_interactive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">include</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">envs/prod</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nt">exclude</span><span class="p">:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">envs/prod/experimental</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="nt">tags</span><span class="p">:</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">critical</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="nt">plan</span><span class="p">:</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="nt">destroy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="nt">apply</span><span class="p">:</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="nt">destroy</span><span class="p">:</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </span></code></pre></div>
-<h2 id="configuration-reference">Configuration Reference<a class="headerlink" href="#configuration-reference" title="Permanent link">&para;</a></h2>
-<h3 id="root-level-simple-mode">Root Level (Simple Mode)<a class="headerlink" href="#root-level-simple-mode" title="Permanent link">&para;</a></h3>
+<h2 id="precedence-order">Precedence order<a class="headerlink" href="#precedence-order" title="Permanent link">&para;</a></h2>
+<p>Highest to lowest:</p>
+<ol>
+<li>CLI flags</li>
+<li>Environment variables</li>
+<li>Config file (when passed with <code>--config</code>)</li>
+<li>Built-in defaults</li>
+</ol>
+<h2 id="supported-keys">Supported keys<a class="headerlink" href="#supported-keys" title="Permanent link">&para;</a></h2>
 <h4 id="root"><code>root</code><a class="headerlink" href="#root" title="Permanent link">&para;</a></h4>
 <ul>
 <li><strong>Type</strong>: String</li>
@@ -1288,42 +1214,6 @@
 <li><strong>Default</strong>: <code>false</code></li>
 <li><strong>Description</strong>: Add <code>-auto-approve</code> to <code>terragrunt destroy</code></li>
 </ul>
-<h3 id="root-level-cicd-mode">Root Level (CI/CD Mode)<a class="headerlink" href="#root-level-cicd-mode" title="Permanent link">&para;</a></h3>
-<h4 id="version-required"><code>version</code> (required)<a class="headerlink" href="#version-required" title="Permanent link">&para;</a></h4>
-<p>Version of the config schema. Currently <code>1</code>.</p>
-<h4 id="projects-required"><code>projects</code> (required)<a class="headerlink" href="#projects-required" title="Permanent link">&para;</a></h4>
-<p>List of Terragrunt project definitions.</p>
-<h5 id="project-fields">Project Fields<a class="headerlink" href="#project-fields" title="Permanent link">&para;</a></h5>
-<ul>
-<li><strong><code>name</code></strong> (required): Unique identifier for the project</li>
-<li><strong><code>dir</code></strong> (required): Path to directory containing Terragrunt files</li>
-<li><strong><code>terragrunt_version</code></strong> (optional): Specific Terragrunt version</li>
-<li><strong><code>terraform_version</code></strong> (optional): Specific Terraform version</li>
-<li><strong><code>workflow</code></strong> (optional): Workflow type (<code>default</code> or <code>custom</code>)</li>
-<li><strong><code>auto_plan</code></strong> (optional): Auto-run plan on PR</li>
-<li><strong><code>apply_requirements</code></strong> (optional): Requirements for apply</li>
-<li><code>approved</code>: PR must have at least one approval</li>
-<li><code>mergeable</code>: PR must be in mergeable state</li>
-<li><code>status_checks</code>: All status checks must pass</li>
-</ul>
-<h4 id="settings-optional"><code>settings</code> (optional)<a class="headerlink" href="#settings-optional" title="Permanent link">&para;</a></h4>
-<p>Global settings for all projects.</p>
-<ul>
-<li><strong><code>auto_plan</code></strong> (default: <code>true</code>): Auto-run plan on PR open/update</li>
-<li><strong><code>lock_timeout</code></strong> (default: <code>10m</code>): Lock timeout duration</li>
-<li><strong><code>parallel_plan</code></strong> (default: <code>true</code>): Run plans in parallel</li>
-<li><strong><code>max_parallel</code></strong> (default: <code>5</code>): Maximum parallel operations</li>
-<li><strong><code>require_approval</code></strong> (default: <code>true</code>): Require PR approval before apply</li>
-<li><strong><code>delete_plans</code></strong> (default: <code>false</code>): Delete plan files after apply</li>
-</ul>
-<h4 id="hooks-optional"><code>hooks</code> (optional)<a class="headerlink" href="#hooks-optional" title="Permanent link">&para;</a></h4>
-<p>Custom commands at different stages.</p>
-<p>Hook types:
-- <strong><code>pre_plan</code></strong>: Before running plan
-- <strong><code>post_plan</code></strong>: After successful plan
-- <strong><code>pre_apply</code></strong>: Before running apply
-- <strong><code>post_apply</code></strong>: After successful apply
-- <strong><code>on_error</code></strong>: When any operation fails</p>
 <h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <p>Environment variables override the config file:</p>
 <ul>
@@ -1339,10 +1229,6 @@
 <li><code>CULTIVATOR_APPLY_AUTO_APPROVE</code></li>
 <li><code>CULTIVATOR_DESTROY_AUTO_APPROVE</code></li>
 </ul>
-<p>CI/CD-specific:
-- <code>CULTIVATOR_CONFIG</code>: Path to config file
-- <code>GITHUB_TOKEN</code>: GitHub API token
-- <code>CULTIVATOR_LOG_LEVEL</code>: Log level (<code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>)</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_ROOT</span><span class="o">=</span>live
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_ENV</span><span class="o">=</span>prod

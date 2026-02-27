@@ -515,6 +515,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#minimal-path-no-config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimal Path (No config file)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       Next Steps
@@ -997,6 +1006,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#minimal-path-no-config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimal Path (No config file)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       Next Steps
@@ -1025,6 +1043,7 @@
 
 <h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
 <p>Welcome to Cultivator! This section will guide you through installation, configuration, and your first Terragrunt plan.</p>
+<p>You can start using Cultivator without any configuration file. A <code>cultivator.yml</code> is optional.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Go 1.25+</strong> (for building from source)</li>
@@ -1035,10 +1054,15 @@
 </ul>
 <h2 id="choose-your-path">Choose Your Path<a class="headerlink" href="#choose-your-path" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Quickest Start</strong>: <a href="quickstart/">Use GitHub Action</a></li>
+<li><strong>Quickest Start</strong>: <a href="quickstart/">Run locally in minutes</a></li>
 <li><strong>Full Installation</strong>: <a href="installation/">Installation Guide</a></li>
 <li><strong>Configuration Details</strong>: <a href="configuration/">Configuration Reference</a></li>
 </ul>
+<h2 id="minimal-path-no-config-file">Minimal Path (No config file)<a class="headerlink" href="#minimal-path-no-config-file" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>cultivator<span class="w"> </span>./cmd/cultivator
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
+</span></code></pre></div>
+<p>If needed, add a config file later and pass it with <code>--config</code>.</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong><a href="quickstart/">Quick Start</a></strong> - Get running in 5 minutes</li>
