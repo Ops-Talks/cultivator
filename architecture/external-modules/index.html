@@ -789,73 +789,73 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#how-module-sourcing-works" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      How Module Sourcing Works
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-preparation" class="md-nav__link">
+  <a href="#module-source-types" class="md-nav__link">
     <span class="md-ellipsis">
-      Module Preparation
+      Module Source Types
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#execution-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Execution Flow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caching" class="md-nav__link">
-    <span class="md-ellipsis">
-      Caching
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      Authentication
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Authentication">
+    <nav class="md-nav" aria-label="Module Source Types">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#github-modules" class="md-nav__link">
+  <a href="#public-registry" class="md-nav__link">
     <span class="md-ellipsis">
-      GitHub Modules
+      Public Registry
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#private-registry" class="md-nav__link">
+  <a href="#github-public" class="md-nav__link">
     <span class="md-ellipsis">
-      Private Registry
+      GitHub (Public)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#aws-via-codeartifact" class="md-nav__link">
+  <a href="#github-private" class="md-nav__link">
     <span class="md-ellipsis">
-      AWS (via CodeArtifact)
+      GitHub (Private)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-git-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Git Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Source
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Path
     </span>
   </a>
   
@@ -867,13 +867,82 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
+  <a href="#authentication-for-private-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Troubleshooting
+      Authentication for Private Modules
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Troubleshooting">
+    <nav class="md-nav" aria-label="Authentication for Private Modules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-https-personal-access-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub (HTTPS + Personal Access Token)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gitlab-terraform-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitLab (Terraform Registry)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-codeartifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS CodeArtifact
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cultivators-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cultivator's Role
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching-and-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching and Performance
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependency Resolution
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-module-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Module Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Module Issues">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -886,18 +955,87 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#version-constraints" class="md-nav__link">
+  <a href="#version-constraint-errors" class="md-nav__link">
     <span class="md-ellipsis">
-      Version Constraints
+      Version Constraint Errors
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#large-module-downloads" class="md-nav__link">
+  <a href="#permission-denied" class="md-nav__link">
     <span class="md-ellipsis">
-      Large Module Downloads
+      Permission Denied
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slow-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      Slow Downloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-version-all-external-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Version All External Modules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-separate-module-repository-from-infrastructure-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Separate Module Repository from Infrastructure Repo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-use-dependency-blocks-for-cross-module-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Use Dependency Blocks for Cross-Module Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-cache-terragrunt-cache-in-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Cache .terragrunt-cache/ in CI
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-document-module-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Document Module Requirements
     </span>
   </a>
   
@@ -1069,73 +1207,73 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#how-module-sourcing-works" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      How Module Sourcing Works
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-preparation" class="md-nav__link">
+  <a href="#module-source-types" class="md-nav__link">
     <span class="md-ellipsis">
-      Module Preparation
+      Module Source Types
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#execution-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Execution Flow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caching" class="md-nav__link">
-    <span class="md-ellipsis">
-      Caching
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      Authentication
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Authentication">
+    <nav class="md-nav" aria-label="Module Source Types">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#github-modules" class="md-nav__link">
+  <a href="#public-registry" class="md-nav__link">
     <span class="md-ellipsis">
-      GitHub Modules
+      Public Registry
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#private-registry" class="md-nav__link">
+  <a href="#github-public" class="md-nav__link">
     <span class="md-ellipsis">
-      Private Registry
+      GitHub (Public)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#aws-via-codeartifact" class="md-nav__link">
+  <a href="#github-private" class="md-nav__link">
     <span class="md-ellipsis">
-      AWS (via CodeArtifact)
+      GitHub (Private)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-git-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Git Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP Source
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Path
     </span>
   </a>
   
@@ -1147,13 +1285,82 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
+  <a href="#authentication-for-private-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Troubleshooting
+      Authentication for Private Modules
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Troubleshooting">
+    <nav class="md-nav" aria-label="Authentication for Private Modules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-https-personal-access-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitHub (HTTPS + Personal Access Token)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gitlab-terraform-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      GitLab (Terraform Registry)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-codeartifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS CodeArtifact
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cultivators-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cultivator's Role
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching-and-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching and Performance
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependency Resolution
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-module-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Module Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Module Issues">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1166,18 +1373,87 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#version-constraints" class="md-nav__link">
+  <a href="#version-constraint-errors" class="md-nav__link">
     <span class="md-ellipsis">
-      Version Constraints
+      Version Constraint Errors
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#large-module-downloads" class="md-nav__link">
+  <a href="#permission-denied" class="md-nav__link">
     <span class="md-ellipsis">
-      Large Module Downloads
+      Permission Denied
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slow-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      Slow Downloads
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-version-all-external-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Version All External Modules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-separate-module-repository-from-infrastructure-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Separate Module Repository from Infrastructure Repo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-use-dependency-blocks-for-cross-module-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Use Dependency Blocks for Cross-Module Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-cache-terragrunt-cache-in-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Cache .terragrunt-cache/ in CI
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-document-module-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Document Module Requirements
     </span>
   </a>
   
@@ -1207,94 +1483,191 @@
 
 
 <h1 id="external-modules">External Modules<a class="headerlink" href="#external-modules" title="Permanent link">&para;</a></h1>
-<p>Learn about Cultivator's support for external Terraform modules.</p>
+<p>Understand how Cultivator handles external Terraform modules sourced from private and public repositories.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Cultivator can automatically download and manage external Terraform modules, whether they come from:</p>
-<ul>
-<li><strong>Public Registry</strong>: Terraform Registry, GitHub, HTTP sources</li>
-<li><strong>Private Registry</strong>: Custom registries, private repositories</li>
-<li><strong>Local Sources</strong>: Git repositories, S3, etc.</li>
-</ul>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<p>Define external modules in your Terragrunt configuration:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;github.com/example/module.git//path?ref=v1.0.0&quot;</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">}</span>
-</span></code></pre></div>
-<p>Or using the Terraform Registry:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;terraform-aws-modules/vpc/aws&quot;</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="na">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;~&gt; 5.0&quot;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
-</span></code></pre></div>
-<h2 id="module-preparation">Module Preparation<a class="headerlink" href="#module-preparation" title="Permanent link">&para;</a></h2>
-<p>Cultivator automatically prepares external modules before execution:</p>
+<p>Cultivator does <strong>not</strong> download or manage external Terraform modules directly. Instead, <strong>Terragrunt handles all module sourcing</strong>, and Cultivator orchestrates Terragrunt's execution.</p>
+<p>This design keeps Cultivator simple and focused on orchestration while leveraging Terragrunt's robust module handling.</p>
+<h2 id="how-module-sourcing-works">How Module Sourcing Works<a class="headerlink" href="#how-module-sourcing-works" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Download</strong>: Fetches module source</li>
-<li><strong>Cache</strong>: Stores for reuse</li>
-<li><strong>Initialize</strong>: Runs <code>terraform init</code></li>
-<li><strong>Validate</strong>: Checks module syntax</li>
+<li><strong>Cultivator discovers</strong> <code>terragrunt.hcl</code> files under the root directory</li>
+<li><strong>Terragrunt parses</strong> module sources from <code>terragrunt.hcl</code></li>
+<li><strong>Terragrunt downloads</strong> external modules (using <code>terraform get</code>)</li>
+<li><strong>Terragrunt initializes</strong> the working directory</li>
+<li><strong>Cultivator executes</strong> <code>terragrunt plan/apply/destroy</code></li>
 </ol>
-<h2 id="execution-flow">Execution Flow<a class="headerlink" href="#execution-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Change Detection
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    ↓
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Module Parsing (discover external module sources)
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    ↓
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Dependency Resolution (build execution graph)
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    ↓
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>Module Preparation (download, init, validate)
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    ↓
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>Plan/Apply Execution
+<h2 id="module-source-types">Module Source Types<a class="headerlink" href="#module-source-types" title="Permanent link">&para;</a></h2>
+<p>Terragrunt supports module sources from:</p>
+<h3 id="public-registry">Public Registry<a class="headerlink" href="#public-registry" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;terraform-aws-modules/vpc/aws&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="na">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;~&gt; 5.0&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">}</span>
 </span></code></pre></div>
-<h2 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h2>
-<p>External modules are cached to improve performance:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/tmp/cultivator-cache/
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── github.com/
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│   └── example/
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│       └── module.git/
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── registry.terraform.io/
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│   └── terraform-aws-modules/
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│       └── vpc/
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│           └── aws/
+<h3 id="github-public">GitHub (Public)<a class="headerlink" href="#github-public" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;github.com/example/module.git//path?ref=v1.0.0&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>Cache location: <code>${TMPDIR}/cultivator-cache</code> or <code>/tmp/cultivator-cache</code></p>
-<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
-<p>For private modules, provide credentials:</p>
-<h3 id="github-modules">GitHub Modules<a class="headerlink" href="#github-modules" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_TOKEN</span><span class="o">=</span>ghp_xxxxxxx
+<h3 id="github-private">GitHub (Private)<a class="headerlink" href="#github-private" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;git::https://github.com/your-org/module.git//path?ref=v1.0.0&quot;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<h3 id="private-registry">Private Registry<a class="headerlink" href="#private-registry" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">TF_REGISTRY_AUTH_TOKEN_example_com</span><span class="o">=</span>xxxxxxxxx
+<h3 id="custom-git-repository">Custom Git Repository<a class="headerlink" href="#custom-git-repository" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;git::ssh://git@github.example.com/module.git//path?ref=main&quot;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<h3 id="aws-via-codeartifact">AWS (via CodeArtifact)<a class="headerlink" href="#aws-via-codeartifact" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Configure AWS credentials in GitHub Secrets</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>AWS_ACCESS_KEY_ID
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>AWS_SECRET_ACCESS_KEY
+<h3 id="http-source">HTTP Source<a class="headerlink" href="#http-source" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://example.com/modules/vpc.tar.gz&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="local-path">Local Path<a class="headerlink" href="#local-path" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../shared-modules/vpc&quot;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="authentication-for-private-modules">Authentication for Private Modules<a class="headerlink" href="#authentication-for-private-modules" title="Permanent link">&para;</a></h2>
+<p>Terragrunt uses Git credentials to fetch private modules. Configure in your CI environment:</p>
+<h3 id="github-https-personal-access-token">GitHub (HTTPS + Personal Access Token)<a class="headerlink" href="#github-https-personal-access-token" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># In GitHub Actions secrets</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>git<span class="w"> </span>config<span class="w"> </span>--global<span class="w"> </span>url.<span class="s2">&quot;https://ghp_xxxxx:x-oauth-basic@github.com/&quot;</span>.insteadOf<span class="w"> </span><span class="s2">&quot;https://github.com/&quot;</span>
+</span></code></pre></div>
+<p>Or use SSH:
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># In GitHub Actions via actions/checkout with SSH key</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>-<span class="w"> </span>uses:<span class="w"> </span>actions/checkout@v4
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>with:
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>ssh-key:<span class="w"> </span><span class="si">${</span><span class="p">{ secrets.SSH_KEY </span><span class="si">}</span><span class="o">}</span>
+</span></code></pre></div></p>
+<h3 id="gitlab-terraform-registry">GitLab (Terraform Registry)<a class="headerlink" href="#gitlab-terraform-registry" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Set CI_JOB_TOKEN in .gitlab-ci.yml</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>git<span class="w"> </span>config<span class="w"> </span>--global<span class="w"> </span>url.<span class="s2">&quot;https://gitlab-ci-token:</span><span class="si">${</span><span class="nv">CI_JOB_TOKEN</span><span class="si">}</span><span class="s2">@gitlab.com/&quot;</span>.insteadOf<span class="w"> </span><span class="s2">&quot;https://gitlab.com/&quot;</span>
+</span></code></pre></div>
+<h3 id="aws-codeartifact">AWS CodeArtifact<a class="headerlink" href="#aws-codeartifact" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Retrieve credentials and configure git</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>aws<span class="w"> </span>codeartifact<span class="w"> </span>login<span class="w"> </span>--tool<span class="w"> </span>git<span class="w"> </span>--domain<span class="w"> </span>your-domain<span class="w"> </span>--repository<span class="w"> </span>your-repo<span class="w"> </span>--region<span class="w"> </span>us-east-1
+</span></code></pre></div>
+<h2 id="cultivators-role">Cultivator's Role<a class="headerlink" href="#cultivators-role" title="Permanent link">&para;</a></h2>
+<p>Cultivator <strong>coordinates execution</strong> but doesn't manage module versioning or caching:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Cultivator (orchestration)
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    ↓
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Terragrunt (module sourcing, state management)
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    ↓
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>Terraform/OpenTofu (module execution, state backend)
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    ↓
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>External Module (downloaded and executed)
+</span></code></pre></div>
+<p>When you run:
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod
+</span></code></pre></div></p>
+<p>Cultivator:
+1. Discovers <code>terragrunt.hcl</code> files
+2. Respects dependency graph
+3. <strong>For each module</strong>, calls <code>terragrunt plan</code>
+4. Terragrunt handles module downloads and initialization</p>
+<h2 id="caching-and-performance">Caching and Performance<a class="headerlink" href="#caching-and-performance" title="Permanent link">&para;</a></h2>
+<p>Terragrunt caches downloaded modules in <code>.terragrunt-cache/</code> by default:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>.terragrunt-cache/
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>└── [hash]/
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    └── modules/
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>        └── [downloaded module files]
+</span></code></pre></div>
+<p>To skip cache:
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--init-cache-dir
+</span></code></pre></div></p>
+<p>(Note: This passes through to Terragrunt's <code>--init-cache-dir</code> flag)</p>
+<h2 id="dependency-resolution">Dependency Resolution<a class="headerlink" href="#dependency-resolution" title="Permanent link">&para;</a></h2>
+<p>If module A depends on module B (via <code>dependency</code> blocks), Cultivator ensures B runs and completes before A:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Module A</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="err">dependency</span><span class="w"> </span><span class="s2">&quot;base&quot;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="na">config_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../base&quot;</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="p">}</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="nb">inputs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="na">vpc_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">dependency.base.outputs.vpc_id</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Cultivator parses this graph and executes modules in the correct order.</p>
+<h2 id="troubleshooting-module-issues">Troubleshooting Module Issues<a class="headerlink" href="#troubleshooting-module-issues" title="Permanent link">&para;</a></h2>
 <h3 id="module-not-found">Module Not Found<a class="headerlink" href="#module-not-found" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Error: Invalid source address
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>The source address is invalid: ...
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Error: Failed to download module from git::https://...
 </span></code></pre></div>
-<p>Solutions:
-- Check module source URL is correct
-- Verify network connectivity
-- Check authentication credentials</p>
-<h3 id="version-constraints">Version Constraints<a class="headerlink" href="#version-constraints" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Error: Unsupported version constraint
+<p><strong>Solutions:</strong>
+- Verify the repository URL is correct
+- Check network connectivity from CI runner
+- Verify Git credentials are configured
+- Ensure the ref/tag exists</p>
+<h3 id="version-constraint-errors">Version Constraint Errors<a class="headerlink" href="#version-constraint-errors" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Error: Unsupported version constraint
 </span></code></pre></div>
-<p>Solutions:
-- Update Terraform to latest version
-- Check version constraint syntax
-- Consult <a href="https://www.terraform.io/language/settings/version-constraints">version constraint docs</a></p>
-<h3 id="large-module-downloads">Large Module Downloads<a class="headerlink" href="#large-module-downloads" title="Permanent link">&para;</a></h3>
-<p>For very large modules, you may need to increase timeouts:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">settings</span><span class="p">:</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">executor_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10m</span>
+<p><strong>Solutions:</strong>
+- Update Terraform to latest
+- Check version constraint syntax (see <a href="https://www.terraform.io/language/settings/version-constraints">Terraform version constraints</a>)
+- Verify the module provides the requested version</p>
+<h3 id="permission-denied">Permission Denied<a class="headerlink" href="#permission-denied" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Error: ssh: Permission denied (publickey)
 </span></code></pre></div>
+<p><strong>Solutions (GitHub Actions):</strong>
+<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">ssh-key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.SSH_PRIVATE_KEY }}</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Trust GitHub&#39;s SSH key</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="no">mkdir -p ~/.ssh</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="no">ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts</span>
+</span></code></pre></div></p>
+<p><strong>Solutions (GitLab CI):</strong>
+<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nt">before_script</span><span class="p">:</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eval $(ssh-agent -s)</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;$SSH_PRIVATE_KEY&quot; | base64 -d | ssh-add -</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ssh-keyscan gitlab.com &gt;&gt; ~/.ssh/known_hosts</span>
+</span></code></pre></div></p>
+<h3 id="slow-downloads">Slow Downloads<a class="headerlink" href="#slow-downloads" title="Permanent link">&para;</a></h3>
+<p>If modules are slow to download, consider:
+- Using <code>git clone --depth 1</code> for shallow clones (Terragrunt controls this)
+- Caching <code>.terragrunt-cache/</code> in your CI system
+- Using a faster module repository mirror
+- Compressing large modules</p>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="1-version-all-external-modules">1. Version All External Modules<a class="headerlink" href="#1-version-all-external-modules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">terraform</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="na">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;github.com/your-org/module.git//path?ref=v1.2.3&quot;</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="c1">  #                                              ^^^^^^^^^^^^^^</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1">  #                          Always use exact versions</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="2-separate-module-repository-from-infrastructure-repo">2. Separate Module Repository from Infrastructure Repo<a class="headerlink" href="#2-separate-module-repository-from-infrastructure-repo" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Keep modules in a dedicated Git repository</li>
+<li>Tag releases explicitly</li>
+<li>Update module versions deliberately (not <code>?ref=main</code>)</li>
+</ul>
+<h3 id="3-use-dependency-blocks-for-cross-module-data">3. Use Dependency Blocks for Cross-Module Data<a class="headerlink" href="#3-use-dependency-blocks-for-cross-module-data" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="err">dependency</span><span class="w"> </span><span class="s2">&quot;vpc&quot;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="na">config_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../vpc&quot;</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="p">}</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="nb">inputs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">  </span><span class="na">vpc_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">dependency.vpc.outputs.vpc_id</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Not:</strong> Hardcoding outputs or using <code>data</code> blocks across modules.</p>
+<h3 id="4-cache-terragrunt-cache-in-ci">4. Cache <code>.terragrunt-cache/</code> in CI<a class="headerlink" href="#4-cache-terragrunt-cache-in-ci" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># GitHub Actions</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/cache@v4</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.terragrunt-cache</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">terragrunt-cache-${{ hashFiles(&#39;**/terragrunt.hcl&#39;) }}</span>
+</span></code></pre></div>
+<h3 id="5-document-module-requirements">5. Document Module Requirements<a class="headerlink" href="#5-document-module-requirements" title="Permanent link">&para;</a></h3>
+<p>In your module's README, list:
+- External dependencies
+- Minimum Terraform/Terragrunt versions
+- Required credentials or environment variables</p>
 <hr />
-<p>See <a href="../design/">Architecture</a> for how modules are integrated.</p>
+<p>See <a href="../design/">Design</a> for Cultivator's overall architecture and <a href="../../getting-started/configuration/">Configuration</a> for runtime options.</p>
 
 
 
