@@ -1,74 +1,99 @@
-# Binaries
+# =============================================================================
+# Go
+# =============================================================================
+
+# Compiled binaries
+cultivator
 cultivator.exe
 *.exe
 *.dll
 *.so
 *.dylib
 
-# Test binary
-*.test
+# Go build cache and module cache
+bin/
+dist/
 
-# Output of the go coverage tool
+# Test artifacts
+*.test
 *.out
 coverage.out
+coverage.html
 
-# Go workspace file
+# Go workspace
 go.work
+go.work.sum
 
+# Profiling and tracing
+*.prof
+*.trace
+cpu.prof
+mem.prof
+
+# Delve debugger binary
+__debug_bin
+__debug_bin.*
+
+# =============================================================================
+# Terraform / Terragrunt
+# =============================================================================
+
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+.terragrunt-cache/
+
+# =============================================================================
+# MkDocs
+# =============================================================================
+
+site/
+.mkdocs.yml.bak
+
+# =============================================================================
+# Python (docs tooling)
+# =============================================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+.venv/
+venv/
+env/
+
+# =============================================================================
+# Pre-commit
+# =============================================================================
+
+.pre-commit-config.yaml.backup
+
+# =============================================================================
 # IDEs
+# =============================================================================
+
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 
-# OS files
+# =============================================================================
+# OS
+# =============================================================================
+
 .DS_Store
 Thumbs.db
-
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-.terragrunt-cache/
-
-# Environment variables
-.env
-.env.local
-
-# Build artifacts
-dist/
-*.log
-
-# Pre-commit cache
-.pre-commit-config.yaml.backup
-
-# Helpers directory
-helpers/
-
-# MkDocs
-site/
-.mkdocs.yml.bak
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
-build/
-.venv/
-venv/
-env/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-.env.local
 thumbs.db
 
+# =============================================================================
+# Misc
+# =============================================================================
+
+.env
+.env.local
+*.log
+helpers/

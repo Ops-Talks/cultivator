@@ -1,4 +1,4 @@
-.PHONY: build test clean install lint fmt pre-commit-install pre-commit-uninstall pre-commit-run pre-commit-update
+.PHONY: build test clean install lint fmt docker-build pre-commit-install pre-commit-uninstall pre-commit-run pre-commit-update
 
 # Variables
 BINARY_NAME=cultivator
@@ -56,6 +56,16 @@ deps:
 # Run all checks
 check: fmt vet lint test
 
+# Build Docker image
+docker-build:
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg COMMIT=$(COMMIT) \
+		--build-arg DATE=$(DATE) \
+		-t cultivator:$(VERSION) \
+		-t cultivator:latest \
+		.
+
 # Build for multiple platforms
 build-all:
 	GOOS=linux GOARCH=amd64 $(GO) build $(LDFLAGS) -o dist/$(BINARY_NAME)-linux-amd64 ./cmd/cultivator
@@ -106,8 +116,9 @@ help:
 	@echo "  vet        - Vet code"
 	@echo "  clean      - Remove build artifacts"
 	@echo "  deps       - Download dependencies"
-	@echo "  check      - Run all checks (fmt, vet, lint, test)"
-	@echo "  build-all  - Build for all platforms"
+	@echo "  check        - Run all checks (fmt, vet, lint, test)"
+	@echo "  docker-build - Build Docker image"
+	@echo "  build-all    - Build for all platforms"
 	@echo ""
 	@echo "Pre-commit hooks:"
 	@echo "  pre-commit-install   - Install pre-commit hooks"
