@@ -8,6 +8,7 @@
 **External Dependency**: `gopkg.in/yaml.v3` v3.0.1
 
 **Core Functionality**:
+
 - ✅ Stack discovery (recursive walk for `terragrunt.hcl`)
 - ✅ Scope filtering (environment, paths, tags)
 - ✅ Dependency graph (topological sorting)
