@@ -10,14 +10,14 @@ Cultivator uses a comprehensive testing strategy combining unit tests, integrati
 
 | Package    | Coverage | Status      |
 |------------|----------|-------------|
-| config     | 97.5%    | Excellent   |
+| config     | 97.6%    | Excellent   |
 | discovery  | 92.4%    | Excellent   |
 | logging    | 83.9%    | Good        |
-| cli        | 67.9%    | Good        |
+| cli        | 68.4%    | Good        |
 | runner     | 65.4%    | Acceptable  |
-| cmd        | 0.0%     | Untestable  |
+| cmd        | 50.0%    | Good        |
 
-Note: `cmd/main.go` contains `main()` with `os.Exit()` calls, which cannot be tested directly.
+**Total Project Coverage**: ~79.7% (statement coverage) | ~73.5% (line coverage on Codecov)
 
 ## Test Types
 
@@ -232,11 +232,46 @@ Current package coverage reflects these goals. Untested functions are typically:
 ## CI/CD Integration
 
 Tests run automatically on:
-- Pull requests to `main`
-- Commits to `main`
+- Pull requests to `main` and `develop`
+- Commits to `main` and `develop`
 - Release builds
 
-GitHub Actions workflow: `.github/workflows/test.yml`
+**GitHub Actions workflow**: `.github/workflows/ci.yml`
+
+### CI Pipeline
+
+The CI pipeline runs the following checks:
+
+1. **Test Job**:
+   - Runs all tests with race detector
+   - Generates coverage report (`coverage.out`)
+   - Generates JUnit XML test results (`test-results.xml`) via `gotestsum`
+   - Uploads coverage to [Codecov](https://codecov.io) for visualization and PR comments
+   - Uploads test results to Codecov for failure tracking
+
+2. **Lint Job**:
+   - Runs `golangci-lint` with comprehensive rules
+   - Checks code formatting and style
+
+3. **Build Job**:
+   - Compiles binary for Linux
+   - Uploads artifact for validation
+
+### Coverage Tracking
+
+Coverage is tracked via **Codecov**:
+
+- **Dashboard**: [https://app.codecov.io/gh/Ops-Talks/cultivator](https://app.codecov.io/gh/Ops-Talks/cultivator)
+- **Badge**: Displayed in README.md
+- **PR Comments**: Automatic coverage diffs on pull requests
+- **Trends**: Historical coverage trends over time
+
+To generate coverage locally:
+```bash
+make coverage
+```
+
+This will generate `coverage.out` and open an HTML report in your browser.
 
 ## Troubleshooting
 

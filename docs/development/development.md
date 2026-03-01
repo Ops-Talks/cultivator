@@ -108,7 +108,7 @@ cultivator/
 - `fuzz_test.go` - Fuzzing for edge cases
 - `integration_test.go` - End-to-end workflows
 
-**Test Coverage**: 97.5%
+**Test Coverage**: 97.6%
 
 ### 2. Discovery Package (`internal/discovery/`)
 
@@ -143,7 +143,7 @@ cultivator/
 **Test Files**:
 - `cli_test.go` - Comprehensive unit tests
 
-**Test Coverage**: 67.9%
+**Test Coverage**: 68.4%
 
 ### 4. Logging Package (`internal/logging/`)
 
