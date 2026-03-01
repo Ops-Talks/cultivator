@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Compiled binaries
-cultivator
+/cultivator
 cultivator.exe
 *.exe
 *.dll
@@ -97,3 +97,4 @@ thumbs.db
 .env.local
 *.log
 helpers/
+NEXT_STEPS.md

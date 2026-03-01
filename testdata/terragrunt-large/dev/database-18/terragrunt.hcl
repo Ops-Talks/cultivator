@@ -1,0 +1,13 @@
+# cultivator:tags=app,infra
+terraform {
+  source = "git::https://github.com/example/terraform-modules.git//database"
+}
+
+include "root" {
+  path = find_in_parent_folders()
+}
+
+inputs = {
+  environment = "dev"
+  service_name = "database-18"
+}

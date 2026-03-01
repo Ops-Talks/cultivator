@@ -1,0 +1,10 @@
+root: .
+parallelism: 2
+output_format: text
+non_interactive: false
+
+plan:
+  destroy: false
+
+apply:
+  auto_approve: false
