@@ -1112,6 +1112,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="CI/CD Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ci-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coverage-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Coverage Tracking
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1429,6 +1453,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="CI/CD Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ci-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI Pipeline
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coverage-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Coverage Tracking
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1516,7 +1564,7 @@
 <tbody>
 <tr>
 <td>config</td>
-<td>97.5%</td>
+<td>97.6%</td>
 <td>Excellent</td>
 </tr>
 <tr>
@@ -1531,7 +1579,7 @@
 </tr>
 <tr>
 <td>cli</td>
-<td>67.9%</td>
+<td>68.4%</td>
 <td>Good</td>
 </tr>
 <tr>
@@ -1541,12 +1589,12 @@
 </tr>
 <tr>
 <td>cmd</td>
-<td>0.0%</td>
-<td>Untestable</td>
+<td>50.0%</td>
+<td>Good</td>
 </tr>
 </tbody>
 </table>
-<p>Note: <code>cmd/main.go</code> contains <code>main()</code> with <code>os.Exit()</code> calls, which cannot be tested directly.</p>
+<p><strong>Total Project Coverage</strong>: ~79.7% (statement coverage) | ~73.5% (line coverage on Codecov)</p>
 <h2 id="test-types">Test Types<a class="headerlink" href="#test-types" title="Permanent link">&para;</a></h2>
 <h3 id="1-unit-tests">1. Unit Tests<a class="headerlink" href="#1-unit-tests" title="Permanent link">&para;</a></h3>
 <p>Located in <code>*_test.go</code> files alongside source code.</p>
@@ -1745,19 +1793,55 @@
 - Signal handling and OS-level interactions</p>
 <h2 id="cicd-integration">CI/CD Integration<a class="headerlink" href="#cicd-integration" title="Permanent link">&para;</a></h2>
 <p>Tests run automatically on:
-- Pull requests to <code>main</code>
-- Commits to <code>main</code>
+- Pull requests to <code>main</code> and <code>develop</code>
+- Commits to <code>main</code> and <code>develop</code>
 - Release builds</p>
-<p>GitHub Actions workflow: <code>.github/workflows/test.yml</code></p>
+<p><strong>GitHub Actions workflow</strong>: <code>.github/workflows/ci.yml</code></p>
+<h3 id="ci-pipeline">CI Pipeline<a class="headerlink" href="#ci-pipeline" title="Permanent link">&para;</a></h3>
+<p>The CI pipeline runs the following checks:</p>
+<ol>
+<li><strong>Test Job</strong>:</li>
+<li>Runs all tests with race detector</li>
+<li>Generates coverage report (<code>coverage.out</code>)</li>
+<li>Generates JUnit XML test results (<code>test-results.xml</code>) via <code>gotestsum</code></li>
+<li>Uploads coverage to <a href="https://codecov.io">Codecov</a> for visualization and PR comments</li>
+<li>
+<p>Uploads test results to Codecov for failure tracking</p>
+</li>
+<li>
+<p><strong>Lint Job</strong>:</p>
+</li>
+<li>Runs <code>golangci-lint</code> with comprehensive rules</li>
+<li>
+<p>Checks code formatting and style</p>
+</li>
+<li>
+<p><strong>Build Job</strong>:</p>
+</li>
+<li>Compiles binary for Linux</li>
+<li>Uploads artifact for validation</li>
+</ol>
+<h3 id="coverage-tracking">Coverage Tracking<a class="headerlink" href="#coverage-tracking" title="Permanent link">&para;</a></h3>
+<p>Coverage is tracked via <strong>Codecov</strong>:</p>
+<ul>
+<li><strong>Dashboard</strong>: <a href="https://app.codecov.io/gh/Ops-Talks/cultivator">https://app.codecov.io/gh/Ops-Talks/cultivator</a></li>
+<li><strong>Badge</strong>: Displayed in README.md</li>
+<li><strong>PR Comments</strong>: Automatic coverage diffs on pull requests</li>
+<li><strong>Trends</strong>: Historical coverage trends over time</li>
+</ul>
+<p>To generate coverage locally:
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>make<span class="w"> </span>coverage
+</span></code></pre></div></p>
+<p>This will generate <code>coverage.out</code> and open an HTML report in your browser.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="test-timeouts">Test Timeouts<a class="headerlink" href="#test-timeouts" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-timeout<span class="o">=</span>30s<span class="w"> </span>./...
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-timeout<span class="o">=</span>30s<span class="w"> </span>./...
 </span></code></pre></div>
 <h3 id="fuzz-test-not-finding-seed">Fuzz Test Not Finding Seed<a class="headerlink" href="#fuzz-test-not-finding-seed" title="Permanent link">&para;</a></h3>
 <p>Check that fuzz test is properly structured and accepts <code>*testing.F</code> parameter.</p>
 <h3 id="coverage-measurement-issues">Coverage Measurement Issues<a class="headerlink" href="#coverage-measurement-issues" title="Permanent link">&para;</a></h3>
 <p>Clear fuzzing cache:
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>go<span class="w"> </span>clean<span class="w"> </span>-fuzzcache
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>go<span class="w"> </span>clean<span class="w"> </span>-fuzzcache
 </span></code></pre></div></p>
 <h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
 <ul>
