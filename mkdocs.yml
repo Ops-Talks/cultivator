@@ -115,4 +115,5 @@ nav:
   - Development:
     - Contributing: development/contributing.md
     - Development Guide: development/development.md
+    - Testing Guide: development/TESTING.md
   - FAQ: faq.md

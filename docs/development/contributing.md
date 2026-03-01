@@ -1,65 +1,59 @@
 # Contributing
 
-Thank you for your interest in contributing to Cultivator! We welcome contributions of all kinds.
+Thank you for your interest in contributing to Cultivator. We welcome contributions of all kinds.
 
 ## Ways to Contribute
 
-- **Report bugs** - Open an issue with details
-- **Request features** - Share your ideas for improvements
-- **Write code** - Submit pull requests
-- **Improve docs** - Fix typos, clarify documentation
-- **Test** - Help us test and find edge cases
-
-## Code of Conduct
-
-We are committed to providing a welcoming and inclusive environment. Please read our [Code of Conduct](https://github.com/Ops-Talks/cultivator/blob/main/CODE_OF_CONDUCT.md).
+- Report bugs by opening issues
+- Request features with clear descriptions
+- Submit pull requests with improvements
+- Enhance documentation and examples
+- Help test and find edge cases
 
 ## Getting Started
 
-1. Read the [Development Guide](development.md)
-2. Set up your local environment
-3. Pick an issue or feature to work on
-4. Make your changes
+1. Read the [Development Guide](development.md) to understand project structure
+2. Review the [Testing Guide](TESTING.md) for testing strategy and guidelines
+3. Set up your local environment (see Development Guide)
+4. Pick an issue or feature to work on
 5. Submit a pull request
-
-## Pull Request Process
-
-1. Fork the repository
-2. Create a feature branch from `main`
-3. Make your changes
-4. Write/update tests
-5. Update documentation if needed
-6. Ensure all checks pass
-7. Submit PR with clear description
 
 ## Pull Request Checklist
 
-- [ ] Tests pass locally: `make test`
-- [ ] Linters pass: `make lint`
-- [ ] Code is formatted: `go fmt ./...`
-- [ ] Tests are included for new features
-- [ ] Documentation is updated
-- [ ] Commit messages are clear and descriptive
+- Tests pass locally: `go test ./...`
+- Code is formatted: `go fmt ./...`
+- Linters pass: `golangci-lint run`
+- Tests included for new features
+- Documentation updated if needed
+- Commit messages are clear and descriptive
 
-## Issues
+## Code Style
 
-Found a bug? Open an issue with:
+Follow the guidelines in the [Development Guide](development.md):
 
-- **Title**: Clear and concise description
-- **Description**: Steps to reproduce, expected behavior, actual behavior
-- **Environment**: Go version, Terragrunt version, OS
-- **Logs**: Relevant error messages or logs
+- Use clear, descriptive names
+- Document all exported symbols
+- Add context to errors using `fmt.Errorf` with `%w` verb
+- Keep functions focused and manageable
+- Write table-driven tests for multiple cases
+
+## Testing Requirements
+
+New code must include tests. See the [Testing Guide](TESTING.md) for:
+
+- How to write unit tests
+- How to add integration tests
+- Fuzz testing for robustness
+- Coverage expectations
+
+Minimum test coverage for new code: 80% for critical functionality.
 
 ## Questions?
 
-- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)
-- **Issues**: Search existing issues before opening a new one
-- **Docs**: Check the [documentation](/)
-
-## Recognition
-
-We recognize all contributors in our [CONTRIBUTORS](https://github.com/Ops-Talks/cultivator/blob/main/CONTRIBUTORS.md) file and in release notes.
+- Check existing [Issues](https://github.com/Ops-Talks/cultivator/issues)
+- Review the [Development Guide](development.md) 
+- Open a new issue with your question
 
 ---
 
-Thank you for making Cultivator better!
+Thank you for improving Cultivator!

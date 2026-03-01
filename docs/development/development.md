@@ -48,58 +48,50 @@ cultivator/
 │   └── cultivator/
 │       ├── main.go              # Entry point with ldflags injection
 │       └── main_test.go         # CLI tests
-├── pkg/
-│   ├── cmd/
-│   │   └── root.go              # Root command definition
+├── internal/
+│   ├── cli/
+│   │   ├── cli.go               # CLI command routing and flag parsing
+│   │   └── cli_test.go          # CLI tests
 │   ├── config/
-│   │   ├── config.go            # Config loading + merging
-│   │   └── config_test.go       # Config tests
-│   ├── constants/
-│   │   └── constants.go         # Version, defaults, etc.
-│   ├── detector/
-│   │   ├── detector.go          # Stack discovery
-│   │   └── detector_test.go
-│   ├── errors/
-│   │   └── errors.go            # Custom error types
-│   ├── events/
-│   │   ├── events.go            # Flag/config parsing
-│   │   └── events_test.go
-│   ├── executor/
-│   │   └── executor.go          # Terragrunt command execution
-│   ├── formatter/
-│   │   ├── formatter.go         # Output formatting
-│   │   └── formatter_test.go
-│   ├── github/
-│   │   ├── client.go            # GitHub API (for future use)
-│   │   └── client_test.go
-│   ├── graph/
-│   │   ├── graph.go             # Dependency graph builder
-│   │   └── graph_test.go
-│   ├── lock/
-│   │   ├── lock.go              # File-based locking
-│   │   └── lock_test.go
-│   ├── module/
-│   │   ├── source.go            # Module source parsing
-│   │   ├── source_test.go
-│   │   ├── git.go               # Git utilities
-│   │   └── http.go              # HTTP utilities
-│   ├── orchestrator/
-│   │   └── orchestrator.go      # Main workflow orchestration
-│   ├── parser/
-│   │   └── parser.go            # HCL parsing for dependencies
-│   └── util/
-│       └── strings.go           # String utilities
+│   │   ├── config.go            # Configuration loading and merging
+│   │   ├── config_test.go       # Unit tests
+│   │   ├── benchmark_test.go    # Performance benchmarks
+│   │   ├── coverage_test.go     # Additional coverage tests
+│   │   ├── fuzz_test.go         # Fuzz testing for robustness
+│   │   └── integration_test.go  # End-to-end tests
+│   ├── discovery/
+│   │   ├── discovery.go         # Stack discovery and filtering
+│   │   ├── discovery_test.go    # Unit tests
+│   │   ├── benchmark_test.go    # Performance benchmarks
+│   │   ├── coverage_test.go     # Additional coverage tests
+│   │   └── fuzz_test.go         # Fuzz testing for robustness
+│   ├── logging/
+│   │   ├── logger.go            # Structured logging
+│   │   └── logger_test.go       # Logger tests
+│   └── runner/
+│       ├── runner.go            # Terragrunt command execution
+│       └── runner_test.go       # Runner tests
+├── testdata/
+│   ├── terragrunt-large/        # Large-scale test fixtures
+│   │   ├── dev/
+│   │   ├── prod/
+│   │   ├── staging/
+│   │   └── test/
+│   └── terragrunt-structure/    # Simple test fixtures
+│       ├── dev/
+│       └── prod/
+├── docs/                        # MkDocs documentation
 ├── go.mod                       # Module definition
 ├── go.sum                       # Dependency checksums
 ├── Makefile                     # Build, test, lint targets
-├── Dockerfile                   # Multi-stage Docker image
-└── docs/                        # MkDocs documentation
+└── Dockerfile                   # Multi-stage Docker image
 ```
 
-## Key Components
+## Key Packages
 
-### 1. Config Package (`pkg/config/`)
-**Purpose**: Load and merge configuration from multiple sources
+### 1. Config Package (`internal/config/`)
+
+**Purpose**: Load and merge configuration from multiple sources.
 
 **Responsibilities**:
 - Read `cultivator.yml` / `cultivator.yaml` from filesystem
@@ -108,379 +100,214 @@ cultivator/
 - Validate configuration schema
 - Provide typed access to settings
 
-**Example**:
-```go
-cfg, _ := config.Load()  // Loads cultivator.yml
-cfg.Root = "live"        // Override with flag
-log.Printf("Executing in root: %s", cfg.Root)
-```
+**Test Files**:
+- `config_test.go` - Unit tests
+- `benchmark_test.go` - Performance measurements
+- `coverage_test.go` - Additional coverage gaps
+- `fuzz_test.go` - Fuzzing for edge cases
+- `integration_test.go` - End-to-end workflows
 
-**Test Coverage**: 73.8%
+**Test Coverage**: 97.5%
 
-### 2. Detector Package (`pkg/detector/`)
-**Purpose**: Discover Terragrunt stacks in the filesystem
+### 2. Discovery Package (`internal/discovery/`)
+
+**Purpose**: Discover and filter Terragrunt stacks in the filesystem.
 
 **Responsibilities**:
 - Recursively walk directory tree from root
 - Find all `terragrunt.hcl` files
-- Parse stack metadata (filters, tags)
+- Filter stacks by environment, path patterns, and tags
+- Parse stack metadata
 - Build list of available stacks
 
-**Example**:
-```go
-detector := detector.NewDetector("live")
-modules, _ := detector.Discover(ctx)
-// Returns: [{Path: "envs/dev/vpc"}, {Path: "envs/dev/app"}, ...]
-```
+**Test Files**:
+- `discovery_test.go` - Unit tests
+- `benchmark_test.go` - Performance measurements
+- `coverage_test.go` - Additional coverage gaps
+- `fuzz_test.go` - Fuzzing for edge cases
 
-**Test Coverage**: 73.9%
+**Test Coverage**: 92.4%
 
-### 3. Parser Package (`pkg/parser/`)
-**Purpose**: Parse HCL to extract Terragrunt dependencies
+### 3. CLI Package (`internal/cli/`)
 
-**Responsibilities**:
-- Parse `terragrunt.hcl` files to extract `dependency` blocks
-- Build dependency map for graph construction
-- Handle `include` configurations
-
-**Example**:
-```go
-parser := parser.NewParser()
-modules, _ := parser.ParseDependencies("live")
-// Returns: map[string][]string{"app": ["vpc", "network"]}
-```
-
-**Test Coverage**: Not measured in dedicated tests (embedded in graph tests)
-
-### 4. Graph Package (`pkg/graph/`)
-**Purpose**: Build dependency graph and determine execution order
+**Purpose**: Handle command-line interface and flag parsing.
 
 **Responsibilities**:
-- Accept stack list + dependencies
-- Perform topological sort
-- Detect circular dependencies
-- Provide execution plan groups
+- Parse CLI arguments and flags
+- Route commands (plan, apply, destroy, version, doctor)
+- Build configuration from CLI flags
+- Format and display output
+- Handle user interaction
 
-**Example**:
-```go
-graph := graph.NewGraph(modules, depMap)
-groups, _ := graph.ExecutionGroups()
-// Returns: [[vpc], [app, network], [monitoring]]
-```
+**Test Files**:
+- `cli_test.go` - Comprehensive unit tests
 
-**Test Coverage**: 73.9%
+**Test Coverage**: 67.9%
 
-### 5. Executor Package (`pkg/executor/`)
-**Purpose**: Execute Terragrunt commands and capture results
+### 4. Logging Package (`internal/logging/`)
+
+**Purpose**: Structured logging throughout the application.
 
 **Responsibilities**:
-- Run `terragrunt plan`, `apply`, `destroy` per stack
-- Handle Terragrunt initialization
-- Capture stdout/stderr per stack
-- Report results (success/failure/error messages)
+- Create and manage loggers
+- Format log messages
+- Support multiple output levels
+- Redact sensitive information
 
-**Example**:
-```go
-exec := executor.NewExecutor(cfg, logger)
-result, _ := exec.Execute(ctx, "plan", "envs/dev/vpc")
-// Returns: {Stack: "envs/dev/vpc", Status: "success", Output: "..."}
-```
+**Test Files**:
+- `logger_test.go` - Unit tests
+
+**Test Coverage**: 83.9%
+
+### 5. Runner Package (`internal/runner/`)
+
+**Purpose**: Execute Terragrunt commands and capture results.
+
+**Responsibilities**:
+- Execute `terragrunt` commands per stack
+- Handle command initialization and lifecycle
+- Capture stdout and stderr
+- Report execution results
+- Manage concurrent execution with worker pool
+
+**Test Files**:
+- `runner_test.go` - Unit tests
 
 **Test Coverage**: 65.4%
 
-### 6. Formatter Package (`pkg/formatter/`)
-**Purpose**: Format results for human and machine consumption
+## Testing
 
-**Responsibilities**:
-- Parse Terragrunt/Terraform output
-- Redact sensitive data (passwords, tokens, keys)
-- Format as text or JSON
-- Summarize changes (Added, Changed, Destroyed resources)
+For comprehensive information on testing strategy, test types, and guidelines, see the [Testing Guide](TESTING.md).
 
-**Example**:
-```go
-formatter := formatter.NewFormatter("json")
-output, _ := formatter.Format(results)
-// Returns: {"stacks": [{"name": "vpc", "status": "success", ...}]}
-```
+### Coverage Summary
 
-**Test Coverage**: 73.9%
+Current test coverage reflects a focus on critical functionality:
 
-### 7. Lock Package (`pkg/lock/`)
-**Purpose**: Prevent concurrent operations on the same stack
+- **Core libraries** (config, discovery): 92-97% coverage
+- **CLI interface**: 67.9% coverage
+- **Utilities**: 65-84% coverage
 
-**Responsibilities**:
-- Create file-based locks per stack
-- Implement lock timeout and retry logic
-- Provide clear error messages on lock contention
-
-**Example**:
-```go
-lock := lock.NewLock("live/envs/prod/app", 30*time.Minute)
-defer lock.Release()
-lock.Acquire(ctx)  // Waits up to 30 minutes
-```
-
-**Test Coverage**: 73.9%
-
-### 8. Orchestrator Package (`pkg/orchestrator/`)
-**Purpose**: Coordinate the entire Cultivator workflow
-
-**Responsibilities**:
-- Load configuration
-- Discover stacks
-- Apply filters
-- Build graph
-- Execute in parallel (respecting dependencies)
-- Format and return results
-
-**Workflow**:
-```
-1. Load config + parse CLI flags
-2. Initialize detector
-3. Discover all stacks
-4. Apply scope filters (env, include, exclude, tags)
-5. Parse dependencies
-6. Build execution graph
-7. Create worker pool (parallelism N)
-8. Execute groups sequentially, stacks within groups concurrently
-9. Collect results
-10. Format output
-11. Return exit code
-```
+Lower coverage in `cmd/main.go` is expected, as the main function contains OS exit calls that cannot be tested directly.
 
 ## Development Workflow
 
-### Local Setup
+### Building
+
 ```bash
-# Clone and setup
-git clone https://github.com/Ops-Talks/cultivator.git
-cd cultivator
-
-# Install dependencies
-go mod download
-
-# Run tests
-make test
-
-# Run linter
-make lint
-
-# Run all checks (tests, lint, vet)
-make check
-
 # Build binary
-make build
+go build -o cultivator ./cmd/cultivator
 
-# Run locally
-./cultivator plan --root=live --env=dev --non-interactive
+# Build with version information
+go build -ldflags="-X main.version=v0.2.0 -X main.commit=$(git rev-parse HEAD)" \
+  -o cultivator ./cmd/cultivator
 ```
 
-### Running Tests
+### Testing
+
 ```bash
-# All tests
-make test
+# Run all tests
+go test ./...
 
-# Specific package
-go test ./pkg/config/
-
-# Verbose with coverage
-go test -v -cover ./...
+# Run with coverage
+go test -cover ./...
 
 # Generate coverage report
-make coverage
-
-# View coverage in HTML
+go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out
+
+# Run specific package tests
+go test -v ./internal/cli
 ```
 
-### Running Linter
+### Linting
+
 ```bash
-# Lint everything
-make lint
+# Using golangci-lint
+golangci-lint run
 
 # Format code
 go fmt ./...
-
-# Vet for suspicious code
-go vet ./...
-
-# Using golangci-lint directly
-golangci-lint run
+goimports -w ./...
 ```
 
-### Build and Release
-```bash
-# Build for current OS
-make build
+## Contributing Guidelines
 
-# Build all platforms
-make build-all
+See [Contributing](contributing.md) for detailed contribution guidelines.
 
-# Build Docker image
-make docker-build
+Key points:
+- Write tests for new functionality
+- Maintain or improve test coverage
+- Follow Go conventions from the [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
+- Update documentation when making changes
 
-# Create release binaries
-goreleaser release --rm-dist  # (when releasing)
-```
-
-## Testing Guidelines
-
-### Test Organization
-- Tests live in same package (white-box testing preferred)
-- Test files: `*_test.go` in same directory as code
-- Separate integration tests can go in `internal/integration/`
-
-### Table-Driven Tests
-```go
-func TestDetector_Discover(t *testing.T) {
-    tests := []struct {
-        name      string
-        root      string
-        want      []string
-        wantErr   bool
-    }{
-        {"finds vpc", "live", []string{"vpc"}, false},
-        {"empty root", "empty", []string{}, false},
-    }
-    
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            d := detector.NewDetector(tt.root)
-            got, err := d.Discover(context.Background())
-            if (err != nil) != tt.wantErr {
-                t.Errorf("unexpected error: %v", err)
-            }
-            if !sliceEqual(got, tt.want) {
-                t.Errorf("got %v, want %v", got, tt.want)
-            }
-        })
-    }
-}
-```
-
-### Coverage Targets
-- Global: Aim for 70%+ coverage
-- Critical paths (config, graph, executor): 80%+
-- Utilities: 60%+
-- Don't obsess over 100%; prioritize meaningful tests
 
 ## Code Quality Standards
 
-### Formatting
-```bash
-go fmt ./...            # Required before commit
-goimports -w ./...      # Auto-organize imports
-golangci-lint run       # Run linter
+### Documentation
+
+All exported functions, types, and packages must be documented.
+
+```go
+// Config represents application configuration loaded from multiple sources.
+// Configuration is merged in precedence order: defaults, YAML file, env vars, CLI flags.
+type Config struct {
+    Root string
+    // ...
+}
+
+// LoadFile reads and parses a YAML configuration file.
+func LoadFile(path string) (Config, error) {
+    // ...
+}
 ```
 
 ### Error Handling
+
+Always wrap errors with context:
+
 ```go
-// Good: Add context
+// Good: Add context using %w
 if err != nil {
-    return fmt.Errorf("failed to load config: %w", err)
+    return fmt.Errorf("failed to load config from %s: %w", path, err)
 }
 
-// Bad: Ignore errors
-_ = executor.Run(ctx, cmd)  // Never do this
+// Avoid: Ignoring errors
+_ = runner.Execute(ctx, cmd)
 ```
 
-### Variable Names
+### Naming Conventions
+
 - Use clear, descriptive names
-- Avoid abbreviations (use `err` not `e`, `cfg` is OK for `config`)
-- Avoid stuttering (`detector.Detector` → use `detector.New()`)
+- Avoid single-letter variables except for loop indices and receivers
+- Package names should be concise and lowercase
+- Avoid repetition in names (e.g., `discovery.Discover` instead nof `discovery.DiscoveryDiscover`)
 
-### Documentation
-- Document all exported functions/types
-- Start with function/type name
-- Use clear, English prose
+## Local Development Setup
 
-```go
-// NodeGraph represents a directed acyclic graph of stack dependencies.
-// It supports topological sorting and circular dependency detection.
-type NodeGraph struct {
-    // ...
-}
-
-// AddNode adds a stack node to the graph.
-func (g *NodeGraph) AddNode(id string) error {
-    // ...
-}
-```
-
-## Debugging Tips
-
-### Enable Verbose Logging
 ```bash
-export CULTIVATOR_LOG_LEVEL=debug
-./cultivator plan --root=live --env=dev
-```
+# Clone repository
+git clone https://github.com/Ops-Talks/cultivator.git
+cd cultivator
 
-### Test Single Stack
-```bash
-./cultivator plan --root=live --include=envs/dev/vpc --non-interactive
-```
+# Download dependencies
+go mod download
 
-### Run Terragrunt Manually to Debug
-```bash
-cd live/envs/dev/vpc
-terragrunt init
-terragrunt plan
-```
+# Build
+go build -o cultivator ./cmd/cultivator
 
-### Check Dependencies
-```bash
-./cultivator doctor  # (if implemented)
-# Or parse manually
-cat live/envs/dev/vpc/terragrunt.hcl | grep -A5 "dependency"
+# Run tests
+go test ./...
 ```
 
 ## Continuous Integration
 
-### GitHub Actions (`.github/workflows/ci.yml`)
-- Runs on every PR and push
-- Tests: `go test ./...`
-- Lint: `golangci-lint-action@v6` (Go 1.25 compatible)
-- Build: `make build-all`
-- Coverage: Upload to Codecov
+All pull requests must pass:
+- Unit tests: `go test ./...`
+- Linting: `golangci-lint run`
+- Code formatting: `go fmt ./...`
+- Coverage: Maintained at project baseline
 
-### Release Process (`.github/workflows/release.yml`)
-On push to tag `v*`:
-1. Checkout code
-2. Build multi-platform binaries (Linux, macOS, Windows)
-3. Generate checksums
-4. Create GitHub Release with binaries
-
-## Contributing
-
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for:
-- Code style guidelines
-- Testing requirements
-- PR process
-- Commit message standards
-
-## Future Work
-
-Planned enhancements:
-- [ ] Metrics/telemetry export
-- [ ] Web UI for plan visualization
-- [ ] Custom hooks (pre/post execution)
-- [ ] Parallel stack discovery optimization
-- [ ] Better error messages and recovery suggestions
-
-## Resources
-
-- **[Cobra](https://cobra.dev/)** - CLI framework documentation
-- **[HCL2](https://github.com/hashicorp/hcl2)** - HCL parsing library
-- **[Terragrunt](https://terragrunt.gruntwork.io/)** - Terragrunt documentation
-- **[Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)** - Go best practices
-- Clean ANSI codes from output
-- Truncate long outputs
-- Format stack lists
-
-## Development Workflow
-
-### Build and Test
+Tests run automatically on all pull requests to `main` and commits to `main`.
 
 ```bash
 # Install dependencies
