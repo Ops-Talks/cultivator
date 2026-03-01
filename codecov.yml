@@ -1,0 +1,17 @@
+coverage:
+  precision: 2
+  round: down
+  range: 70...100
+  status:
+    project:
+      default:
+        target: 82%
+        threshold: 2%
+    patch:
+      default:
+        target: 80%
+
+comment:
+  layout: "header, diff, files"
+  behavior: default
+  require_changes: false
