@@ -1956,15 +1956,17 @@
 <strong>Language</strong>: Go 1.25+<br />
 <strong>Module</strong>: <code>github.com/Ops-Talks/cultivator</code><br />
 <strong>External Dependency</strong>: <code>gopkg.in/yaml.v3</code> v3.0.1</p>
-<p><strong>Core Functionality</strong>:
-- ✅ Stack discovery (recursive walk for <code>terragrunt.hcl</code>)
-- ✅ Scope filtering (environment, paths, tags)
-- ✅ Dependency graph (topological sorting)
-- ✅ Parallel execution (configurable worker pool)
-- ✅ Output formatting (text, JSON)
-- ✅ Configuration management (YAML + CLI flags + env vars)
-- ✅ Secret redaction (automatic masking of sensitive data)
-- ✅ CI/CD integration (GitHub Actions, GitLab CI)</p>
+<p><strong>Core Functionality</strong>:</p>
+<ul>
+<li>✅ Stack discovery (recursive walk for <code>terragrunt.hcl</code>)</li>
+<li>✅ Scope filtering (environment, paths, tags)</li>
+<li>✅ Dependency graph (topological sorting)</li>
+<li>✅ Parallel execution (configurable worker pool)</li>
+<li>✅ Output formatting (text, JSON)</li>
+<li>✅ Configuration management (YAML + CLI flags + env vars)</li>
+<li>✅ Secret redaction (automatic masking of sensitive data)</li>
+<li>✅ CI/CD integration (GitHub Actions, GitLab CI)</li>
+</ul>
 <h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>User invokes Cultivator
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    ↓
