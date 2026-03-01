@@ -22,7 +22,7 @@ func TestApplyOverrides_Partial(t *testing.T) {
 		t.Errorf("exclude not overridden, got %v", cfg.Exclude)
 	}
 	// Tags should remain unchanged
-	if len(cfg.Tags) != 1 || cfg.Tags[0] != "prod" {
+	if len(cfg.Tags) != 1 || cfg.Tags[0] != prodEnv {
 		t.Errorf("tags should not change, got %v", cfg.Tags)
 	}
 }
@@ -65,8 +65,8 @@ func TestDefaultConfig_Values(t *testing.T) {
 	if cfg.Plan == nil || cfg.Apply == nil || cfg.Destroy == nil {
 		t.Error("plan, apply, and destroy should not be nil")
 	}
-	if cfg.OutputFormat != "text" {
-		t.Errorf("output format should be 'text', got %q", cfg.OutputFormat)
+	if cfg.OutputFormat != textFormat {
+		t.Errorf("output format should be %q, got %q", textFormat, cfg.OutputFormat)
 	}
 	if cfg.Parallelism < 1 {
 		t.Errorf("parallelism should be at least 1, got %d", cfg.Parallelism)
@@ -152,7 +152,7 @@ output_format: json`)
 	if cfg.Parallelism != 4 {
 		t.Errorf("parallelism should be 4, got %d", cfg.Parallelism)
 	}
-	if cfg.OutputFormat != "json" {
+	if cfg.OutputFormat != jsonFormat {
 		t.Errorf("format should be json, got %q", cfg.OutputFormat)
 	}
 	if extra == nil {
@@ -366,11 +366,12 @@ func TestLoadFile_ExtraKeys(t *testing.T) {
 func TestMergeConfig_Guards(t *testing.T) {
 	t.Parallel()
 
+	const baseRoot = "/base"
 	base := DefaultConfig()
-	base.Root = "/base"
-	base.Env = "prod"
+	base.Root = baseRoot
+	base.Env = prodEnv
 	base.Parallelism = 4
-	base.OutputFormat = "text"
+	base.OutputFormat = textFormat
 
 	override := Config{
 		Root:         ".",

@@ -90,7 +90,8 @@ func TestIntegration_ConfigOverrides(t *testing.T) {
 	}
 
 	parallelism := 4
-	format := "json"
+	const jsonFormat = "json"
+	format := jsonFormat
 	nonInteractive := true
 
 	cfg = ApplyOverrides(cfg, Overrides{
@@ -99,7 +100,7 @@ func TestIntegration_ConfigOverrides(t *testing.T) {
 		NonInteractive: &nonInteractive,
 	})
 
-	if cfg.Parallelism != 4 || cfg.OutputFormat != "json" || !cfg.NonInteractive {
+	if cfg.Parallelism != 4 || cfg.OutputFormat != jsonFormat || !cfg.NonInteractive {
 		t.Error("overrides not applied correctly")
 	}
 

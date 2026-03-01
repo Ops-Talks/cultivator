@@ -94,10 +94,8 @@ func FuzzParseInt(f *testing.F) {
 
 		// Validate result consistency
 		if err == nil {
-			// If no error, result should be a valid integer
-			if result < -9223372036854775808 || result > 9223372036854775807 {
-				t.Error("ParseInt returned out-of-range integer")
-			}
+			// Result should always be within int64 range when no error occurs
+			_ = result
 		}
 
 		// Known valid cases
@@ -193,7 +191,7 @@ func FuzzLoadEnv(f *testing.F) {
 		}
 
 		switch result.OutputFormat {
-		case "text", "json":
+		case textFormat, jsonFormat:
 			// valid
 		default:
 			t.Errorf("LoadEnv returned invalid OutputFormat: %s", result.OutputFormat)

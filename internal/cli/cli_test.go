@@ -350,8 +350,15 @@ func TestParseTerragruntFlags_InvalidParallelism(t *testing.T) {
 func TestBuildTerragruntConfig_WithEnvVars(t *testing.T) {
 	t.Parallel()
 
-	os.Setenv("CULTIVATOR_ROOT", "/env/root")
-	defer os.Unsetenv("CULTIVATOR_ROOT")
+	err := os.Setenv("CULTIVATOR_ROOT", "/env/root")
+	if err != nil {
+		t.Fatalf("failed to set env var: %v", err)
+	}
+	defer func() {
+		if err := os.Unsetenv("CULTIVATOR_ROOT"); err != nil {
+			t.Errorf("failed to unset env var: %v", err)
+		}
+	}()
 
 	state := terragruntFlagState{}
 	cfg, err := buildTerragruntConfig(state)

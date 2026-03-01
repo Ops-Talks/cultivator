@@ -7,12 +7,14 @@ import (
 )
 
 func BenchmarkLoadFile(b *testing.B) {
-	testDataDir := getBenchTestDataDir(&testing.T{})
+	testDataDir := getBenchTestDataDir()
 	cfgFile := filepath.Join(testDataDir, "terragrunt-structure", ".cultivator.yaml")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		LoadFile(cfgFile)
+		if _, _, _, err := LoadFile(cfgFile); err != nil {
+			b.Fatalf("LoadFile error: %v", err)
+		}
 	}
 }
 
@@ -29,7 +31,8 @@ func BenchmarkMergeConfig(b *testing.B) {
 
 func BenchmarkApplyOverrides(b *testing.B) {
 	cfg := DefaultConfig()
-	root := "prod"
+	const rootVal = "prod"
+	root := rootVal
 	parallelism := 4
 
 	overrides := Overrides{
@@ -48,11 +51,13 @@ func BenchmarkValidate(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Validate(cfg)
+		if err := Validate(cfg); err != nil {
+			b.Errorf("Validate error: %v", err)
+		}
 	}
 }
 
-func getBenchTestDataDir(t *testing.T) string {
+func getBenchTestDataDir() string {
 	_, file, _, ok := runtime.Caller(1)
 	if !ok {
 		return "testdata"

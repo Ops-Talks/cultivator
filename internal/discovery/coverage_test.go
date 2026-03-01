@@ -83,9 +83,10 @@ func TestParseTags_Empty(t *testing.T) {
 func TestSplitTags_Comma(t *testing.T) {
 	t.Parallel()
 
+	const firstTag = "tag1"
 	tags := splitTags("tag1,tag2,tag3")
-	if len(tags) != 3 || tags[0] != "tag1" {
-		t.Errorf("expected 3 tags starting with tag1, got %v", tags)
+	if len(tags) != 3 || tags[0] != firstTag {
+		t.Errorf("expected 3 tags starting with %s, got %v", firstTag, tags)
 	}
 }
 

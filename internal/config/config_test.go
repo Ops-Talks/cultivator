@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-const jsonFormat = "json"
-
 func TestLoadFileAndMerge(t *testing.T) {
 	t.Parallel()
 
@@ -63,7 +61,7 @@ func TestApplyOverrides(t *testing.T) {
 	if cfg.Root != "envs" {
 		t.Fatalf("expected root envs, got %q", cfg.Root)
 	}
-	if cfg.OutputFormat != "json" {
+	if cfg.OutputFormat != jsonFormat {
 		t.Fatalf("expected output format json, got %q", cfg.OutputFormat)
 	}
 	if cfg.Parallelism != 5 {
@@ -72,7 +70,7 @@ func TestApplyOverrides(t *testing.T) {
 	if !cfg.NonInteractive {
 		t.Fatalf("expected non-interactive true")
 	}
-	if len(cfg.Include) != 1 || cfg.Include[0] != "prod" {
+	if len(cfg.Include) != 1 || cfg.Include[0] != prodEnv {
 		t.Fatalf("expected include to be set")
 	}
 }

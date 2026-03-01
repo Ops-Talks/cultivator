@@ -249,11 +249,15 @@ func Validate(cfg Config) error {
 		return fmt.Errorf("parallelism must be >= 1, got %d", cfg.Parallelism)
 	}
 
+	const (
+		textFormat = "text"
+		jsonFormat = "json"
+	)
 	switch cfg.OutputFormat {
-	case "text", "json":
+	case textFormat, jsonFormat:
 		// valid
 	default:
-		return fmt.Errorf("invalid output format: %s (must be text or json)", cfg.OutputFormat)
+		return fmt.Errorf("invalid output format: %s (must be %s or %s)", cfg.OutputFormat, textFormat, jsonFormat)
 	}
 
 	return nil

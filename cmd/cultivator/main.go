@@ -13,10 +13,13 @@ var (
 )
 
 func main() {
-	code := cli.Run(os.Args, cli.VersionInfo{
+	os.Exit(run())
+}
+
+func run() int {
+	return cli.Run(os.Args, cli.VersionInfo{
 		Version: version,
 		Commit:  commit,
 		Date:    date,
 	})
-	os.Exit(code)
 }
