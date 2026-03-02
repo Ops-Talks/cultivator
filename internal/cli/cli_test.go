@@ -409,6 +409,152 @@ func TestBuildTerragruntConfig_Overrides(t *testing.T) {
 	}
 }
 
+func TestParseTerragruntFlags_PositionalModulePath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		args          []string
+		expectedPath  string
+		expectInclude bool
+	}{
+		{
+			name:          "path with terragrunt.hcl",
+			args:          []string{"cloudwatch/log-group/lambda-example/terragrunt.hcl"},
+			expectedPath:  "cloudwatch/log-group/lambda-example",
+			expectInclude: true,
+		},
+		{
+			name:          "path without terragrunt.hcl",
+			args:          []string{"cloudwatch/log-group/lambda-example"},
+			expectedPath:  "cloudwatch/log-group/lambda-example",
+			expectInclude: true,
+		},
+		{
+			name:          "path with leading ./",
+			args:          []string{"./cloudwatch/log-group/lambda-example"},
+			expectedPath:  "cloudwatch/log-group/lambda-example",
+			expectInclude: true,
+		},
+		{
+			name:          "path with ./ and terragrunt.hcl",
+			args:          []string{"./cloudwatch/log-group/lambda-example/terragrunt.hcl"},
+			expectedPath:  "cloudwatch/log-group/lambda-example",
+			expectInclude: true,
+		},
+		{
+			name:          "no positional args",
+			args:          []string{},
+			expectedPath:  "",
+			expectInclude: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			state, code := parseTerragruntFlags(tt.args, cmdPlan)
+
+			if code != 0 {
+				t.Fatalf("expected code 0, got %d", code)
+			}
+
+			if state.module != tt.expectedPath {
+				t.Errorf("module = %q, want %q", state.module, tt.expectedPath)
+			}
+
+			if tt.expectInclude {
+				if !state.includeSet {
+					t.Error("include should be set")
+				}
+				found := false
+				for _, inc := range state.includeValues {
+					if inc == tt.expectedPath {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("include values %v should contain %q", state.includeValues, tt.expectedPath)
+				}
+			} else if len(tt.args) == 0 {
+				// When no positional arg and no flags, includeSet should be false
+				if state.includeSet {
+					t.Error("include should not be set when no args provided")
+				}
+			}
+		})
+	}
+}
+
+func TestParseTerragruntFlags_PositionalWithFlags(t *testing.T) {
+	t.Parallel()
+
+	// Test that positional arg is combined with existing flags
+	args := []string{
+		"-include", "other/path",
+		"cloudwatch/log-group/lambda-example/terragrunt.hcl",
+	}
+	state, code := parseTerragruntFlags(args, cmdPlan)
+
+	if code != 0 {
+		t.Fatalf("expected code 0, got %d", code)
+	}
+
+	if state.module != "cloudwatch/log-group/lambda-example" {
+		t.Errorf("module = %q, want cloudwatch/log-group/lambda-example", state.module)
+	}
+
+	if !state.includeSet {
+		t.Error("include should be set")
+	}
+
+	// Both paths should be in include
+	if len(state.includeValues) != 2 {
+		t.Errorf("include values count = %d, want 2", len(state.includeValues))
+	}
+
+	hasOther := false
+	hasCloudwatch := false
+	for _, inc := range state.includeValues {
+		if inc == "other/path" {
+			hasOther = true
+		}
+		if inc == "cloudwatch/log-group/lambda-example" {
+			hasCloudwatch = true
+		}
+	}
+
+	if !hasOther || !hasCloudwatch {
+		t.Errorf("include values should contain both paths, got %v", state.includeValues)
+	}
+}
+
+func TestNormalizePath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"cloudwatch/log-group/lambda-example/terragrunt.hcl", "cloudwatch/log-group/lambda-example"},
+		{"cloudwatch/log-group/lambda-example", "cloudwatch/log-group/lambda-example"},
+		{"./cloudwatch/log-group/lambda-example", "cloudwatch/log-group/lambda-example"},
+		{"./cloudwatch/log-group/lambda-example/terragrunt.hcl", "cloudwatch/log-group/lambda-example"},
+		{"", ""},
+		{"   ", ""},
+		{"path/to/module/", "path/to/module/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := normalizePath(tt.input)
+			if result != tt.expected {
+				t.Errorf("normalizePath(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestRunDoctor_WithFlags(t *testing.T) {
 	t.Parallel()
 

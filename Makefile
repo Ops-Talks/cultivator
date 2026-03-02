@@ -54,7 +54,7 @@ deps:
 	$(GO) mod tidy
 
 # Run all checks
-check: fmt vet lint test
+check: fmt vet lint test coverage
 
 # Build Docker image
 docker-build:
