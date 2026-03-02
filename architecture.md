@@ -97,11 +97,37 @@ For `apply`/`destroy`, the recommendation is to run separate pipelines (e.g., tr
 Suggested interface:
 
 ```text
-cultivator plan    [flags]
-cultivator apply   [flags]
-cultivator destroy [flags]
+cultivator plan    [MODULE_PATH] [flags]
+cultivator apply   [MODULE_PATH] [flags]
+cultivator destroy [MODULE_PATH] [flags]
 cultivator version
 cultivator doctor
+```
+
+**Positional Arguments (optional)**:
+
+- `[MODULE_PATH]` (string, optional): specific module path to execute. Can be:
+  - A relative path: `cloudwatch/log-group/example`
+  - A path with trailing filename: `cloudwatch/log-group/example/terragrunt.hcl`
+  - A path with leading `./`: `./cloudwatch/log-group/example`
+  - Internally normalized and treated as a filter (equivalent to `--include` flag)
+
+Examples:
+```bash
+# Run plan on a specific module
+cultivator plan cloudwatch/log-group/lambda-example
+
+# With filename
+cultivator plan cloudwatch/log-group/lambda-example/terragrunt.hcl
+
+# Combined with other flags
+cultivator plan --parallelism=5 cloudwatch/log-group/lambda-example
+cultivator plan cloudwatch/log-group/lambda-example --destroy
+```
+
+**Backward Compatibility**: All existing flag-based invocations continue to work:
+```bash
+cultivator plan --include cloudwatch/log-group/lambda-example --parallelism=5
 ```
 
 Main flags (common):

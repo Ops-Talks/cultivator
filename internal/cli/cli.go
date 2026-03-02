@@ -102,6 +102,7 @@ type terragruntFlagState struct {
 	configPath              string
 	root                    string
 	env                     string
+	module                  string // specific module path from positional argument (e.g., "cloudwatch/log-group/example")
 	includeValues           []string
 	includeSet              bool
 	excludeValues           []string
@@ -153,9 +154,19 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 		return state, 2
 	}
 
+	// Capture positional argument (module path) if provided.
+	// This supports usage like: cultivator plan cloudwatch/log-group/example [flags]
+	// The path is normalized and treated as an include filter.
+	if len(fs.Args()) > 0 {
+		modulePath := fs.Args()[0]
+		state.module = normalizePath(modulePath)
+	}
+
 	state.configPath = *configPath
 	state.root = *root
 	state.env = *env
+
+	// Process include/exclude/tags filters first
 	if include.set {
 		state.includeValues = include.values
 		state.includeSet = true
@@ -168,6 +179,17 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 		state.tagsValues = tags.values
 		state.tagsSet = true
 	}
+
+	// If a specific module path is provided, add it to include filters
+	if state.module != "" {
+		if state.includeSet {
+			state.includeValues = append(state.includeValues, state.module)
+		} else {
+			state.includeValues = []string{state.module}
+			state.includeSet = true
+		}
+	}
+
 	if parallelism.set {
 		state.parallelismValue = parallelism.value
 		state.parallelismSet = true
@@ -510,6 +532,32 @@ func (i *intFlag) Set(value string) error {
 	i.value = parsed
 	i.set = true
 	return nil
+}
+
+// normalizePath normalizes a module path by removing leading ./ and trailing /terragrunt.hcl.
+// It handles both Unix-style (/) and platform-specific separators.
+// Examples: "cloudwatch/log-group/example/terragrunt.hcl" → "cloudwatch/log-group/example"
+//
+//	"./cloudwatch/log-group/example" → "cloudwatch/log-group/example"
+func normalizePath(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+
+	// Remove leading ./
+	if strings.HasPrefix(path, "."+string(filepath.Separator)) {
+		path = path[2:]
+	}
+
+	// Remove trailing /terragrunt.hcl
+	if strings.HasSuffix(path, "/terragrunt.hcl") {
+		path = path[:len(path)-len("/terragrunt.hcl")]
+	} else if strings.HasSuffix(path, string(filepath.Separator)+"terragrunt.hcl") {
+		path = path[:len(path)-len(string(filepath.Separator)+"terragrunt.hcl")]
+	}
+
+	return path
 }
 
 func splitList(value string) []string {
