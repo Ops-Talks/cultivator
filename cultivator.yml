@@ -4,7 +4,7 @@ version: 1
 projects:
   - name: production
     dir: environments/production
-    terragrunt_version: 0.55.0
+    terragrunt_version: 0.99.1
     terraform_version: 1.7.0
     apply_requirements:
       - approved
@@ -13,7 +13,7 @@ projects:
 
   - name: staging
     dir: environments/staging
-    terragrunt_version: 0.55.0
+    terragrunt_version: 0.99.1
     terraform_version: 1.7.0
     apply_requirements:
       - approved
@@ -21,7 +21,7 @@ projects:
 
   - name: development
     dir: environments/dev
-    terragrunt_version: 0.55.0
+    terragrunt_version: 0.99.1
     terraform_version: 1.7.0
     auto_plan: true
 
@@ -57,3 +57,4 @@ hooks:
   # Run after apply
   post_apply:
     - echo "Apply completed successfully"
+
