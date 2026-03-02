@@ -5,7 +5,7 @@
 [![Release](https://img.shields.io/github/v/release/Ops-Talks/cultivator.svg)](https://github.com/Ops-Talks/cultivator/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Ops-Talks/cultivator/ci.yml?branch=main)](https://github.com/Ops-Talks/cultivator/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Ops-Talks/cultivator)](https://goreportcard.com/report/github.com/Ops-Talks/cultivator)
-[![codecov](https://codecov.io/gh/Ops-Talks/cultivator/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Ops-Talks/cultivator)
+[![codecov](https://codecov.io/gh/Ops-Talks/cultivator/branch/main/graph/badge.svg?token=X26B4X86L5)](https://codecov.io/gh/Ops-Talks/cultivator)
 [![GitHub Stars](https://img.shields.io/github/stars/Ops-Talks/cultivator)](https://github.com/Ops-Talks/cultivator/stargazers)
 
 **Cultivator** is a lightweight CLI that orchestrates **Terragrunt** stack discovery, filtering, and execution across CI/CD systems and local environments.

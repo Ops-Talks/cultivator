@@ -88,7 +88,7 @@ func runTerragruntCommand(args []string, command string) int {
 	logger.Info("modules discovered", logging.Fields{"count": len(modules), "root": cfg.Root})
 
 	r := runner.New(logger)
-	runErr := runTerragruntModules(ctx, r, command, cfg, modules)
+	runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
 	if runErr != nil {
 		logger.Error("execution completed with errors", logging.Fields{"error": runErr.Error()})
 		return 1
@@ -299,7 +299,7 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 	return flagOverrides
 }
 
-func runTerragruntModules(ctx context.Context, r *runner.Runner, command string, cfg config.Config, modules []discovery.Module) error {
+func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner.Runner, command string, cfg config.Config, modules []discovery.Module) error {
 	switch command {
 	case cmdPlan:
 		planDestroy := false
@@ -308,12 +308,12 @@ func runTerragruntModules(ctx context.Context, r *runner.Runner, command string,
 				planDestroy = b
 			}
 		}
-		_, runErr := r.Run(ctx, runner.CommandPlan, modules, runner.Options{
+		results, _ := r.Run(ctx, runner.CommandPlan, modules, runner.Options{
 			Parallelism:    cfg.Parallelism,
 			NonInteractive: cfg.NonInteractive,
 			PlanDestroy:    planDestroy,
 		})
-		return runErr
+		return logExecutionResults(logger, results)
 	case cmdApply:
 		applyAutoApprove := false
 		if val, ok := cfg.Apply["auto_approve"]; ok {
@@ -321,12 +321,12 @@ func runTerragruntModules(ctx context.Context, r *runner.Runner, command string,
 				applyAutoApprove = b
 			}
 		}
-		_, runErr := r.Run(ctx, runner.CommandApply, modules, runner.Options{
+		results, _ := r.Run(ctx, runner.CommandApply, modules, runner.Options{
 			Parallelism:      cfg.Parallelism,
 			NonInteractive:   cfg.NonInteractive,
 			ApplyAutoApprove: applyAutoApprove,
 		})
-		return runErr
+		return logExecutionResults(logger, results)
 	case cmdDestroy:
 		destroyAutoApprove := false
 		if val, ok := cfg.Destroy["auto_approve"]; ok {
@@ -334,15 +334,33 @@ func runTerragruntModules(ctx context.Context, r *runner.Runner, command string,
 				destroyAutoApprove = b
 			}
 		}
-		_, runErr := r.Run(ctx, runner.CommandDestroy, modules, runner.Options{
+		results, _ := r.Run(ctx, runner.CommandDestroy, modules, runner.Options{
 			Parallelism:        cfg.Parallelism,
 			NonInteractive:     cfg.NonInteractive,
 			DestroyAutoApprove: destroyAutoApprove,
 		})
-		return runErr
+		return logExecutionResults(logger, results)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
+}
+
+// logExecutionResults processes execution results and logs detailed error information including stderr.
+func logExecutionResults(logger *logging.Logger, results []runner.Result) error {
+	hasErrors := false
+	for _, result := range results {
+		if result.Error != nil || result.ExitCode != 0 {
+			hasErrors = true
+			logger.Error(fmt.Sprintf("%s %s failed", result.Command, result.Module.Path), logging.Fields{
+				"exit_code": result.ExitCode,
+				"stderr":    result.Stderr,
+			})
+		}
+	}
+	if hasErrors {
+		return fmt.Errorf("execution failed for one or more modules")
+	}
+	return nil
 }
 
 func runDoctor(args []string) int {
