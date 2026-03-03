@@ -30,6 +30,17 @@ Choose `text` or `json` output to fit CI log requirements:
 output_format: json
 ```
 
+## Configurable Log Levels
+
+Control Cultivator's own log verbosity via the `CULTIVATOR_LOG_LEVEL` environment variable:
+
+```bash
+CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
+```
+
+Accepted values: `debug`, `info`, `warning`, `error`. Default: `info`.
+Terragrunt output is always printed in full, regardless of this setting.
+
 ## Stateless Operation
 
 Cultivator does not manage state or backends. Terragrunt and Terraform/OpenTofu handle state as usual.

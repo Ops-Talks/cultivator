@@ -18,7 +18,6 @@ type Config struct {
 	Exclude        []string               `yaml:"exclude"`
 	Tags           []string               `yaml:"tags"`
 	Parallelism    int                    `yaml:"parallelism"`
-	OutputFormat   string                 `yaml:"output_format"`
 	NonInteractive bool                   `yaml:"non_interactive"`
 	Plan           map[string]interface{} `yaml:"plan"`
 	Apply          map[string]interface{} `yaml:"apply"`
@@ -36,7 +35,6 @@ type Overrides struct {
 	Tags           []string
 	TagsSet        bool
 	Parallelism    *int
-	OutputFormat   *string
 	NonInteractive *bool
 	PlanDestroy    *bool
 	ApplyAutoAppr  *bool
@@ -50,13 +48,12 @@ func DefaultConfig() Config {
 	}
 
 	return Config{
-		Root:         ".",
-		Parallelism:  parallelism,
-		OutputFormat: "text",
-		Plan:         map[string]interface{}{},
-		Apply:        map[string]interface{}{},
-		Destroy:      map[string]interface{}{},
-		Doctor:       map[string]interface{}{},
+		Root:        ".",
+		Parallelism: parallelism,
+		Plan:        map[string]interface{}{},
+		Apply:       map[string]interface{}{},
+		Destroy:     map[string]interface{}{},
+		Doctor:      map[string]interface{}{},
 	}
 }
 
@@ -87,7 +84,7 @@ func LoadFile(path string) (Config, map[string]interface{}, bool, error) {
 	}
 
 	for key := range raw {
-		if key == "root" || key == "env" || key == "include" || key == "exclude" || key == "tags" || key == "parallelism" || key == "output_format" || key == "non_interactive" || key == "plan" || key == "apply" || key == "destroy" || key == "doctor" {
+		if key == "root" || key == "env" || key == "include" || key == "exclude" || key == "tags" || key == "parallelism" || key == "non_interactive" || key == "plan" || key == "apply" || key == "destroy" || key == "doctor" {
 			continue
 		}
 		extra[key] = raw[key]
@@ -126,9 +123,6 @@ func LoadEnv(prefix string) Config {
 			cfg.Parallelism = val
 		}
 	}
-	if format := os.Getenv(prefix + "_OUTPUT_FORMAT"); format != "" {
-		cfg.OutputFormat = format
-	}
 	if nonInt := os.Getenv(prefix + "_NON_INTERACTIVE"); nonInt != "" {
 		cfg.NonInteractive = parseBool(nonInt)
 	}
@@ -156,9 +150,6 @@ func MergeConfig(base, override Config) Config {
 	}
 	if override.Parallelism > 0 && override.Parallelism != base.Parallelism {
 		result.Parallelism = override.Parallelism
-	}
-	if override.OutputFormat != "" && override.OutputFormat != base.OutputFormat {
-		result.OutputFormat = override.OutputFormat
 	}
 	if override.NonInteractive {
 		result.NonInteractive = override.NonInteractive
@@ -206,9 +197,6 @@ func ApplyOverrides(cfg Config, ovr Overrides) Config {
 	if ovr.Parallelism != nil && *ovr.Parallelism > 0 {
 		cfg.Parallelism = *ovr.Parallelism
 	}
-	if ovr.OutputFormat != nil && *ovr.OutputFormat != "" {
-		cfg.OutputFormat = *ovr.OutputFormat
-	}
 	if ovr.NonInteractive != nil {
 		cfg.NonInteractive = *ovr.NonInteractive
 	}
@@ -247,17 +235,6 @@ func Validate(cfg Config) error {
 
 	if cfg.Parallelism < 1 {
 		return fmt.Errorf("parallelism must be >= 1, got %d", cfg.Parallelism)
-	}
-
-	const (
-		textFormat = "text"
-		jsonFormat = "json"
-	)
-	switch cfg.OutputFormat {
-	case textFormat, jsonFormat:
-		// valid
-	default:
-		return fmt.Errorf("invalid output format: %s (must be %s or %s)", cfg.OutputFormat, textFormat, jsonFormat)
 	}
 
 	return nil

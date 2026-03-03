@@ -65,9 +65,6 @@ func TestDefaultConfig_Values(t *testing.T) {
 	if cfg.Plan == nil || cfg.Apply == nil || cfg.Destroy == nil {
 		t.Error("plan, apply, and destroy should not be nil")
 	}
-	if cfg.OutputFormat != textFormat {
-		t.Errorf("output format should be %q, got %q", textFormat, cfg.OutputFormat)
-	}
 	if cfg.Parallelism < 1 {
 		t.Errorf("parallelism should be at least 1, got %d", cfg.Parallelism)
 	}
@@ -111,19 +108,6 @@ func TestValidate_ParallelismZero(t *testing.T) {
 	}
 }
 
-// Test Validate with invalid format
-func TestValidate_InvalidFormat(t *testing.T) {
-	t.Parallel()
-
-	cfg := DefaultConfig()
-	cfg.OutputFormat = "invalid_format"
-
-	err := Validate(cfg)
-	if err == nil {
-		t.Error("validate should error for invalid format")
-	}
-}
-
 // Test LoadFile with valid YAML
 func TestLoadFile_Valid(t *testing.T) {
 	t.Parallel()
@@ -132,8 +116,7 @@ func TestLoadFile_Valid(t *testing.T) {
 	filePath := filepath.Join(tempDir, "config.yml")
 	content := []byte(`root: /test
 parallelism: 4
-exclude: [dev, test]
-output_format: json`)
+exclude: [dev, test]`)
 
 	if err := os.WriteFile(filePath, content, 0o600); err != nil {
 		t.Fatalf("write file: %v", err)
@@ -151,9 +134,6 @@ output_format: json`)
 	}
 	if cfg.Parallelism != 4 {
 		t.Errorf("parallelism should be 4, got %d", cfg.Parallelism)
-	}
-	if cfg.OutputFormat != jsonFormat {
-		t.Errorf("format should be json, got %q", cfg.OutputFormat)
 	}
 	if extra == nil {
 		t.Error("extra should not be nil")
@@ -238,7 +218,6 @@ func TestLoadEnv_WithVars(t *testing.T) {
 	// Set environment variables
 	t.Setenv("TEST_ROOT", "/env/root")
 	t.Setenv("TEST_PARALLELISM", "8")
-	t.Setenv("TEST_OUTPUT_FORMAT", "json")
 
 	cfg := LoadEnv("TEST")
 	if cfg.Root != "/env/root" {
@@ -246,9 +225,6 @@ func TestLoadEnv_WithVars(t *testing.T) {
 	}
 	if cfg.Parallelism != 8 {
 		t.Errorf("parallelism from env should be 8, got %d", cfg.Parallelism)
-	}
-	if cfg.OutputFormat != "json" {
-		t.Errorf("format from env should be json, got %q", cfg.OutputFormat)
 	}
 }
 
@@ -371,12 +347,10 @@ func TestMergeConfig_Guards(t *testing.T) {
 	base.Root = baseRoot
 	base.Env = prodEnv
 	base.Parallelism = 4
-	base.OutputFormat = textFormat
 
 	override := Config{
-		Root:         ".",
-		Parallelism:  4,
-		OutputFormat: "text",
+		Root:        ".",
+		Parallelism: 4,
 	}
 
 	result := MergeConfig(base, override)
@@ -385,9 +359,6 @@ func TestMergeConfig_Guards(t *testing.T) {
 	}
 	if result.Parallelism != 4 {
 		t.Fatalf("expected parallelism to remain 4, got %d", result.Parallelism)
-	}
-	if result.OutputFormat != "text" {
-		t.Fatalf("expected output format text, got %q", result.OutputFormat)
 	}
 }
 
@@ -438,7 +409,6 @@ func TestMergeConfig_AllFields(t *testing.T) {
 	base.Exclude = []string{"old-exc"}
 	base.Tags = []string{"old-tag"}
 	base.Parallelism = 2
-	base.OutputFormat = "text"
 	base.NonInteractive = false
 	base.Plan["destroy"] = false
 	base.Apply["auto_approve"] = false
@@ -452,7 +422,6 @@ func TestMergeConfig_AllFields(t *testing.T) {
 		Exclude:        []string{"new-exc"},
 		Tags:           []string{"new-tag"},
 		Parallelism:    8,
-		OutputFormat:   "json",
 		NonInteractive: true,
 		Plan:           map[string]interface{}{"destroy": true},
 		Apply:          map[string]interface{}{"auto_approve": true},
@@ -474,8 +443,8 @@ func TestMergeConfig_AllFields(t *testing.T) {
 	if len(result.Tags) != 1 || result.Tags[0] != "new-tag" {
 		t.Fatalf("expected tags override, got %v", result.Tags)
 	}
-	if result.Parallelism != 8 || result.OutputFormat != "json" || !result.NonInteractive {
-		t.Fatalf("expected parallelism/output/nonInteractive overridden, got %d/%q/%v", result.Parallelism, result.OutputFormat, result.NonInteractive)
+	if result.Parallelism != 8 || !result.NonInteractive {
+		t.Fatalf("expected parallelism/nonInteractive overridden, got %d/%v", result.Parallelism, result.NonInteractive)
 	}
 	if result.Plan["destroy"] != true || result.Apply["auto_approve"] != true || result.Destroy["auto_approve"] != true {
 		t.Fatal("expected plan/apply/destroy maps merged with true values")

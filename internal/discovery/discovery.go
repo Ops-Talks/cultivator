@@ -1,7 +1,8 @@
+// Package discovery finds Terragrunt modules within a root directory,
+// applying optional filters for environment, path inclusion/exclusion, and tags.
 package discovery
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -10,12 +11,14 @@ import (
 	"strings"
 )
 
+// Module represents a discovered Terragrunt module with its path, environment, and tags.
 type Module struct {
 	Path string
 	Env  string
 	Tags []string
 }
 
+// Options controls which modules are returned by Discover.
 type Options struct {
 	Env     string
 	Include []string
@@ -23,17 +26,20 @@ type Options struct {
 	Tags    []string
 }
 
-var tagCommentPattern = regexp.MustCompile(`(?i)cultivator:tags\s*=\s*([a-z0-9,_-]+)`)
-var tagListPattern = regexp.MustCompile(`(?i)cultivator_tags\s*=\s*\[(.*?)\]`)
-var tagItemPattern = regexp.MustCompile(`"([a-zA-Z0-9_-]+)"`)
+var (
+	tagCommentPattern = regexp.MustCompile(`(?i)cultivator:tags\s*=\s*([a-z0-9,_-]+)`)
+	tagListPattern    = regexp.MustCompile(`(?i)cultivator_tags\s*=\s*\[(.*?)\]`)
+	tagItemPattern    = regexp.MustCompile(`"([a-zA-Z0-9_-]+)"`)
+)
 
+// Discover walks root recursively and returns all Terragrunt modules that match options.
 func Discover(root string, options Options) ([]Module, error) {
 	if root == "" {
 		return nil, fmt.Errorf("root directory is required")
 	}
 
 	root = filepath.Clean(root)
-	modules := []Module{}
+	var modules []Module
 
 	include := normalizePaths(root, options.Include)
 	exclude := normalizePaths(root, options.Exclude)
@@ -177,14 +183,14 @@ func matchesTags(moduleTags []string, required []string) bool {
 }
 
 func parseTags(path string) []string {
-	// #nosec G304 -- module paths are discovered from the configured root
+	// #nosec G304 G703 -- module paths are discovered from the validated root directory
 	file, err := os.Open(path)
 	if err != nil {
 		return nil
 	}
-	defer func() {
-		_ = file.Close()
-	}()
+	// Close error is intentionally ignored on read-only open; the file
+	// descriptor will be released by the OS when the function returns.
+	defer func() { _ = file.Close() }()
 
 	content, err := io.ReadAll(file)
 	if err != nil {
@@ -211,19 +217,6 @@ func parseTags(path string) []string {
 			result = append(result, item[1])
 		}
 		return result
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(input))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if !strings.Contains(line, "cultivator") {
-			continue
-		}
-
-		matches = tagCommentPattern.FindStringSubmatch(line)
-		if len(matches) == 2 {
-			return splitTags(matches[1])
-		}
 	}
 
 	return nil

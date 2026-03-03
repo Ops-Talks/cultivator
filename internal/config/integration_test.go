@@ -1,14 +1,12 @@
 package config
 
 import (
-	"bytes"
 	"context"
 	"path/filepath"
 	"runtime"
 	"testing"
 
 	"github.com/Ops-Talks/cultivator/internal/discovery"
-	"github.com/Ops-Talks/cultivator/internal/logging"
 	"github.com/Ops-Talks/cultivator/internal/runner"
 )
 
@@ -41,8 +39,7 @@ func TestIntegration_ConfigDiscoveryRunner(t *testing.T) {
 		t.Fatalf("expected at least 3 modules, got %d", len(modules))
 	}
 
-	logger := logging.New("text", &bytes.Buffer{}, &bytes.Buffer{})
-	r := runner.New(logger)
+	r := runner.New()
 
 	opts := runner.Options{Parallelism: cfg.Parallelism}
 	results, err := r.Run(context.Background(), runner.CommandPlan, modules, opts)
@@ -90,17 +87,14 @@ func TestIntegration_ConfigOverrides(t *testing.T) {
 	}
 
 	parallelism := 4
-	const jsonFormat = "json"
-	format := jsonFormat
 	nonInteractive := true
 
 	cfg = ApplyOverrides(cfg, Overrides{
 		Parallelism:    &parallelism,
-		OutputFormat:   &format,
 		NonInteractive: &nonInteractive,
 	})
 
-	if cfg.Parallelism != 4 || cfg.OutputFormat != jsonFormat || !cfg.NonInteractive {
+	if cfg.Parallelism != 4 || !cfg.NonInteractive {
 		t.Error("overrides not applied correctly")
 	}
 
@@ -109,8 +103,9 @@ func TestIntegration_ConfigOverrides(t *testing.T) {
 	}
 }
 
-func getIntTestDataDir(t *testing.T) string {
-	_, file, _, ok := runtime.Caller(1)
+func getIntTestDataDir(t testing.TB) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("could not get file path")
 	}

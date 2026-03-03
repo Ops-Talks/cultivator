@@ -78,6 +78,17 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ./cultivator plan --root=live --output-format=json --non-interactive
 ```
 
+## Environment Variables
+
+| Variable               | Values                              | Default | Description                                                  |
+|------------------------|-------------------------------------|---------|--------------------------------------------------------------|
+| `CULTIVATOR_LOG_LEVEL` | `debug`, `info`, `warning`, `error` | `info`  | Minimum log level emitted by Cultivator. Terragrunt output is always printed regardless of this setting. |
+
+**Example — enable debug logging:**
+```bash
+CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
+```
+
 ## Exit Codes
 
 - `0` - Success (all stacks executed successfully)

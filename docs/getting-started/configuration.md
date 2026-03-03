@@ -120,12 +120,19 @@ Environment variables override the config file:
 - `CULTIVATOR_APPLY_AUTO_APPROVE`
 - `CULTIVATOR_DESTROY_AUTO_APPROVE`
 
+### Logging
+
+- `CULTIVATOR_LOG_LEVEL` — minimum log severity emitted by Cultivator.
+  Accepted values: `debug`, `info`, `warning`, `error`. Default: `info`.
+  Terragrunt output is always printed regardless of this setting.
+
 Example:
 
 ```bash
 export CULTIVATOR_ROOT=live
 export CULTIVATOR_ENV=prod
 export CULTIVATOR_NON_INTERACTIVE=true
+export CULTIVATOR_LOG_LEVEL=debug   # enable verbose Cultivator logs
 ```
 
 ## CLI Flags

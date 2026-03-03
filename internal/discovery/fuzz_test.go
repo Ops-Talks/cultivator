@@ -1,7 +1,7 @@
 package discovery
 
 import (
-	"path/filepath"
+	"os"
 	"testing"
 )
 
@@ -19,15 +19,26 @@ func FuzzParseTags(f *testing.F) {
 	f.Add("# random content\n# cultivator:tags = test\n# more content")
 
 	f.Fuzz(func(t *testing.T, data string) {
-		// This should not panic
-		result := parseTags("nonexistent_file_" + filepath.Base(data))
+		// Write data to a temp file so parseTags reads real content.
+		tmpFile, err := os.CreateTemp("", "fuzz_tags_*.hcl")
+		if err != nil {
+			t.Skip("could not create temp file")
+		}
+		// Close and remove errors are non-actionable inside a fuzz callback;
+		// the OS will reclaim the temp file when the process exits.
+		defer func() { _ = os.Remove(tmpFile.Name()) }() //nolint:gosec // path comes from os.CreateTemp
 
-		// Validate result
+		if _, err := tmpFile.WriteString(data); err != nil {
+			_ = tmpFile.Close() // best-effort; test is being skipped
+			t.Skip("could not write temp file")
+		}
+		_ = tmpFile.Close() // best-effort; file is only read after this point
+
+		result := parseTags(tmpFile.Name())
 		if result == nil {
-			return // nil is valid
+			return
 		}
 
-		// All tags should be non-empty strings
 		for _, tag := range result {
 			if tag == "" {
 				t.Errorf("parseTags returned empty tag in result")

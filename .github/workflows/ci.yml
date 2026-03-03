@@ -45,13 +45,15 @@ jobs:
           fail_ci_if_error: true
           flags: unittests
           name: codecov-umbrella
-          
+          verbose: true
+
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./test-results.xml
+          verbose: true
 
   lint:
     name: Lint

@@ -1,11 +1,17 @@
 package cli
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/Ops-Talks/cultivator/internal/discovery"
+	"github.com/Ops-Talks/cultivator/internal/logging"
+	"github.com/Ops-Talks/cultivator/internal/runner"
 )
 
 func TestParseBool(t *testing.T) {
@@ -259,23 +265,6 @@ func TestRunDoctor_ValidRoot(t *testing.T) {
 	}
 }
 
-func TestExecLookPath(t *testing.T) {
-	t.Parallel()
-
-	path, err := execLookPath("sh")
-	if err != nil {
-		t.Errorf("sh should exist: %v", err)
-	}
-	if path == "" {
-		t.Error("path empty")
-	}
-
-	_, err = execLookPath("nonexistent-cmd-12345")
-	if err == nil {
-		t.Error("should error for nonexistent")
-	}
-}
-
 func TestPrintVersion(t *testing.T) {
 	t.Parallel()
 
@@ -348,17 +337,8 @@ func TestParseTerragruntFlags_InvalidParallelism(t *testing.T) {
 }
 
 func TestBuildTerragruntConfig_WithEnvVars(t *testing.T) {
-	t.Parallel()
-
-	err := os.Setenv("CULTIVATOR_ROOT", "/env/root")
-	if err != nil {
-		t.Fatalf("failed to set env var: %v", err)
-	}
-	defer func() {
-		if err := os.Unsetenv("CULTIVATOR_ROOT"); err != nil {
-			t.Errorf("failed to unset env var: %v", err)
-		}
-	}()
+	// Cannot use t.Parallel() with t.Setenv().
+	t.Setenv("CULTIVATOR_ROOT", "/env/root")
 
 	state := terragruntFlagState{}
 	cfg, err := buildTerragruntConfig(state)
@@ -390,7 +370,6 @@ func TestBuildTerragruntConfig_Overrides(t *testing.T) {
 		planDestroySet:      true,
 		nonInteractiveValue: true,
 		nonInteractiveSet:   true,
-		outputFormat:        "json",
 	}
 
 	cfg, err := buildTerragruntConfig(state)
@@ -403,9 +382,6 @@ func TestBuildTerragruntConfig_Overrides(t *testing.T) {
 	}
 	if cfg.Env != "staging" {
 		t.Errorf("env = %q, want staging", cfg.Env)
-	}
-	if cfg.OutputFormat != "json" {
-		t.Errorf("outputFormat = %q, want json", cfg.OutputFormat)
 	}
 }
 
@@ -563,5 +539,172 @@ func TestRunDoctor_WithFlags(t *testing.T) {
 
 	if code != 0 && code != 1 {
 		t.Errorf("unexpected code: %d", code)
+	}
+}
+
+func TestLogExecutionResults_Success(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "app/module"},
+			Command:  "plan",
+			Stdout:   "Plan: 1 to add",
+			ExitCode: 0,
+		},
+	}
+
+	err := logExecutionResults(logger, results)
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	outStr := out.String()
+	if !strings.Contains(outStr, "=== plan: app/module ===") {
+		t.Errorf("expected module header in output, got %q", outStr)
+	}
+	if !strings.Contains(outStr, "Plan: 1 to add") {
+		t.Errorf("expected stdout in output, got %q", outStr)
+	}
+	if !strings.Contains(outStr, "completed") {
+		t.Errorf("expected 'completed' in output, got %q", outStr)
+	}
+}
+
+func TestLogExecutionResults_ExitCodeFailureNoError(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	// exit code != 0 but Error == nil (normal terragrunt failure)
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "infra/vpc"},
+			Command:  "plan",
+			ExitCode: 1,
+			Stderr:   "Error: something went wrong",
+		},
+	}
+
+	err := logExecutionResults(logger, results)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	combined := out.String() + errOut.String()
+	if !strings.Contains(out.String(), "=== plan: infra/vpc ===") {
+		t.Errorf("expected module header in output, got %q", out.String())
+	}
+	// Should NOT contain "error=<nil>" — the error field must be omitted
+	if strings.Contains(combined, "error=<nil>") {
+		t.Errorf("log output should not contain 'error=<nil>', got: %q", combined)
+	}
+	if !strings.Contains(combined, "exit_code=1") {
+		t.Errorf("expected exit_code in output, got: %q", combined)
+	}
+	if !strings.Contains(out.String(), "something went wrong") {
+		t.Errorf("expected stderr in output, got: %q", out.String())
+	}
+}
+
+func TestLogExecutionResults_ErrorSet(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	execErr := errors.New("process killed")
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "infra/db"},
+			Command:  "apply",
+			ExitCode: 1,
+			Error:    execErr,
+		},
+	}
+
+	err := logExecutionResults(logger, results)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	combined := out.String() + errOut.String()
+	if !strings.Contains(out.String(), "=== apply: infra/db ===") {
+		t.Errorf("expected module header in output, got %q", out.String())
+	}
+	if !strings.Contains(combined, "process killed") {
+		t.Errorf("expected error message in output, got: %q", combined)
+	}
+	if !strings.Contains(combined, "error=process killed") {
+		t.Errorf("expected 'error=process killed' in output, got: %q", combined)
+	}
+}
+
+func TestLogExecutionResults_MultipleModules(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "modules/vpc"},
+			Command:  "plan",
+			Stdout:   "Plan: 2 to add",
+			ExitCode: 0,
+		},
+		{
+			Module:   discovery.Module{Path: "modules/rds"},
+			Command:  "plan",
+			Stdout:   "",
+			Stderr:   "Error: insufficient permissions",
+			ExitCode: 1,
+		},
+		{
+			Module:   discovery.Module{Path: "modules/eks"},
+			Command:  "plan",
+			Stdout:   "Plan: 1 to add",
+			ExitCode: 0,
+		},
+	}
+
+	err := logExecutionResults(logger, results)
+	if err == nil {
+		t.Fatal("expected error due to rds failure, got nil")
+	}
+
+	outStr := out.String()
+
+	// Each module must have its own header, in order
+	vpcIdx := strings.Index(outStr, "=== plan: modules/vpc ===")
+	rdsIdx := strings.Index(outStr, "=== plan: modules/rds ===")
+	eksIdx := strings.Index(outStr, "=== plan: modules/eks ===")
+
+	if vpcIdx < 0 {
+		t.Errorf("missing header for modules/vpc, output: %q", outStr)
+	}
+	if rdsIdx < 0 {
+		t.Errorf("missing header for modules/rds, output: %q", outStr)
+	}
+	if eksIdx < 0 {
+		t.Errorf("missing header for modules/eks, output: %q", outStr)
+	}
+
+	// vpc stdout must appear after vpc header and before rds header
+	if vpcIdx > 0 && rdsIdx > 0 && !strings.Contains(outStr[vpcIdx:rdsIdx], "Plan: 2 to add") {
+		t.Errorf("vpc stdout not between vpc and rds headers, output: %q", outStr)
+	}
+
+	// rds stderr must appear in the output
+	if !strings.Contains(outStr, "insufficient permissions") {
+		t.Errorf("expected rds stderr in output, got: %q", outStr)
+	}
+
+	// eks stdout must appear after eks header
+	if eksIdx > 0 && !strings.Contains(outStr[eksIdx:], "Plan: 1 to add") {
+		t.Errorf("eks stdout not found after eks header, output: %q", outStr)
 	}
 }

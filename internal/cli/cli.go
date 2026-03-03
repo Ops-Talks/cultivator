@@ -1,3 +1,4 @@
+// Package cli provides the command-line interface for cultivator.
 package cli
 
 import (
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -26,12 +28,15 @@ const (
 	cmdDoctor  = "doctor"
 )
 
+// VersionInfo holds build-time version metadata for the cultivator binary.
 type VersionInfo struct {
 	Version string
 	Commit  string
 	Date    string
 }
 
+// Run is the entry point for the cultivator CLI. It dispatches subcommands and
+// returns an exit code suitable for os.Exit.
 func Run(args []string, version VersionInfo) int {
 	if len(args) < 2 {
 		printUsage()
@@ -66,8 +71,9 @@ func runTerragruntCommand(args []string, command string) int {
 		return 1
 	}
 
-	logger := logging.New(cfg.OutputFormat, os.Stdout, os.Stderr)
-	ctx := withSignalContext(context.Background())
+	logger := logging.New(logLevelFromEnv(), os.Stdout, os.Stderr)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	modules, err := discovery.Discover(cfg.Root, discovery.Options{
 		Env:     cfg.Env,
@@ -87,7 +93,7 @@ func runTerragruntCommand(args []string, command string) int {
 
 	logger.Info("modules discovered", logging.Fields{"count": len(modules), "root": cfg.Root})
 
-	r := runner.New(logger)
+	r := runner.New()
 	runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
 	if runErr != nil {
 		logger.Error("execution completed with errors", logging.Fields{"error": runErr.Error()})
@@ -111,7 +117,6 @@ type terragruntFlagState struct {
 	tagsSet                 bool
 	parallelismValue        int
 	parallelismSet          bool
-	outputFormat            string
 	nonInteractiveValue     bool
 	nonInteractiveSet       bool
 	planDestroyValue        bool
@@ -134,7 +139,6 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	exclude := newStringSliceFlag(fs, "exclude", "relative paths to exclude")
 	tags := newStringSliceFlag(fs, "tags", "tag filters")
 	parallelism := newIntFlag(fs, "parallelism", "max parallel executions")
-	outputFormat := fs.String("output-format", "", "output format: text or json")
 	nonInteractive := newBoolFlag(fs, "non-interactive", "force non-interactive mode")
 
 	var planDestroy *boolFlag
@@ -193,9 +197,6 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	if parallelism.set {
 		state.parallelismValue = parallelism.value
 		state.parallelismSet = true
-	}
-	if outputFormat != nil {
-		state.outputFormat = *outputFormat
 	}
 	if nonInteractive.set {
 		state.nonInteractiveValue = nonInteractive.value
@@ -276,9 +277,6 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 		value := state.parallelismValue
 		flagOverrides.Parallelism = &value
 	}
-	if state.outputFormat != "" {
-		flagOverrides.OutputFormat = &state.outputFormat
-	}
 	if state.nonInteractiveSet {
 		value := state.nonInteractiveValue
 		flagOverrides.NonInteractive = &value
@@ -308,11 +306,14 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 				planDestroy = b
 			}
 		}
-		results, _ := r.Run(ctx, runner.CommandPlan, modules, runner.Options{
+		results, err := r.Run(ctx, runner.CommandPlan, modules, runner.Options{
 			Parallelism:    cfg.Parallelism,
 			NonInteractive: cfg.NonInteractive,
 			PlanDestroy:    planDestroy,
 		})
+		if err != nil {
+			return err
+		}
 		return logExecutionResults(logger, results)
 	case cmdApply:
 		applyAutoApprove := false
@@ -321,11 +322,14 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 				applyAutoApprove = b
 			}
 		}
-		results, _ := r.Run(ctx, runner.CommandApply, modules, runner.Options{
+		results, err := r.Run(ctx, runner.CommandApply, modules, runner.Options{
 			Parallelism:      cfg.Parallelism,
 			NonInteractive:   cfg.NonInteractive,
 			ApplyAutoApprove: applyAutoApprove,
 		})
+		if err != nil {
+			return err
+		}
 		return logExecutionResults(logger, results)
 	case cmdDestroy:
 		destroyAutoApprove := false
@@ -334,26 +338,45 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 				destroyAutoApprove = b
 			}
 		}
-		results, _ := r.Run(ctx, runner.CommandDestroy, modules, runner.Options{
+		results, err := r.Run(ctx, runner.CommandDestroy, modules, runner.Options{
 			Parallelism:        cfg.Parallelism,
 			NonInteractive:     cfg.NonInteractive,
 			DestroyAutoApprove: destroyAutoApprove,
 		})
+		if err != nil {
+			return err
+		}
 		return logExecutionResults(logger, results)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
 }
 
-// logExecutionResults processes execution results and logs detailed error information including stderr.
+// logExecutionResults processes execution results and displays complete terragrunt output.
+// Each module's output is prefixed with a header ("=== command: module ===") so that
+// CI pipelines can parse and attribute output per module when posting PR/MR comments.
 func logExecutionResults(logger *logging.Logger, results []runner.Result) error {
 	hasErrors := false
 	for _, result := range results {
+		logger.Output(fmt.Sprintf("=== %s: %s ===", result.Command, result.Module.Path))
+
+		if result.Stdout != "" {
+			logger.Output(result.Stdout)
+		}
+
 		if result.Error != nil || result.ExitCode != 0 {
 			hasErrors = true
-			logger.Error(fmt.Sprintf("%s %s failed", result.Command, result.Module.Path), logging.Fields{
+			fields := logging.Fields{"exit_code": result.ExitCode}
+			if result.Error != nil {
+				fields["error"] = result.Error.Error()
+			}
+			logger.Error(fmt.Sprintf("%s %s failed", result.Command, result.Module.Path), fields)
+			if result.Stderr != "" {
+				logger.Output(fmt.Sprintf("stderr:\n%s", result.Stderr))
+			}
+		} else {
+			logger.Info(fmt.Sprintf("%s %s completed", result.Command, result.Module.Path), logging.Fields{
 				"exit_code": result.ExitCode,
-				"stderr":    result.Stderr,
 			})
 		}
 	}
@@ -400,9 +423,9 @@ func runDoctor(args []string) int {
 		cfg.Root = filepath.Join(wd, cfg.Root)
 	}
 
-	logger := logging.New("text", os.Stdout, os.Stderr)
+	logger := logging.New(logLevelFromEnv(), os.Stdout, os.Stderr)
 
-	terragruntPath, err := execLookPath("terragrunt")
+	terragruntPath, err := exec.LookPath("terragrunt")
 	if err != nil {
 		logger.Error("terragrunt not found in PATH", logging.Fields{"error": err.Error()})
 		return 1
@@ -441,30 +464,13 @@ func runDoctor(args []string) int {
 	return 0
 }
 
-func execLookPath(name string) (string, error) {
-	path, err := exec.LookPath(name)
-	if err != nil {
-		return "", err
-	}
-	return path, nil
-}
-
-func withSignalContext(parent context.Context) context.Context {
-	ctx, cancel := signal.NotifyContext(parent, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-ctx.Done()
-		cancel()
-	}()
-	return ctx
-}
-
 func printVersion(version VersionInfo) {
 	fmt.Printf("cultivator %s (commit %s, built %s)\n", fallback(version.Version, "dev"), fallback(version.Commit, "unknown"), fallback(version.Date, "unknown"))
 }
 
-func fallback(value string, fallback string) string {
+func fallback(value, def string) string {
 	if value == "" {
-		return fallback
+		return def
 	}
 	return value
 }
@@ -557,6 +563,25 @@ func (i *intFlag) Set(value string) error {
 // Examples: "cloudwatch/log-group/example/terragrunt.hcl" → "cloudwatch/log-group/example"
 //
 //	"./cloudwatch/log-group/example" → "cloudwatch/log-group/example"
+//
+// logLevelFromEnv reads the CULTIVATOR_LOG_LEVEL environment variable and returns
+// the corresponding logging.Level. Defaults to LevelInfo if the variable is unset
+// or contains an unrecognised value.
+func logLevelFromEnv() logging.Level {
+	v := os.Getenv("CULTIVATOR_LOG_LEVEL")
+	if v == "" {
+		return logging.LevelInfo
+	}
+
+	level, err := logging.ParseLevel(v)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: %v; defaulting to info\n", err)
+		return logging.LevelInfo
+	}
+
+	return level
+}
+
 func normalizePath(path string) string {
 	path = strings.TrimSpace(path)
 	if path == "" {
@@ -612,8 +637,7 @@ func parseInt(value string) (int, error) {
 		return 0, errors.New("invalid integer value")
 	}
 
-	var parsed int
-	_, err := fmt.Sscanf(clean, "%d", &parsed)
+	parsed, err := strconv.Atoi(clean)
 	if err != nil {
 		return 0, errors.New("invalid integer value")
 	}

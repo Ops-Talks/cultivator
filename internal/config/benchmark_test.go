@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkLoadFile(b *testing.B) {
-	testDataDir := getBenchTestDataDir()
+	testDataDir := getBenchTestDataDir(b)
 	cfgFile := filepath.Join(testDataDir, "terragrunt-structure", ".cultivator.yaml")
 
 	b.ResetTimer()
@@ -57,8 +57,9 @@ func BenchmarkValidate(b *testing.B) {
 	}
 }
 
-func getBenchTestDataDir() string {
-	_, file, _, ok := runtime.Caller(1)
+func getBenchTestDataDir(b testing.TB) string {
+	b.Helper()
+	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		return "testdata"
 	}

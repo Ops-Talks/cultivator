@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkDiscover(b *testing.B) {
-	testDataDir := getBenchDataDir()
+	testDataDir := getBenchDataDir(b)
 	rootDir := filepath.Join(testDataDir, "terragrunt-structure")
 
 	b.ResetTimer()
@@ -19,7 +19,7 @@ func BenchmarkDiscover(b *testing.B) {
 }
 
 func BenchmarkDiscover_WithFilters(b *testing.B) {
-	testDataDir := getBenchDataDir()
+	testDataDir := getBenchDataDir(b)
 	rootDir := filepath.Join(testDataDir, "terragrunt-structure")
 
 	b.ResetTimer()
@@ -34,7 +34,7 @@ func BenchmarkDiscover_WithFilters(b *testing.B) {
 }
 
 func BenchmarkDiscover_LargeStructure(b *testing.B) {
-	testDataDir := getBenchDataDir()
+	testDataDir := getBenchDataDir(b)
 	rootDir := filepath.Join(testDataDir, "terragrunt-large")
 
 	b.ResetTimer()
@@ -55,8 +55,9 @@ func BenchmarkMatchesTags(b *testing.B) {
 	}
 }
 
-func getBenchDataDir() string {
-	_, file, _, ok := runtime.Caller(1)
+func getBenchDataDir(b testing.TB) string {
+	b.Helper()
+	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		return "testdata"
 	}

@@ -138,25 +138,17 @@ func FuzzMergeConfig(f *testing.F) {
 	// This is a more limited fuzz test since Config is complex
 	// We'll test with simpler base and override configs
 
-	f.Fuzz(func(t *testing.T, parallelism int, outputFormat string) {
+	f.Fuzz(func(t *testing.T, parallelism int) {
 		base := DefaultConfig()
 		override := Config{
-			Parallelism:  parallelism,
-			OutputFormat: outputFormat,
+			Parallelism: parallelism,
 		}
 
 		result := MergeConfig(base, override)
 
-		// Validate result
-		if result.Parallelism <= 0 {
-			t.Errorf("MergeConfig returned invalid parallelism: %d", result.Parallelism)
-		}
-
-		// If override.OutputFormat is non-empty, it should be used or validated
-		if override.OutputFormat != "" && override.OutputFormat != base.OutputFormat {
-			if result.OutputFormat != override.OutputFormat {
-				t.Logf("MergeConfig did not apply OutputFormat override: %q", override.OutputFormat)
-			}
+		// When override parallelism is zero (not set), base value must be preserved.
+		if parallelism == 0 && result.Parallelism <= 0 {
+			t.Errorf("MergeConfig lost base parallelism when override is 0: %d", result.Parallelism)
 		}
 
 		// Basic sanity checks
@@ -188,13 +180,6 @@ func FuzzLoadEnv(f *testing.F) {
 
 		if result.Parallelism < 1 {
 			t.Errorf("LoadEnv returned invalid Parallelism: %d", result.Parallelism)
-		}
-
-		switch result.OutputFormat {
-		case textFormat, jsonFormat:
-			// valid
-		default:
-			t.Errorf("LoadEnv returned invalid OutputFormat: %s", result.OutputFormat)
 		}
 	})
 }

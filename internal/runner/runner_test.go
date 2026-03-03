@@ -1,14 +1,12 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"path/filepath"
 	"sync"
 	"testing"
 
 	"github.com/Ops-Talks/cultivator/internal/discovery"
-	"github.com/Ops-Talks/cultivator/internal/logging"
 )
 
 type fakeExecutor struct {
@@ -28,40 +26,127 @@ func (f *fakeExecutor) Run(_ context.Context, workDir string, _ string, args []s
 	return "ok", "", 0, nil
 }
 
-func TestBuildArgs(t *testing.T) {
+func Test_BuildArgs_plan(t *testing.T) {
 	t.Parallel()
 
-	args := BuildArgs(CommandPlan, Options{PlanDestroy: true, NonInteractive: true})
-	expected := []string{"plan", "-no-color", "-destroy", "-input=false"}
-	assertArgs(t, expected, args)
+	tests := []struct {
+		name string
+		opts Options
+		want []string
+	}{
+		{
+			name: "no flags",
+			opts: Options{},
+			want: []string{"plan", "-no-color"},
+		},
+		{
+			name: "destroy flag",
+			opts: Options{PlanDestroy: true},
+			want: []string{"plan", "-no-color", "-destroy"},
+		},
+		{
+			name: "non-interactive",
+			opts: Options{NonInteractive: true},
+			want: []string{"plan", "-no-color", "-input=false"},
+		},
+		{
+			name: "destroy and non-interactive",
+			opts: Options{PlanDestroy: true, NonInteractive: true},
+			want: []string{"plan", "-no-color", "-destroy", "-input=false"},
+		},
+	}
 
-	args = BuildArgs(CommandApply, Options{ApplyAutoApprove: true})
-	expected = []string{"apply", "-no-color", "-auto-approve"}
-	assertArgs(t, expected, args)
-
-	args = BuildArgs(CommandDestroy, Options{DestroyAutoApprove: true})
-	expected = []string{"destroy", "-no-color", "-auto-approve"}
-	assertArgs(t, expected, args)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertArgs(t, tc.want, BuildArgs(CommandPlan, tc.opts))
+		})
+	}
 }
 
-func TestRunnerRun(t *testing.T) {
+func Test_BuildArgs_apply(t *testing.T) {
 	t.Parallel()
 
-	logger := logging.New("text", &bytes.Buffer{}, &bytes.Buffer{})
+	tests := []struct {
+		name string
+		opts Options
+		want []string
+	}{
+		{
+			name: "no flags",
+			opts: Options{},
+			want: []string{"apply", "-no-color"},
+		},
+		{
+			name: "auto-approve",
+			opts: Options{ApplyAutoApprove: true},
+			want: []string{"apply", "-no-color", "-auto-approve"},
+		},
+		{
+			name: "auto-approve and non-interactive",
+			opts: Options{ApplyAutoApprove: true, NonInteractive: true},
+			want: []string{"apply", "-no-color", "-auto-approve", "-input=false"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertArgs(t, tc.want, BuildArgs(CommandApply, tc.opts))
+		})
+	}
+}
+
+func Test_BuildArgs_destroy(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		opts Options
+		want []string
+	}{
+		{
+			name: "no flags",
+			opts: Options{},
+			want: []string{"destroy", "-no-color"},
+		},
+		{
+			name: "auto-approve",
+			opts: Options{DestroyAutoApprove: true},
+			want: []string{"destroy", "-no-color", "-auto-approve"},
+		},
+		{
+			name: "auto-approve and non-interactive",
+			opts: Options{DestroyAutoApprove: true, NonInteractive: true},
+			want: []string{"destroy", "-no-color", "-auto-approve", "-input=false"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertArgs(t, tc.want, BuildArgs(CommandDestroy, tc.opts))
+		})
+	}
+}
+
+func Test_Run_parallelExecution(t *testing.T) {
+	t.Parallel()
+
 	fake := &fakeExecutor{}
-	runner := New(logger).WithExecutor(fake)
+	r := New().WithExecutor(fake)
 
 	modules := []discovery.Module{
 		{Path: filepath.Join("/tmp", "app1")},
 		{Path: filepath.Join("/tmp", "app2")},
 	}
 
-	results, err := runner.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 2})
+	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 2})
 	if err != nil {
-		t.Fatalf("run: %v", err)
+		t.Fatalf("Run() unexpected error: %v", err)
 	}
 	if len(results) != 2 {
-		t.Fatalf("expected 2 results, got %d", len(results))
+		t.Fatalf("Run() returned %d results, want 2", len(results))
 	}
 
 	fake.mu.Lock()
@@ -71,14 +156,34 @@ func TestRunnerRun(t *testing.T) {
 	}
 }
 
-func assertArgs(t *testing.T, expected []string, actual []string) {
+func Test_Run_defaultParallelism(t *testing.T) {
+	t.Parallel()
+
+	fake := &fakeExecutor{}
+	r := New().WithExecutor(fake)
+
+	modules := []discovery.Module{
+		{Path: filepath.Join("/tmp", "app1")},
+	}
+
+	// Parallelism 0 should default to 1 without panic.
+	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 0})
+	if err != nil {
+		t.Fatalf("Run() unexpected error: %v", err)
+	}
+	if len(results) != 1 {
+		t.Fatalf("Run() returned %d results, want 1", len(results))
+	}
+}
+
+func assertArgs(t *testing.T, expected, actual []string) {
 	t.Helper()
 	if len(expected) != len(actual) {
-		t.Fatalf("expected %d args, got %d", len(expected), len(actual))
+		t.Fatalf("expected %d args %v, got %d args %v", len(expected), expected, len(actual), actual)
 	}
-	for i, value := range expected {
-		if actual[i] != value {
-			t.Fatalf("expected arg %d to be %q, got %q", i, value, actual[i])
+	for i, want := range expected {
+		if actual[i] != want {
+			t.Fatalf("arg[%d]: want %q, got %q", i, want, actual[i])
 		}
 	}
 }

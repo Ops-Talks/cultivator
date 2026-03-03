@@ -10,14 +10,14 @@ Cultivator uses a comprehensive testing strategy combining unit tests, integrati
 
 | Package    | Coverage | Status      |
 |------------|----------|-------------|
-| config     | 97.6%    | Excellent   |
-| discovery  | 92.4%    | Excellent   |
-| logging    | 83.9%    | Good        |
-| cli        | 68.4%    | Good        |
-| runner     | 65.4%    | Acceptable  |
+| config     | 97.4%    | Excellent   |
+| discovery  | 93.7%    | Excellent   |
+| logging    | 94.9%    | Excellent   |
+| cli        | 69.4%    | Good        |
+| runner     | 70.8%    | Good        |
 | cmd        | 50.0%    | Good        |
 
-**Total Project Coverage**: ~79.7% (statement coverage) | ~73.5% (line coverage on Codecov)
+**Total Project Coverage**: ~79.4% (statement coverage)
 
 ## Test Types
 
@@ -35,7 +35,7 @@ go test -v ./internal/config
 **Guidelines**:
 - One test file per source file
 - Use table-driven tests for multiple cases
-- Name tests descriptively: `TestFunctionName_Scenario`
+- Name tests descriptively: `Test_functionName_scenario`
 - Use `t.Parallel()` for independent tests
 - Avoid external dependencies; use mocks when needed
 
@@ -43,6 +43,8 @@ go test -v ./internal/config
 - `internal/config/config_test.go` - Configuration loading and merging
 - `internal/discovery/discovery_test.go` - Stack discovery logic
 - `internal/cli/cli_test.go` - CLI flag parsing and routing
+- `internal/runner/runner_test.go` - Terragrunt execution and argument construction
+- `cmd/cultivator/main_test.go` - Binary entry point exit codes
 
 ### 2. Fuzz Testing
 

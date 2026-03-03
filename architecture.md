@@ -64,7 +64,7 @@ Key features:
   - Merges with environment variables and CLI flags (precedence: flags > env > file).
 
 - **Logging/Reporting Module**
-  - Defines log format (text or JSON).
+  - Outputs structured logs in text format with consistent formatting.
   - Generates a final summary with module list, status, and log links (when running in CI).
 
 - **Docs**
@@ -138,7 +138,6 @@ Main flags (common):
 - `--exclude` (stringSlice): paths to ignore.
 - `--tags` (stringSlice): logical tags, interpreted by convention (e.g., labels in `terragrunt.hcl`).
 - `--parallelism` (int): maximum number of concurrent executions.
-- `--output-format` (string): `text` or `json`.
 - `--non-interactive` (bool): forces non-interactive modes in `terragrunt` (required in CI).
 
 Command-specific flags:
