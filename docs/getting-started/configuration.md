@@ -140,14 +140,14 @@ export CULTIVATOR_LOG_LEVEL=debug   # enable verbose Cultivator logs
 Flags override environment variables and config file
 
 ```bash
-cultivator plan \
+# CULTIVATOR_OUTPUT_FORMAT is an environment variable; there is no --output-format CLI flag.
+CULTIVATOR_OUTPUT_FORMAT=json cultivator plan \
   --root=live \
   --env=prod \
   --include=envs/prod/app1 \
   --exclude=envs/prod/experimental \
   --tags=app,db \
   --parallelism=4 \
-  --output-format=json \
   --non-interactive
 ```
 

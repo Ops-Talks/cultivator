@@ -542,7 +542,7 @@ func TestRunDoctor_WithFlags(t *testing.T) {
 	}
 }
 
-func TestLogExecutionResults_Success(t *testing.T) {
+func Test_logExecutionResults_success(t *testing.T) {
 	t.Parallel()
 
 	var out, errOut bytes.Buffer
@@ -568,12 +568,43 @@ func TestLogExecutionResults_Success(t *testing.T) {
 	if !strings.Contains(outStr, "Plan: 1 to add") {
 		t.Errorf("expected stdout in output, got %q", outStr)
 	}
-	if !strings.Contains(outStr, "completed") {
-		t.Errorf("expected 'completed' in output, got %q", outStr)
+	if !strings.Contains(outStr, "plan app/module") {
+		t.Errorf("expected INFO line with command and module path in output, got %q", outStr)
 	}
 }
 
-func TestLogExecutionResults_ExitCodeFailureNoError(t *testing.T) {
+func Test_logExecutionResults_stderrEmittedOnSuccess(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	// Terragrunt writes the plan diff to stderr even when exit code is 0.
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "cloudwatch/log-group"},
+			Command:  "plan",
+			Stderr:   "Plan: 3 to add, 0 to change, 0 to destroy.",
+			ExitCode: 0,
+		},
+	}
+
+	err := logExecutionResults(logger, results)
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	outStr := out.String()
+	// The plan diff (from stderr) must appear even on success.
+	if !strings.Contains(outStr, "Plan: 3 to add") {
+		t.Errorf("expected terragrunt stderr (plan diff) in output on success, got %q", outStr)
+	}
+	// Must NOT be prefixed with "stderr:" — that prefix is reserved for failures.
+	if strings.Contains(outStr, "stderr:") {
+		t.Errorf("successful stderr must not be prefixed with 'stderr:', got %q", outStr)
+	}
+}
+
+func Test_logExecutionResults_exitCodeFailureNoError(t *testing.T) {
 	t.Parallel()
 
 	var out, errOut bytes.Buffer
@@ -610,7 +641,7 @@ func TestLogExecutionResults_ExitCodeFailureNoError(t *testing.T) {
 	}
 }
 
-func TestLogExecutionResults_ErrorSet(t *testing.T) {
+func Test_logExecutionResults_errorSet(t *testing.T) {
 	t.Parallel()
 
 	var out, errOut bytes.Buffer
@@ -643,7 +674,7 @@ func TestLogExecutionResults_ErrorSet(t *testing.T) {
 	}
 }
 
-func TestLogExecutionResults_MultipleModules(t *testing.T) {
+func Test_logExecutionResults_multipleModules(t *testing.T) {
 	t.Parallel()
 
 	var out, errOut bytes.Buffer

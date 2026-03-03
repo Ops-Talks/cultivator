@@ -35,6 +35,8 @@ env:
   CULTIVATOR_ROOT: providers
   CULTIVATOR_ENV: ""
   CULTIVATOR_PARALLELISM: "4"
+  # CULTIVATOR_OUTPUT_FORMAT is read from the environment automatically;
+  # no --output-format CLI flag exists.
   CULTIVATOR_OUTPUT_FORMAT: text
 
 jobs:
@@ -109,7 +111,6 @@ jobs:
           args=(
             --root "$CULTIVATOR_ROOT"
             --parallelism "$CULTIVATOR_PARALLELISM"
-            --output-format "$CULTIVATOR_OUTPUT_FORMAT"
             --non-interactive=true
           )
 
@@ -117,7 +118,8 @@ jobs:
             args+=(--env "$CULTIVATOR_ENV")
           fi
 
-          cultivator plan "${args[@]}" | tee plan_output.txt
+          # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
+          cultivator plan "${args[@]}" 2>&1 | tee plan_output.txt
 
       - name: Upload plan output
         if: always()
@@ -194,7 +196,6 @@ jobs:
           args=(
             --root "$CULTIVATOR_ROOT"
             --parallelism "$CULTIVATOR_PARALLELISM"
-            --output-format "$CULTIVATOR_OUTPUT_FORMAT"
             --non-interactive=true
             --auto-approve=true
           )
@@ -203,7 +204,8 @@ jobs:
             args+=(--env "$CULTIVATOR_ENV")
           fi
 
-          cultivator apply "${args[@]}" | tee apply_output.txt
+          # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
+          cultivator apply "${args[@]}" 2>&1 | tee apply_output.txt
 
       - name: Upload apply output
         if: always()

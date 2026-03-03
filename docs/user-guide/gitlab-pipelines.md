@@ -28,6 +28,8 @@ variables:
   CULTIVATOR_ROOT: "providers"
   CULTIVATOR_ENV: ""
   CULTIVATOR_PARALLELISM: "4"
+  # CULTIVATOR_OUTPUT_FORMAT is read from the environment by Cultivator
+  # automatically via CULTIVATOR_OUTPUT_FORMAT; no --output-format CLI flag exists.
   CULTIVATOR_OUTPUT_FORMAT: "text"
 
 workflow:
@@ -66,37 +68,41 @@ plan:
       set -- \
         --root "$CULTIVATOR_ROOT" \
         --parallelism "$CULTIVATOR_PARALLELISM" \
-        --output-format "$CULTIVATOR_OUTPUT_FORMAT" \
         --non-interactive=true
       if [ -n "$CULTIVATOR_ENV" ]; then
         set -- "$@" --env "$CULTIVATOR_ENV"
       fi
-      cultivator plan "$@" | tee plan_output.txt
-    - |
+
+      # 2>&1 captures [ERROR] lines (stderr) alongside stdout.
+      # PIPESTATUS preserves cultivator's exit code through the tee pipe.
+      cultivator plan "$@" 2>&1 | tee plan_output.txt
+      CULTIVATOR_EXIT=${PIPESTATUS[0]}
+
       if [ -z "$GITLAB_TOKEN" ]; then
         echo "GITLAB_TOKEN not set; skipping MR comment"
-        exit 0
-      fi
-
-      if [ -n "$CI_MERGE_REQUEST_IID" ]; then
-        MR_IID="$CI_MERGE_REQUEST_IID"
       else
-        MR_IID=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests?state=opened&source_branch=${CI_COMMIT_REF_NAME}" \
-          | jq -r '.[0].iid // empty')
+        if [ -n "$CI_MERGE_REQUEST_IID" ]; then
+          MR_IID="$CI_MERGE_REQUEST_IID"
+        else
+          MR_IID=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests?state=opened&source_branch=${CI_COMMIT_REF_NAME}" \
+            | jq -r '.[0].iid // empty')
+        fi
+
+        if [ -z "$MR_IID" ]; then
+          echo "No MR found; skipping comment"
+        else
+          PLAN_OUTPUT=$(cat plan_output.txt)
+          # printf interprets \n as real newlines; plain string assignment in sh does not.
+          COMMENT=$(printf '## Cultivator Plan\n\n```\n%s\n```' "${PLAN_OUTPUT}")
+          curl --silent --show-error --fail --request POST \
+            --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/notes" \
+            --data-urlencode "body=${COMMENT}"
+        fi
       fi
 
-      if [ -z "$MR_IID" ]; then
-        echo "No MR found; skipping comment"
-        exit 0
-      fi
-
-      PLAN_OUTPUT=$(cat plan_output.txt)
-      COMMENT="## Cultivator Plan\n\n\`\`\`\n${PLAN_OUTPUT}\n\`\`\`"
-      curl --silent --show-error --fail --request POST \
-        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/notes" \
-        --data-urlencode "body=${COMMENT}"
+      exit "$CULTIVATOR_EXIT"
   artifacts:
     when: always
     paths:
@@ -115,34 +121,36 @@ apply:
       set -- \
         --root "$CULTIVATOR_ROOT" \
         --parallelism "$CULTIVATOR_PARALLELISM" \
-        --output-format "$CULTIVATOR_OUTPUT_FORMAT" \
         --non-interactive=true \
         --auto-approve=true
       if [ -n "$CULTIVATOR_ENV" ]; then
         set -- "$@" --env "$CULTIVATOR_ENV"
       fi
-      cultivator apply "$@" | tee apply_output.txt
-    - |
+
+      cultivator apply "$@" 2>&1 | tee apply_output.txt
+      CULTIVATOR_EXIT=${PIPESTATUS[0]}
+
       if [ -z "$GITLAB_TOKEN" ]; then
         echo "GITLAB_TOKEN not set; skipping MR comment"
-        exit 0
+      else
+        echo "Looking for merged MR for commit ${CI_COMMIT_SHA}..."
+        MR_IID=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests?state=merged&order_by=updated_at&sort=desc" \
+          | jq -r ".[] | select(.merge_commit_sha==\"${CI_COMMIT_SHA}\") | .iid" | head -1)
+
+        if [ -z "$MR_IID" ]; then
+          echo "No merged MR found for this commit; skipping comment"
+        else
+          APPLY_OUTPUT=$(cat apply_output.txt)
+          COMMENT=$(printf '## Cultivator Apply Result\n\n```\n%s\n```' "${APPLY_OUTPUT}")
+          curl --silent --show-error --fail --request POST \
+            --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/notes" \
+            --data-urlencode "body=${COMMENT}"
+        fi
       fi
 
-      MR_IID=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests?state=merged&order_by=updated_at&sort=desc" \
-        | jq -r ".[] | select(.merge_commit_sha==\"${CI_COMMIT_SHA}\") | .iid" | head -1)
-
-      if [ -z "$MR_IID" ]; then
-        echo "No merged MR found for this commit; skipping comment"
-        exit 0
-      fi
-
-      APPLY_OUTPUT=$(cat apply_output.txt)
-      COMMENT="## Cultivator Apply Result\n\n\`\`\`\n${APPLY_OUTPUT}\n\`\`\`"
-      curl --silent --show-error --fail --request POST \
-        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_IID}/notes" \
-        --data-urlencode "body=${COMMENT}"
+      exit "$CULTIVATOR_EXIT"
   artifacts:
     when: always
     paths:

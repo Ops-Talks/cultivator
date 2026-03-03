@@ -188,8 +188,11 @@ Error: error configuring Terraform AWS Provider: ...
 ## Output and Debugging
 
 ### How do I see which stacks will be affected?
+
+Set `CULTIVATOR_OUTPUT_FORMAT=json` before running — there is no `--output-format` CLI flag:
+
 ```bash
-cultivator plan --root=live --env=prod --output-format=json
+CULTIVATOR_OUTPUT_FORMAT=json cultivator plan --root=live --env=prod
 ```
 
 The JSON output includes:
@@ -218,9 +221,9 @@ Set verbose logging:
 CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
 ```
 
-Or check output format to see per-stack details:
+Or switch to JSON output to see per-stack details:
 ```bash
-cultivator plan --root=live --output-format=json | jq .
+CULTIVATOR_OUTPUT_FORMAT=json cultivator plan --root=live | jq .
 ```
 
 ## Troubleshooting

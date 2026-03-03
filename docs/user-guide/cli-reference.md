@@ -74,8 +74,10 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 
 ### Output JSON for CI/CD systems
 
+Set `CULTIVATOR_OUTPUT_FORMAT` before running — there is no `--output-format` CLI flag:
+
 ```bash
-./cultivator plan --root=live --output-format=json --non-interactive
+CULTIVATOR_OUTPUT_FORMAT=json ./cultivator plan --root=live --non-interactive
 ```
 
 ## Environment Variables

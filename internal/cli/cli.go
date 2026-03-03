@@ -355,6 +355,10 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 // logExecutionResults processes execution results and displays complete terragrunt output.
 // Each module's output is prefixed with a header ("=== command: module ===") so that
 // CI pipelines can parse and attribute output per module when posting PR/MR comments.
+//
+// Both stdout and stderr are always emitted: Terragrunt writes informational messages
+// (including the plan diff) to stderr even on successful runs, so discarding stderr
+// on success would hide the most important output.
 func logExecutionResults(logger *logging.Logger, results []runner.Result) error {
 	hasErrors := false
 	for _, result := range results {
@@ -375,7 +379,12 @@ func logExecutionResults(logger *logging.Logger, results []runner.Result) error 
 				logger.Output(fmt.Sprintf("stderr:\n%s", result.Stderr))
 			}
 		} else {
-			logger.Info(fmt.Sprintf("%s %s completed", result.Command, result.Module.Path), logging.Fields{
+			// Terragrunt writes the plan diff and provider output to stderr on success;
+			// emit it without a "stderr:" prefix so it reads as normal plan output.
+			if result.Stderr != "" {
+				logger.Output(result.Stderr)
+			}
+			logger.Info(fmt.Sprintf("%s %s", result.Command, result.Module.Path), logging.Fields{
 				"exit_code": result.ExitCode,
 			})
 		}
