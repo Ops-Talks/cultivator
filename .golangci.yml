@@ -28,7 +28,7 @@ linters:
     - bodyclose      # Checks whether HTTP response body is closed successfully
     - nilerr         # Finds code that returns nil even if it checks that the error is not nil
     - predeclared    # Finds code that shadows predeclared identifiers
-  
+
   disable:
     - funlen         # Disabled - large functions may be necessary
     - lll            # Disabled - line length is handled by gofmt
@@ -39,75 +39,77 @@ linters:
     - revive         # Disabled - too strict about naming conventions
     - gocognit       # Disabled - complexity
 
-linters-settings:
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-    
-  dupl:
-    threshold: 100
-    
-  gocyclo:
-    min-complexity: 15
-    
-  gosec:
-    severity: high
-    confidence: high
-    excludes:
-      - G101  # Hardcoded credentials in tests
-      - G102  # Bindata function
-      - G104  # Errors unhandled - acceptable for file cleanup
-      - G201  # SQL string concatenation
-      - G202  # SQL string concatenation
-      - G203  # Use of unsafe blocks
-      - G204  # Subprocess launched with tainted input (necessary - validates git/terragrunt calls)
-      - G301  # File permissions (0755 is acceptable for working directories)
-      - G302  # File permissions
-      - G303  # Creating temp file with predictable name
-      - G304  # File inclusion via variable (necessary for reading configs)
-      - G703  # File permission check (not necessary)
-      - G704  # SSRF via taint analysis (acceptable for HTTP requests)
-      
-  misspell:
-    locale: US
-    
-  nolintlint:
-    allow-unused: false
-    allow-leading-space: false
-    require-explanation: false
-    require-specific: false
+  settings:
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+
+    dupl:
+      threshold: 100
+
+    gocyclo:
+      min-complexity: 25
+
+    gosec:
+      severity: high
+      confidence: high
+      excludes:
+        - G101  # Hardcoded credentials in tests
+        - G102  # Bindata function
+        - G104  # Errors unhandled - acceptable for file cleanup
+        - G201  # SQL string concatenation
+        - G202  # SQL string concatenation
+        - G203  # Use of unsafe blocks
+        - G204  # Subprocess launched with tainted input (necessary - validates git/terragrunt calls)
+        - G301  # File permissions (0755 is acceptable for working directories)
+        - G302  # File permissions
+        - G303  # Creating temp file with predictable name
+        - G304  # File inclusion via variable (necessary for reading configs)
+        - G703  # File permission check (not necessary)
+        - G704  # SSRF via taint analysis (acceptable for HTTP requests)
+
+    misspell:
+      locale: US
+
+    nolintlint:
+      allow-unused: false
+      require-explanation: false
+      require-specific: false
+
+  exclusions:
+    # Predefined exclusion rules equivalent to v1 exclude-use-default: true.
+    presets:
+      - common-false-positives
+      - legacy
+
+    # Replaces v1 issues.exclude-dirs.
+    paths:
+      - vendor
+      - tmp
+      - dist
+
+    # Replaces v1 issues.exclude-rules.
+    rules:
+      # Exclude some linters from running on test files.
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+          - goconst
+
+      # Exclude known false positives.
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+
+      # Exclude some revive rules in tests.
+      - path: _test\.go
+        text: "unused-parameter"
+        linters:
+          - revive
 
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  
-  exclude-rules:
-    # Exclude some linters from running on tests files
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - goconst
-        
-    # Exclude known false positives
-    - linters:
-        - staticcheck
-      text: "SA9003:"
-      
-    # Exclude some revive rules in tests
-    - path: _test\.go
-      text: "unused-parameter"
-      linters:
-        - revive
-        
-  # Show all issues from a linter
-  exclude-dirs:
-    - vendor
-    - tmp
-    - dist
-    
-  # Independently from option `exclude` we use default exclude patterns,
-  # it can be disabled by this option.
-  exclude-use-default: true

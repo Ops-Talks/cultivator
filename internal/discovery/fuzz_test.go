@@ -26,7 +26,7 @@ func FuzzParseTags(f *testing.F) {
 		}
 		// Close and remove errors are non-actionable inside a fuzz callback;
 		// the OS will reclaim the temp file when the process exits.
-		defer func() { _ = os.Remove(tmpFile.Name()) }() //nolint:gosec // path comes from os.CreateTemp
+		defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 		if _, err := tmpFile.WriteString(data); err != nil {
 			_ = tmpFile.Close() // best-effort; test is being skipped

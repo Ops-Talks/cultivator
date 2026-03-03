@@ -575,7 +575,7 @@ func (i *intFlag) Set(value string) error {
 //
 // logLevelFromEnv reads the CULTIVATOR_LOG_LEVEL environment variable and returns
 // the corresponding logging.Level. Defaults to LevelInfo if the variable is unset
-// or contains an unrecognised value.
+// or contains an unrecognized value.
 func logLevelFromEnv() logging.Level {
 	v := os.Getenv("CULTIVATOR_LOG_LEVEL")
 	if v == "" {

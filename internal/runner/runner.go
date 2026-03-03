@@ -27,7 +27,7 @@ type Result struct {
 	Error    error
 }
 
-// Options configures the behaviour of a Runner.Run call.
+// Options configures the behavior of a Runner.Run call.
 type Options struct {
 	Parallelism        int
 	NonInteractive     bool
