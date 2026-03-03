@@ -1307,7 +1307,8 @@
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--parallelism<span class="o">=</span><span class="m">8</span><span class="w"> </span>--non-interactive
 </span></code></pre></div>
 <h3 id="output-json-for-cicd-systems">Output JSON for CI/CD systems<a class="headerlink" href="#output-json-for-cicd-systems" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--output-format<span class="o">=</span>json<span class="w"> </span>--non-interactive
+<p>Set <code>CULTIVATOR_OUTPUT_FORMAT</code> before running — there is no <code>--output-format</code> CLI flag:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">CULTIVATOR_OUTPUT_FORMAT</span><span class="o">=</span>json<span class="w"> </span>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--non-interactive
 </span></code></pre></div>
 <h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>

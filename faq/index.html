@@ -1937,7 +1937,8 @@
 </span></code></pre></div></p>
 <h2 id="output-and-debugging">Output and Debugging<a class="headerlink" href="#output-and-debugging" title="Permanent link">&para;</a></h2>
 <h3 id="how-do-i-see-which-stacks-will-be-affected">How do I see which stacks will be affected?<a class="headerlink" href="#how-do-i-see-which-stacks-will-be-affected" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--output-format<span class="o">=</span>json
+<p>Set <code>CULTIVATOR_OUTPUT_FORMAT=json</code> before running — there is no <code>--output-format</code> CLI flag:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">CULTIVATOR_OUTPUT_FORMAT</span><span class="o">=</span>json<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod
 </span></code></pre></div>
 <p>The JSON output includes:
 - List of discovered stacks
@@ -1957,8 +1958,8 @@
 <p>Set verbose logging:
 <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div></p>
-<p>Or check output format to see per-stack details:
-<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--output-format<span class="o">=</span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+<p>Or switch to JSON output to see per-stack details:
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">CULTIVATOR_OUTPUT_FORMAT</span><span class="o">=</span>json<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
 </span></code></pre></div></p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="cultivator-doesnt-find-any-stacks">Cultivator doesn't find any stacks<a class="headerlink" href="#cultivator-doesnt-find-any-stacks" title="Permanent link">&para;</a></h3>
