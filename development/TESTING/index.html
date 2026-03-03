@@ -1564,28 +1564,28 @@
 <tbody>
 <tr>
 <td>config</td>
-<td>97.6%</td>
+<td>97.4%</td>
 <td>Excellent</td>
 </tr>
 <tr>
 <td>discovery</td>
-<td>92.4%</td>
+<td>93.7%</td>
 <td>Excellent</td>
 </tr>
 <tr>
 <td>logging</td>
-<td>83.9%</td>
-<td>Good</td>
+<td>94.9%</td>
+<td>Excellent</td>
 </tr>
 <tr>
 <td>cli</td>
-<td>68.4%</td>
+<td>69.4%</td>
 <td>Good</td>
 </tr>
 <tr>
 <td>runner</td>
-<td>65.4%</td>
-<td>Acceptable</td>
+<td>70.8%</td>
+<td>Good</td>
 </tr>
 <tr>
 <td>cmd</td>
@@ -1594,7 +1594,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Total Project Coverage</strong>: ~79.7% (statement coverage) | ~73.5% (line coverage on Codecov)</p>
+<p><strong>Total Project Coverage</strong>: ~79.4% (statement coverage)</p>
 <h2 id="test-types">Test Types<a class="headerlink" href="#test-types" title="Permanent link">&para;</a></h2>
 <h3 id="1-unit-tests">1. Unit Tests<a class="headerlink" href="#1-unit-tests" title="Permanent link">&para;</a></h3>
 <p>Located in <code>*_test.go</code> files alongside source code.</p>
@@ -1605,13 +1605,15 @@
 <p><strong>Guidelines</strong>:
 - One test file per source file
 - Use table-driven tests for multiple cases
-- Name tests descriptively: <code>TestFunctionName_Scenario</code>
+- Name tests descriptively: <code>Test_functionName_scenario</code>
 - Use <code>t.Parallel()</code> for independent tests
 - Avoid external dependencies; use mocks when needed</p>
 <p><strong>Sample Tests</strong>:
 - <code>internal/config/config_test.go</code> - Configuration loading and merging
 - <code>internal/discovery/discovery_test.go</code> - Stack discovery logic
-- <code>internal/cli/cli_test.go</code> - CLI flag parsing and routing</p>
+- <code>internal/cli/cli_test.go</code> - CLI flag parsing and routing
+- <code>internal/runner/runner_test.go</code> - Terragrunt execution and argument construction
+- <code>cmd/cultivator/main_test.go</code> - Binary entry point exit codes</p>
 <h3 id="2-fuzz-testing">2. Fuzz Testing<a class="headerlink" href="#2-fuzz-testing" title="Permanent link">&para;</a></h3>
 <p>Fuzz tests exercise code with randomly generated inputs to find edge cases and panics.</p>
 <p><strong>Files</strong>:

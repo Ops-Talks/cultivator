@@ -611,6 +611,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Environment Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1096,6 +1111,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Environment Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1250,10 +1280,17 @@
 <li><code>CULTIVATOR_APPLY_AUTO_APPROVE</code></li>
 <li><code>CULTIVATOR_DESTROY_AUTO_APPROVE</code></li>
 </ul>
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>CULTIVATOR_LOG_LEVEL</code> — minimum log severity emitted by Cultivator.
+  Accepted values: <code>debug</code>, <code>info</code>, <code>warning</code>, <code>error</code>. Default: <code>info</code>.
+  Terragrunt output is always printed regardless of this setting.</li>
+</ul>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_ROOT</span><span class="o">=</span>live
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_ENV</span><span class="o">=</span>prod
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_NON_INTERACTIVE</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w">   </span><span class="c1"># enable verbose Cultivator logs</span>
 </span></code></pre></div>
 <h2 id="cli-flags">CLI Flags<a class="headerlink" href="#cli-flags" title="Permanent link">&para;</a></h2>
 <p>Flags override environment variables and config file</p>

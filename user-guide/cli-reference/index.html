@@ -781,6 +781,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       Exit Codes
@@ -1213,6 +1222,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       Exit Codes
@@ -1291,6 +1309,28 @@
 <h3 id="output-json-for-cicd-systems">Output JSON for CI/CD systems<a class="headerlink" href="#output-json-for-cicd-systems" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--output-format<span class="o">=</span>json<span class="w"> </span>--non-interactive
 </span></code></pre></div>
+<h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Values</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CULTIVATOR_LOG_LEVEL</code></td>
+<td><code>debug</code>, <code>info</code>, <code>warning</code>, <code>error</code></td>
+<td><code>info</code></td>
+<td>Minimum log level emitted by Cultivator. Terragrunt output is always printed regardless of this setting.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example — enable debug logging:</strong>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+</span></code></pre></div></p>
 <h2 id="exit-codes">Exit Codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>0</code> - Success (all stacks executed successfully)</li>
@@ -1302,7 +1342,7 @@
 <ol>
 <li>
 <p><strong>PR triggers plan:</strong>
-   <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
+   <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
 </span></code></pre></div></p>
 </li>
 <li>
@@ -1313,7 +1353,7 @@
 </li>
 <li>
 <p><strong>Main branch triggers apply:</strong>
-   <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
+   <div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
 </span></code></pre></div></p>
 </li>
 </ol>
