@@ -13,8 +13,8 @@ Cultivator uses a comprehensive testing strategy combining unit tests, integrati
 | config     | 97.4%    | Excellent   |
 | discovery  | 93.7%    | Excellent   |
 | logging    | 94.9%    | Excellent   |
-| cli        | 69.4%    | Good        |
-| runner     | 70.8%    | Good        |
+| runner     | 95.5%    | Excellent   |
+| cli        | 69.2%    | Good        |
 | cmd        | 50.0%    | Good        |
 
 **Total Project Coverage**: ~79.4% (statement coverage)

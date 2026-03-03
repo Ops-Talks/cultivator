@@ -2,7 +2,6 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"os/exec"
@@ -46,6 +45,9 @@ type Executor interface {
 type DefaultExecutor struct{}
 
 // Run implements Executor by running the command via exec.CommandContext in workDir.
+// stdout and stderr are merged into a single chronologically-ordered stream via
+// CombinedOutput, preserving the interleaved output produced by Terragrunt and
+// the underlying IaC tool. The returned stderr string is always empty.
 func (de *DefaultExecutor) Run(ctx context.Context, workDir string, command string, args []string, extraEnv []string) (string, string, int, error) {
 	// #nosec G204 -- command is controlled by the caller and expected to be terragrunt
 	cmd := exec.CommandContext(ctx, command, args...)
@@ -55,20 +57,14 @@ func (de *DefaultExecutor) Run(ctx context.Context, workDir string, command stri
 		cmd.Env = append(cmd.Environ(), extraEnv...)
 	}
 
-	outBuf := &bytes.Buffer{}
-	errBuf := &bytes.Buffer{}
-
-	cmd.Stdout = outBuf
-	cmd.Stderr = errBuf
-
-	err := cmd.Run()
+	combined, err := cmd.CombinedOutput()
 	exitCode := 0
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
 		exitCode = exitErr.ExitCode()
 	}
 
-	return outBuf.String(), errBuf.String(), exitCode, err
+	return string(combined), "", exitCode, err
 }
 
 // Runner orchestrates parallel Terragrunt executions across multiple modules.

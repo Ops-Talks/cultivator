@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
@@ -156,6 +157,39 @@ func Test_Run_parallelExecution(t *testing.T) {
 	}
 }
 
+// Test_Run_resultsPreserveDiscoveryOrder verifies that Run stores each result
+// in the slot matching the module's position in the input slice, regardless of
+// the order in which goroutines complete. This guarantees that logExecutionResults
+// always prints output in a deterministic, discovery-ordered sequence.
+func Test_Run_resultsPreserveDiscoveryOrder(t *testing.T) {
+	t.Parallel()
+
+	fake := &fakeExecutor{}
+	r := New().WithExecutor(fake)
+
+	modules := []discovery.Module{
+		{Path: filepath.Join("/tmp", "alpha")},
+		{Path: filepath.Join("/tmp", "beta")},
+		{Path: filepath.Join("/tmp", "gamma")},
+	}
+
+	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 3})
+	if err != nil {
+		t.Fatalf("Run() unexpected error: %v", err)
+	}
+	if len(results) != 3 {
+		t.Fatalf("Run() returned %d results, want 3", len(results))
+	}
+
+	// Each result must carry the module that corresponds to its position in
+	// the input slice, not the order in which the goroutine happened to finish.
+	for i, mod := range modules {
+		if results[i].Module.Path != mod.Path {
+			t.Errorf("results[%d].Module.Path = %q, want %q", i, results[i].Module.Path, mod.Path)
+		}
+	}
+}
+
 func Test_Run_defaultParallelism(t *testing.T) {
 	t.Parallel()
 
@@ -173,6 +207,72 @@ func Test_Run_defaultParallelism(t *testing.T) {
 	}
 	if len(results) != 1 {
 		t.Fatalf("Run() returned %d results, want 1", len(results))
+	}
+}
+
+// Test_DefaultExecutor_stderrAlwaysEmpty verifies that DefaultExecutor never
+// returns content in Stderr; all output (stdout + stderr of the subprocess) is
+// merged and returned as Stdout via CombinedOutput.
+func Test_DefaultExecutor_stderrAlwaysEmpty(t *testing.T) {
+	t.Parallel()
+
+	ex := &DefaultExecutor{}
+	_, stderr, _, _ := ex.Run(
+		context.Background(),
+		t.TempDir(),
+		"sh",
+		[]string{"-c", "echo hello >&2"},
+		nil,
+	)
+	if stderr != "" {
+		t.Errorf("Stderr must always be empty (output merged into Stdout); got %q", stderr)
+	}
+}
+
+// Test_DefaultExecutor_combinesOutputChronologically verifies that writes to
+// stdout and stderr from the subprocess appear in the combined Stdout field in
+// the order they were produced, not stdout-block-first then stderr-block-after.
+func Test_DefaultExecutor_combinesOutputChronologically(t *testing.T) {
+	t.Parallel()
+
+	ex := &DefaultExecutor{}
+
+	// The script writes alternating lines to stdout and stderr.
+	// CombinedOutput must preserve the write order via a single shared pipe.
+	script := "printf 'line1\\n'; printf 'line2\\n' >&2; printf 'line3\\n'; printf 'line4\\n' >&2"
+	stdout, stderr, exitCode, err := ex.Run(
+		context.Background(),
+		t.TempDir(),
+		"sh",
+		[]string{"-c", script},
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	if stderr != "" {
+		t.Errorf("Stderr must always be empty; got %q", stderr)
+	}
+
+	lines := []string{"line1", "line2", "line3", "line4"}
+	for _, line := range lines {
+		if !strings.Contains(stdout, line) {
+			t.Errorf("combined output missing %q, got %q", line, stdout)
+		}
+	}
+
+	// Verify that lines appear in the order they were written.
+	prev := 0
+	for _, line := range lines {
+		pos := strings.Index(stdout, line)
+		if pos < prev {
+			t.Errorf("output not in chronological order: %q appears at %d, before previous line at %d; full output: %q",
+				line, pos, prev, stdout)
+		}
+		prev = pos
 	}
 }
 

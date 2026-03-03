@@ -579,12 +579,13 @@ func Test_logExecutionResults_stderrEmittedOnSuccess(t *testing.T) {
 	var out, errOut bytes.Buffer
 	logger := logging.New(logging.LevelInfo, &out, &errOut)
 
-	// Terragrunt writes the plan diff to stderr even when exit code is 0.
+	// The runner merges stdout and stderr into a single chronologically-ordered
+	// stream returned as Stdout. The plan diff produced by Terragrunt must appear.
 	results := []runner.Result{
 		{
 			Module:   discovery.Module{Path: "cloudwatch/log-group"},
 			Command:  "plan",
-			Stderr:   "Plan: 3 to add, 0 to change, 0 to destroy.",
+			Stdout:   "Plan: 3 to add, 0 to change, 0 to destroy.",
 			ExitCode: 0,
 		},
 	}
@@ -594,13 +595,13 @@ func Test_logExecutionResults_stderrEmittedOnSuccess(t *testing.T) {
 		t.Fatalf("expected nil error, got %v", err)
 	}
 	outStr := out.String()
-	// The plan diff (from stderr) must appear even on success.
+	// The plan diff must appear in the combined output.
 	if !strings.Contains(outStr, "Plan: 3 to add") {
-		t.Errorf("expected terragrunt stderr (plan diff) in output on success, got %q", outStr)
+		t.Errorf("expected plan diff in output on success, got %q", outStr)
 	}
-	// Must NOT be prefixed with "stderr:" — that prefix is reserved for failures.
+	// Must NOT be prefixed with "stderr:" — the combined output is emitted as-is.
 	if strings.Contains(outStr, "stderr:") {
-		t.Errorf("successful stderr must not be prefixed with 'stderr:', got %q", outStr)
+		t.Errorf("output must not be prefixed with 'stderr:', got %q", outStr)
 	}
 }
 
@@ -610,13 +611,14 @@ func Test_logExecutionResults_exitCodeFailureNoError(t *testing.T) {
 	var out, errOut bytes.Buffer
 	logger := logging.New(logging.LevelInfo, &out, &errOut)
 
-	// exit code != 0 but Error == nil (normal terragrunt failure)
+	// exit code != 0 but Error == nil (normal terragrunt failure).
+	// The runner merges output into Stdout; Stderr is always empty.
 	results := []runner.Result{
 		{
 			Module:   discovery.Module{Path: "infra/vpc"},
 			Command:  "plan",
 			ExitCode: 1,
-			Stderr:   "Error: something went wrong",
+			Stdout:   "Error: something went wrong",
 		},
 	}
 
@@ -674,6 +676,136 @@ func Test_logExecutionResults_errorSet(t *testing.T) {
 	}
 }
 
+// Test_logExecutionResults_combinedOutputPreservesOrder verifies that the CLI
+// layer emits the combined stdout+stderr stream (merged by the runner) as-is,
+// without splitting or reordering it between stdout and stderr blocks.
+func Test_logExecutionResults_combinedOutputPreservesOrder(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	// Simulate a Terragrunt 0.99+ run: init messages (originally on stderr) and
+	// plan output (originally on stdout) are merged in chronological order by
+	// the runner into a single Stdout field.
+	combinedOutput := "18:55:21 INFO   Downloading configurations...\n" +
+		"18:55:22 INFO   Initializing the backend...\n" +
+		"18:56:00 STDOUT tofu: Refreshing state...\n" +
+		"18:56:01 STDOUT tofu: No changes.\n"
+
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "aws/dev/lambda/fn"},
+			Command:  "plan",
+			Stdout:   combinedOutput,
+			ExitCode: 0,
+		},
+	}
+
+	err := logExecutionResults(logger, results)
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+
+	outStr := out.String()
+
+	expectedLines := []string{
+		"Downloading configurations",
+		"Initializing the backend",
+		"Refreshing state",
+		"No changes",
+	}
+	for _, line := range expectedLines {
+		if !strings.Contains(outStr, line) {
+			t.Errorf("expected %q in output, got %q", line, outStr)
+		}
+	}
+
+	// The lines must appear in the exact order they were produced.
+	prev := 0
+	for _, line := range expectedLines {
+		pos := strings.Index(outStr, line)
+		if pos < prev {
+			t.Errorf("output not in chronological order: %q appears at %d, before previous line at %d; full output: %q",
+				line, pos, prev, outStr)
+		}
+		prev = pos
+	}
+}
+
+// Test_logExecutionResults_multipleModules_perSectionChronologicalOrder extends
+// the basic multi-module test by including interleaved init+plan output (as
+// produced by Terragrunt 0.99+) in each section and verifying that the lines
+// within each section appear in the exact chronological order they were written
+// by the subprocess, independently of other sections.
+func Test_logExecutionResults_multipleModules_perSectionChronologicalOrder(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	logger := logging.New(logging.LevelInfo, &out, &errOut)
+
+	vpcOutput := "18:55:20 INFO   Initializing vpc...\n18:55:50 STDOUT tofu: Plan: 2 to add.\n"
+	eksOutput := "18:55:22 INFO   Initializing eks...\n18:55:59 STDOUT tofu: Plan: 1 to add.\n"
+
+	results := []runner.Result{
+		{
+			Module:   discovery.Module{Path: "modules/vpc"},
+			Command:  "plan",
+			Stdout:   vpcOutput,
+			ExitCode: 0,
+		},
+		{
+			Module:   discovery.Module{Path: "modules/eks"},
+			Command:  "plan",
+			Stdout:   eksOutput,
+			ExitCode: 0,
+		},
+	}
+
+	if err := logExecutionResults(logger, results); err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+
+	outStr := out.String()
+
+	vpcIdx := strings.Index(outStr, "=== plan: modules/vpc ===")
+	eksIdx := strings.Index(outStr, "=== plan: modules/eks ===")
+
+	if vpcIdx < 0 {
+		t.Fatalf("missing header for modules/vpc, output: %q", outStr)
+	}
+	if eksIdx < 0 {
+		t.Fatalf("missing header for modules/eks, output: %q", outStr)
+	}
+
+	// vpc section: init line must precede plan line.
+	vpcSection := outStr[vpcIdx:eksIdx]
+	initVpc := strings.Index(vpcSection, "Initializing vpc")
+	planVpc := strings.Index(vpcSection, "Plan: 2 to add")
+	if initVpc < 0 || planVpc < 0 {
+		t.Fatalf("vpc section missing expected lines, got: %q", vpcSection)
+	}
+	if planVpc < initVpc {
+		t.Errorf("vpc: plan line appears before init line (not chronological); section: %q", vpcSection)
+	}
+
+	// eks section: init line must precede plan line.
+	eksSection := outStr[eksIdx:]
+	initEks := strings.Index(eksSection, "Initializing eks")
+	planEks := strings.Index(eksSection, "Plan: 1 to add")
+	if initEks < 0 || planEks < 0 {
+		t.Fatalf("eks section missing expected lines, got: %q", eksSection)
+	}
+	if planEks < initEks {
+		t.Errorf("eks: plan line appears before init line (not chronological); section: %q", eksSection)
+	}
+
+	// Sections must appear in discovery order: vpc before eks.
+	if eksIdx < vpcIdx {
+		t.Errorf("sections out of discovery order: eks (%d) appears before vpc (%d)", eksIdx, vpcIdx)
+	}
+}
+
 func Test_logExecutionResults_multipleModules(t *testing.T) {
 	t.Parallel()
 
@@ -690,8 +822,7 @@ func Test_logExecutionResults_multipleModules(t *testing.T) {
 		{
 			Module:   discovery.Module{Path: "modules/rds"},
 			Command:  "plan",
-			Stdout:   "",
-			Stderr:   "Error: insufficient permissions",
+			Stdout:   "Error: insufficient permissions",
 			ExitCode: 1,
 		},
 		{

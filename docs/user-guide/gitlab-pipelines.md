@@ -21,7 +21,7 @@ stages:
   - apply
 
 variables:
-  CULTIVATOR_VERSION: "v0.2.7"
+  CULTIVATOR_VERSION: "v0.3.10"
   TOFU_VERSION: "1.11.5"
   TERRAGRUNT_VERSION: "0.99.0"
 

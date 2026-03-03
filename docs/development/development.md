@@ -2,21 +2,20 @@
 
 ## Project Status
 
-**Status**: Actively maintained at **v0.2.0**  
+**Status**: Actively maintained at **v0.3.10**  
 **Language**: Go 1.25+  
 **Module**: `github.com/Ops-Talks/cultivator`  
 **External Dependency**: `gopkg.in/yaml.v3` v3.0.1
 
 **Core Functionality**:
 
-- ✅ Stack discovery (recursive walk for `terragrunt.hcl`)
-- ✅ Scope filtering (environment, paths, tags)
-- ✅ Dependency graph (topological sorting)
-- ✅ Parallel execution (configurable worker pool)
-- ✅ Output formatting (text, JSON)
-- ✅ Configuration management (YAML + CLI flags + env vars)
-- ✅ Secret redaction (automatic masking of sensitive data)
-- ✅ CI/CD integration (GitHub Actions, GitLab CI)
+- Stack discovery (recursive walk for `terragrunt.hcl`)
+- Scope filtering (environment, paths, tags)
+- Dependency graph (topological sorting)
+- Parallel execution (configurable worker pool)
+- Output formatting (text, JSON)
+- Configuration management (YAML + CLI flags + env vars)
+- CI/CD integration (GitHub Actions, GitLab CI)
 
 ## Architecture Overview
 
@@ -108,7 +107,7 @@ cultivator/
 - `fuzz_test.go` - Fuzzing for edge cases
 - `integration_test.go` - End-to-end workflows
 
-**Test Coverage**: 97.6%
+**Test Coverage**: 97.4%
 
 ### 2. Discovery Package (`internal/discovery/`)
 
@@ -127,7 +126,7 @@ cultivator/
 - `coverage_test.go` - Additional coverage gaps
 - `fuzz_test.go` - Fuzzing for edge cases
 
-**Test Coverage**: 92.4%
+**Test Coverage**: 93.7%
 
 ### 3. CLI Package (`internal/cli/`)
 
@@ -143,7 +142,7 @@ cultivator/
 **Test Files**:
 - `cli_test.go` - Comprehensive unit tests
 
-**Test Coverage**: 68.4%
+**Test Coverage**: 69.2%
 
 ### 4. Logging Package (`internal/logging/`)
 
@@ -158,7 +157,7 @@ cultivator/
 **Test Files**:
 - `logger_test.go` - Unit tests
 
-**Test Coverage**: 83.9%
+**Test Coverage**: 94.9%
 
 ### 5. Runner Package (`internal/runner/`)
 
@@ -167,14 +166,14 @@ cultivator/
 **Responsibilities**:
 - Execute `terragrunt` commands per stack
 - Handle command initialization and lifecycle
-- Capture stdout and stderr
+- Capture stdout and stderr in a single chronologically-ordered stream using `cmd.CombinedOutput()`
 - Report execution results
 - Manage concurrent execution with worker pool
 
 **Test Files**:
 - `runner_test.go` - Unit tests
 
-**Test Coverage**: 65.4%
+**Test Coverage**: 95.5%
 
 ## Testing
 
@@ -184,11 +183,9 @@ For comprehensive information on testing strategy, test types, and guidelines, s
 
 Current test coverage reflects a focus on critical functionality:
 
-- **Core libraries** (config, discovery): 92-97% coverage
-- **CLI interface**: 67.9% coverage
-- **Utilities**: 65-84% coverage
-
-Lower coverage in `cmd/main.go` is expected, as the main function contains OS exit calls that cannot be tested directly.
+- **Core libraries** (config, discovery, logging, runner): 93-97% coverage
+- **CLI interface**: 69.2% coverage
+- **cmd/main**: 50.0% (expected; OS exit calls cannot be tested directly)
 
 ## Development Workflow
 
@@ -199,7 +196,7 @@ Lower coverage in `cmd/main.go` is expected, as the main function contains OS ex
 go build -o cultivator ./cmd/cultivator
 
 # Build with version information
-go build -ldflags="-X main.version=v0.2.0 -X main.commit=$(git rev-parse HEAD)" \
+go build -ldflags="-X main.version=v0.3.10 -X main.commit=$(git rev-parse HEAD)" \
   -o cultivator ./cmd/cultivator
 ```
 
@@ -252,12 +249,15 @@ All exported functions, types, and packages must be documented.
 // Config represents application configuration loaded from multiple sources.
 // Configuration is merged in precedence order: defaults, YAML file, env vars, CLI flags.
 type Config struct {
-    Root string
+    Root        string
+    Env         string
+    Parallelism int
     // ...
 }
 
-// LoadFile reads and parses a YAML configuration file.
-func LoadFile(path string) (Config, error) {
+// LoadFile reads and parses a YAML configuration file from the given path.
+// It returns the parsed config, the resolved path, whether a file was found, and any error.
+func LoadFile(path string) (Config, string, bool, error) {
     // ...
 }
 ```
@@ -273,7 +273,7 @@ if err != nil {
 }
 
 // Avoid: Ignoring errors
-_ = runner.Execute(ctx, cmd)
+_ = someOperation()
 ```
 
 ### Naming Conventions
@@ -281,7 +281,7 @@ _ = runner.Execute(ctx, cmd)
 - Use clear, descriptive names
 - Avoid single-letter variables except for loop indices and receivers
 - Package names should be concise and lowercase
-- Avoid repetition in names (e.g., `discovery.Discover` instead nof `discovery.DiscoveryDiscover`)
+- Avoid repetition in names (e.g., `discovery.Discover` instead of `discovery.DiscoveryDiscover`)
 
 ## Local Development Setup
 
@@ -333,166 +333,96 @@ make fmt
 make check
 ```
 
-### Local Development
-
-```bash
-# Build
-go build -o cultivator ./cmd/cultivator
-
-# Run
-./cultivator --help
-./cultivator validate -c cultivator.yml
-./cultivator version
-```
-
 ### Testing with Docker
 
 ```bash
 # Build image
 docker build -t cultivator:dev .
 
-# Run
-docker run -v $(pwd):/workspace cultivator:dev validate
+# Run help
+docker run cultivator:dev plan --help
 ```
-
-## Testing Strategy
-
-### Unit Tests
-- Each package has `*_test.go` files
-- Test core logic in isolation
-- Mock external dependencies
-
-### Integration Tests (TODO)
-- Test full workflow end-to-end
-- Use test repositories
-- Verify GitHub integration
-
-### Manual Testing
-1. Create a test PR in a Terragrunt repo
-2. Trigger Cultivator via comment or event
-3. Verify plan/apply results
-4. Check PR comments
-
-## Configuration
-
-### Example `cultivator.yml`
-```yaml
-version: 1
-
-projects:
-  - name: production
-    dir: envs/prod
-    terragrunt_version: 0.55.0
-    terraform_version: 1.7.0
-    apply_requirements:
-      - approved
-    auto_plan: true
-
-settings:
-  auto_plan: true
-  parallel_plan: true
-  max_parallel: 5
-  lock_timeout: 10m
-```
-
-## GitHub Action Integration
-
-### Workflow File (`.github/workflows/cultivator.yml`)
-```yaml
-name: Cultivator
-
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  issue_comment:
-    types: [created]
-
-jobs:
-  cultivator:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: cultivator-dev/cultivator-action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## Next Steps for Production
-
-### Must-Have Features
-1. **Proper approval checking** - Verify PR is approved before apply
-2. **State locking backend** - Use DynamoDB/S3 for distributed locks
-3. **Improved error handling** - Better error messages and recovery
-4. **Plan file storage** - Save plans and apply exactly what was planned
-
-### Nice-to-Have Features
-1. **Cost estimation** - Integrate with Infracost
-2. **Drift detection** - Detect infrastructure drift
-3. **Policy as code** - OPA/Sentinel integration
-4. **Multi-CI support** - GitLab CI, Azure DevOps, CircleCI
-5. **Slack/Discord notifications**
-6. **RBAC** - Role-based access control for environments
-
-### Performance Improvements
-1. **Parallel execution** - Run independent stacks in parallel
-2. **Caching** - Cache Terraform/Terragrunt downloads
-3. **Incremental plans** - Only plan truly affected stacks
 
 ## Common Development Tasks
 
-### Adding a New Command
-1. Create command function in `pkg/cmd/root.go`
-2. Implement logic (possibly in new package)
-3. Add tests
-4. Update documentation
+### Adding a New Subcommand
 
-### Adding GitHub Event Support
-1. Update `pkg/events/events.go`
-2. Add parser for new event type
-3. Handle in orchestrator
-4. Test with sample event payload
+1. Add a constant in `internal/cli/cli.go` alongside `cmdPlan`, `cmdApply`, `cmdDestroy`
+2. Add a case in the `switch command` block in `Run`
+3. Implement the handler function
+4. Write tests in `internal/cli/cli_test.go`
+5. Update CLI reference documentation
 
-### Improving Output Formatting
-1. Update `pkg/formatter/formatter.go`
-2. Add new formatting functions
-3. Use in `pkg/github/client.go`
-4. Test with real Terragrunt output
+### Extending Stack Discovery
+
+Discovery logic lives in `internal/discovery/discovery.go`. Adding a new filter type:
+
+1. Add the field to `Options` struct
+2. Apply the filter inside `Discover`
+3. Add unit tests in `discovery_test.go` covering the new filter
+4. Add fuzz test seeds in `fuzz_test.go` if the field is string-typed
+
+### Modifying Configuration
+
+Configuration loading lives in `internal/config/config.go`:
+
+1. Add the field to the `Config` struct
+2. Set the default in `DefaultConfig`
+3. Map the environment variable in `LoadEnv`
+4. Add merge logic in `MergeConfig` and `ApplyOverrides`
+5. Validate in `Validate` if the field has constraints
+6. Update `docs/getting-started/configuration.md`
+
+### Changing Runner Behavior
+
+The runner lives in `internal/runner/runner.go`. It uses `cmd.CombinedOutput()` to merge stdout and stderr in write order, preserving chronological output from Terragrunt. When changing how output is captured, update the corresponding tests in `runner_test.go`.
 
 ## Troubleshooting
 
-### Tests Failing
-```bash
-# Run specific test
-go test -v ./pkg/graph -run TestGraph_TopologicalSort
+### Tests failing
 
-# Check for race conditions
+```bash
+# Run a specific test with verbose output
+go test -v ./internal/cli -run TestBuildTerragruntConfig
+
+# Run all tests with the race detector
 go test -race ./...
+
+# Run Make full check (fmt, vet, lint, test, coverage)
+make check
 ```
 
-### Build Issues
+### Build issues
+
 ```bash
-# Clean and rebuild
+# Clean build artifacts and rebuild
 make clean
 go mod tidy
 make build
 ```
 
-### GitHub Action Not Triggering
-- Check workflow file syntax
-- Verify permissions are set correctly
-- Check event filters (PR types, comment patterns)
+### Linting errors
+
+```bash
+# See all lint issues
+golangci-lint run
+
+# Auto-format code
+make fmt
+```
 
 ## Contributing
 
-See [Contributing Guide](/CONTRIBUTING.md) for:
-- Code style guidelines
-- PR process
-- Commit message format
+See the [Contributing Guide](contributing.md) for:
+- Contribution workflow
+- Pull request checklist
+- Code style requirements
 - Testing requirements
 
 ## Resources
 
 - [Terragrunt Documentation](https://terragrunt.gruntwork.io/)
+- [OpenTofu Documentation](https://opentofu.org/docs/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Go Testing](https://go.dev/doc/tutorial/add-a-test)
-- [Cobra CLI Framework](https://github.com/spf13/cobra)
+- [Effective Go](https://go.dev/doc/effective_go)

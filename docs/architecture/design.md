@@ -33,7 +33,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 ### 5. Executor
 - Runs Terragrunt commands (`plan`, `apply`, `destroy`)
 - Manages parallel execution via worker pool
-- Handles locks to prevent concurrent applies
+- Captures stdout and stderr in a single chronologically-ordered stream using `cmd.CombinedOutput()`
 - Captures output on per-stack, per-command basis
 
 ### 6. Output Formatter
@@ -114,23 +114,12 @@ CLI flags and environment variables override the config file. Flags take highest
 
 See [Configuration](../getting-started/configuration.md) for full reference.
 
-## Locking Mechanism
-
-Cultivator uses **file-based locks** to prevent concurrent applies on the same stack:
-
-- Lock file: `.terraform/cultivator.lock` (per stack)
-- Timeout: 30 minutes (configurable)
-- Retry: Exponential backoff
-- Failure: Prints clear error message with lock holder details
-
-This is a safety mechanism; actual state locking is managed by Terraform/OpenTofu.
-
 ## Security Considerations
 
 ### Secrets Redaction
-- Environment variables and output are scanned for common secret patterns
-- Passwords, API keys, and tokens are masked in logs
-- Compatible with GitHub Actions and GitLab CI secret masking
+- Cultivator does not implement secret redaction in its own output layer
+- Use your CI platform's built-in secret masking (GitHub Actions masked secrets, GitLab CI variable masking)
+- Mark sensitive Terraform outputs with `sensitive = true` so Terragrunt/OpenTofu suppress them in plan output
 
 ### Access Control
 - Cultivator respects IAM permissions of the CI runner

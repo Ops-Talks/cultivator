@@ -129,12 +129,11 @@ Terragrunt caches downloaded modules in `.terragrunt-cache/` by default:
         └── [downloaded module files]
 ```
 
-To skip cache:
-```bash
-cultivator plan --root=live --init-cache-dir
-```
+Terragrunt manages cache invalidation automatically. To clear the cache manually, remove the `.terragrunt-cache/` directories:
 
-(Note: This passes through to Terragrunt's `--init-cache-dir` flag)
+```bash
+find . -type d -name '.terragrunt-cache' -exec rm -rf {} +
+```
 
 ## Dependency Resolution
 

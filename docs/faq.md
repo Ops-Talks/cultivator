@@ -252,27 +252,6 @@ Solution:
 - Ensure all dependencies are under the same root
 - Check spelling in `dependency` blocks
 
-### Lock timeout errors
-```
-Error: failed to acquire lock (timeout after 30m)
-```
-
-Causes:
-- Another `apply` is running on the same stack
-- Previous `apply` crashed without releasing lock
-
-Solutions:
-```bash
-# Check for stale locks
-find live -name ".terraform/cultivator.lock" -mtime +1
-
-# Remove stale locks (use carefully!)
-find live -name ".terraform/cultivator.lock" -delete
-
-# Increase timeout in cultivator.yml
-timeout: 1h
-```
-
 ### Environment variables not being used
 Verify precedence: **CLI flags > environment variables > config file**
 

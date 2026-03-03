@@ -6,13 +6,12 @@
 
 ## Key Features
 
-✅ **Automatic Stack Discovery** — Find all `terragrunt.hcl` files recursively  
-✅ **Smart Filtering** — Scope execution by environment, paths, and custom tags  
-✅ **Dependency-Aware** — Respects Terragrunt dependencies, runs stacks in correct order  
-✅ **Parallel Execution** — Configurable worker pool for fast, safe concurrent runs  
-✅ **No Server Required** — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)  
-✅ **Secret Redaction** — Automatically masks sensitive data in logs  
-✅ **Multi-Format Output** — Human-readable text or machine-parseable JSON  
+- **Automatic Stack Discovery** — Find all `terragrunt.hcl` files recursively
+- **Smart Filtering** — Scope execution by environment, paths, and custom tags
+- **Dependency-Aware** — Respects Terragrunt dependencies, runs stacks in correct order
+- **Parallel Execution** — Configurable worker pool for fast, safe concurrent runs
+- **No Server Required** — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)
+- **Multi-Format Output** — Human-readable text or machine-parseable JSON
 
 ## Overview
 
@@ -120,12 +119,12 @@ plan:
 ```
 
 **Problems:**
-- ❌ **Manual maintenance** — Update pipeline when adding/removing stacks
-- ❌ **No filtering** — Complex bash logic for environment/tag filtering
-- ❌ **Sequential execution** — Slow; implementing parallelization is complex
-- ❌ **No dependency handling** — Must manually order stacks
-- ❌ **Inconsistent errors** — Hard to parse failures across stacks
-- ❌ **Not portable** — Rewrite for each CI system
+- **Manual maintenance** — Update pipeline when adding/removing stacks
+- **No filtering** — Complex bash logic for environment/tag filtering
+- **Sequential execution** — Slow; implementing parallelization is complex
+- **No dependency handling** — Must manually order stacks
+- **Inconsistent errors** — Hard to parse failures across stacks
+- **Not portable** — Rewrite for each CI system
 
 ### The Solution: Automated Orchestration
 
@@ -139,12 +138,12 @@ plan:
 ```
 
 **Benefits:**
-- ✅ **Automatic discovery** — Finds all stacks with `terragrunt.hcl`
-- ✅ **Smart filtering** — By environment, path patterns, and tags
-- ✅ **Parallel execution** — Safe concurrent runs with configurable workers
-- ✅ **Dependency awareness** — Parses and respects stack dependencies
-- ✅ **Structured output** — JSON or text format with clear exit codes
-- ✅ **Same everywhere** — Identical command works in CI and locally
+- **Automatic discovery** — Finds all stacks with `terragrunt.hcl`
+- **Smart filtering** — By environment, path patterns, and tags
+- **Parallel execution** — Safe concurrent runs with configurable workers
+- **Dependency awareness** — Parses and respects stack dependencies
+- **Structured output** — JSON or text format with clear exit codes
+- **Same everywhere** — Identical command works in CI and locally
 
 ### Real-World Example
 
@@ -178,13 +177,13 @@ cultivator plan --root=live --env=prod --tags=critical --exclude=experimental --
 
 | Feature | Cultivator | Raw Terragrunt | Atlantis |
 |---------|-----------|-----------------|----------|
-| **CLI-based** | ✅ | ✅ | ❌ (webhook) |
-| **Works locally** | ✅ | ✅ | ❌ |
-| **Stack discovery** | ✅ | ❌ | ✅ |
-| **Dependency graph** | ✅ | ❌ | ✅ |
-| **CI/CD agnostic** | ✅ | ✅ | ❌ (GitHub only) |
-| **Parallel execution** | ✅ | Partial | ✅ |
-| **No server required** | ✅ | ✅ | ❌ |
+| **CLI-based** | Yes | Yes | No (webhook) |
+| **Works locally** | Yes | Yes | No |
+| **Stack discovery** | Yes | No | Yes |
+| **Dependency graph** | Yes | No | Yes |
+| **CI/CD agnostic** | Yes | Yes | No (GitHub only) |
+| **Parallel execution** | Yes | Partial | Yes |
+| **No server required** | Yes | Yes | No |
 
 ## Getting Started
 
