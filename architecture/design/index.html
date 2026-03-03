@@ -945,15 +945,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#locking-mechanism" class="md-nav__link">
-    <span class="md-ellipsis">
-      Locking Mechanism
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#security-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       Security Considerations
@@ -1354,15 +1345,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#locking-mechanism" class="md-nav__link">
-    <span class="md-ellipsis">
-      Locking Mechanism
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#security-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       Security Considerations
@@ -1456,7 +1438,7 @@
 <ul>
 <li>Runs Terragrunt commands (<code>plan</code>, <code>apply</code>, <code>destroy</code>)</li>
 <li>Manages parallel execution via worker pool</li>
-<li>Handles locks to prevent concurrent applies</li>
+<li>Captures stdout and stderr in a single chronologically-ordered stream using <code>cmd.CombinedOutput()</code></li>
 <li>Captures output on per-stack, per-command basis</li>
 </ul>
 <h3 id="6-output-formatter">6. Output Formatter<a class="headerlink" href="#6-output-formatter" title="Permanent link">&para;</a></h3>
@@ -1534,21 +1516,12 @@
 </span></code></pre></div>
 <p>CLI flags and environment variables override the config file. Flags take highest precedence.</p>
 <p>See <a href="../../getting-started/configuration/">Configuration</a> for full reference.</p>
-<h2 id="locking-mechanism">Locking Mechanism<a class="headerlink" href="#locking-mechanism" title="Permanent link">&para;</a></h2>
-<p>Cultivator uses <strong>file-based locks</strong> to prevent concurrent applies on the same stack:</p>
-<ul>
-<li>Lock file: <code>.terraform/cultivator.lock</code> (per stack)</li>
-<li>Timeout: 30 minutes (configurable)</li>
-<li>Retry: Exponential backoff</li>
-<li>Failure: Prints clear error message with lock holder details</li>
-</ul>
-<p>This is a safety mechanism; actual state locking is managed by Terraform/OpenTofu.</p>
 <h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
 <h3 id="secrets-redaction">Secrets Redaction<a class="headerlink" href="#secrets-redaction" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Environment variables and output are scanned for common secret patterns</li>
-<li>Passwords, API keys, and tokens are masked in logs</li>
-<li>Compatible with GitHub Actions and GitLab CI secret masking</li>
+<li>Cultivator does not implement secret redaction in its own output layer</li>
+<li>Use your CI platform's built-in secret masking (GitHub Actions masked secrets, GitLab CI variable masking)</li>
+<li>Mark sensitive Terraform outputs with <code>sensitive = true</code> so Terragrunt/OpenTofu suppress them in plan output</li>
 </ul>
 <h3 id="access-control">Access Control<a class="headerlink" href="#access-control" title="Permanent link">&para;</a></h3>
 <ul>
