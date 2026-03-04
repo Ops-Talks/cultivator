@@ -46,12 +46,12 @@ go build -o cultivator ./cmd/cultivator
 
 ## Documentation
 
-Full documentation is available at: **[https://ops-talks.github.io/cultivator](https://ops-talks.github.io/cultivator)**
-
 - [Getting Started](https://ops-talks.github.io/cultivator/getting-started/) - Installation and configuration
 - [User Guide](https://ops-talks.github.io/cultivator/user-guide/) - Commands, workflows, CI integration
 - [Architecture](https://ops-talks.github.io/cultivator/architecture/design/) - Design and internals
 - [FAQ](https://ops-talks.github.io/cultivator/faq/) - Common questions
+
+Full documentation is available at: **[https://ops-talks.github.io/cultivator](https://ops-talks.github.io/cultivator)**
 
 ## License
 

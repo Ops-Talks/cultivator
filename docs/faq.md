@@ -151,8 +151,8 @@ Yes! Cultivator is a local CLI tool. Useful for:
 - **Manual operations**: Apply changes immediately without CI jobs
 
 ```bash
-./cultivator plan --root=live --env=dev
-./cultivator apply --root=live --env=dev --auto-approve
+cultivator plan --root=live --env=dev
+cultivator apply --root=live --env=dev --auto-approve
 ```
 
 ## Security and Permissions
@@ -390,7 +390,7 @@ on_failure:
 
 ### Where do I find more help?
 
-- **Documentation**: [Full documentation](/)
+- **Documentation**: [Full documentation](https://ops-talks.github.io/cultivator/)
 - **Issues**: [GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)
 - **Contributing**: [Contributing Guide](development/contributing.md)
