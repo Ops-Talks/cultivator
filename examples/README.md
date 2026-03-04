@@ -69,4 +69,11 @@ examples/
 
 ## Pipeline Examples
 
-See the main [Installation Guide](../docs/getting-started/installation.md) for GitHub Actions setup instructions.
+This directory contains ready-to-use pipeline configuration examples:
+
+| File | Description |
+|------|-------------|
+| [`github-actions.yml`](github-actions.yml) | GitHub Actions pipeline: plan on PRs, apply on merge to main |
+| [`gitlab-ci.yml`](.gitlab-ci.yml) | GitLab CI/CD pipeline: plan on MRs, apply on merge to main |
+
+See the main [Installation Guide](../docs/getting-started/installation.md) for full setup instructions.
