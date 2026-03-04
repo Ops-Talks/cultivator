@@ -1344,29 +1344,34 @@
 </ul>
 <h2 id="quick-overview">Quick Overview<a class="headerlink" href="#quick-overview" title="Permanent link">&para;</a></h2>
 <p>Cultivator is a lightweight CLI that discovers Terragrunt stacks and orchestrates execution:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>You call cultivator → Discovers stacks → Applies filters → Executes Terragrunt → Shows results
-</span></code></pre></div>
+<ol>
+<li>Call cultivator</li>
+<li>Discovers stacks</li>
+<li>Applies filters</li>
+<li>Executes Terragrunt</li>
+<li>Shows results</li>
+</ol>
 <h2 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
 <h3 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
 <p>Run plans locally to validate changes before committing:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div>
 <h3 id="pull-request-ci">Pull Request CI<a class="headerlink" href="#pull-request-ci" title="Permanent link">&para;</a></h3>
 <p>Test changes safely on PRs—no approval required until review:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># GitHub Actions or GitLab CI can run this automatically</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># GitHub Actions or GitLab CI can run this automatically</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
 </span></code></pre></div>
 <h3 id="main-branch-deployment">Main Branch Deployment<a class="headerlink" href="#main-branch-deployment" title="Permanent link">&para;</a></h3>
 <p>Apply approved changes after merging to main:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
 </span></code></pre></div>
 <h3 id="cross-environment-promotion">Cross-Environment Promotion<a class="headerlink" href="#cross-environment-promotion" title="Permanent link">&para;</a></h3>
 <p>Test in one environment, apply in others:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Test in staging</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>staging<span class="w"> </span>--tags<span class="o">=</span>critical
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Apply to production after manual approval</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--tags<span class="o">=</span>critical<span class="w"> </span>--auto-approve
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Test in staging</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>staging<span class="w"> </span>--tags<span class="o">=</span>critical
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Apply to production after manual approval</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>prod<span class="w"> </span>--tags<span class="o">=</span>critical<span class="w"> </span>--auto-approve
 </span></code></pre></div>
 <h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h2>
 <h3 id="stack-discovery">Stack Discovery<a class="headerlink" href="#stack-discovery" title="Permanent link">&para;</a></h3>
@@ -1399,7 +1404,7 @@
 <h3 id="local-cli-usage">Local CLI Usage<a class="headerlink" href="#local-cli-usage" title="Permanent link">&para;</a></h3>
 <p>Run Cultivator directly in your terminal:</p>
 <ol>
-<li>Build: <code>make build</code> or <code>go build -o cultivator ./cmd/cultivator</code></li>
+<li>Build from source or download binary</li>
 <li>Execute: <code>./cultivator plan --root=live --env=dev</code></li>
 <li>Review output and commit changes</li>
 </ol>

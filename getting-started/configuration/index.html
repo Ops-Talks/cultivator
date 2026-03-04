@@ -1347,7 +1347,7 @@
 <p>When using a file, pass it explicitly via <code>--config</code>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--config<span class="o">=</span>cultivator.yml
 </span></code></pre></div>
-<p>Supported filename is up to you (<code>cultivator.yml</code>, <code>.cultivator.yaml</code>, etc.).</p>
+<p>Supported filenames include <code>cultivator.yml</code>, <code>.cultivator.yaml</code>, etc.</p>
 <h2 id="minimal-config-example">Minimal config example<a class="headerlink" href="#minimal-config-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
@@ -1373,59 +1373,59 @@
 <ol>
 <li>CLI flags</li>
 <li>Environment variables</li>
-<li>Config file (when passed with <code>--config</code>)</li>
+<li>Config file (when passed with --config)</li>
 <li>Built-in defaults</li>
 </ol>
 <h2 id="supported-keys">Supported keys<a class="headerlink" href="#supported-keys" title="Permanent link">&para;</a></h2>
-<h3 id="root"><code>root</code><a class="headerlink" href="#root" title="Permanent link">&para;</a></h3>
+<h3 id="root">root<a class="headerlink" href="#root" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: String</li>
 <li><strong>Default</strong>: <code>.</code></li>
 <li><strong>Description</strong>: Root directory used to discover <code>terragrunt.hcl</code> stacks</li>
 </ul>
-<h3 id="env"><code>env</code><a class="headerlink" href="#env" title="Permanent link">&para;</a></h3>
+<h3 id="env">env<a class="headerlink" href="#env" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: String</li>
 <li><strong>Default</strong>: empty</li>
-<li><strong>Description</strong>: Environment filter derived from the first directory under <code>root</code></li>
+<li><strong>Description</strong>: Environment filter derived from the first directory under root</li>
 </ul>
-<h3 id="include-exclude"><code>include</code> / <code>exclude</code><a class="headerlink" href="#include-exclude" title="Permanent link">&para;</a></h3>
+<h3 id="include-exclude">include / exclude<a class="headerlink" href="#include-exclude" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: String list</li>
 <li><strong>Default</strong>: empty</li>
-<li><strong>Description</strong>: Relative paths under <code>root</code> to include or exclude</li>
+<li><strong>Description</strong>: Relative paths under root to include or exclude</li>
 </ul>
-<h3 id="tags"><code>tags</code><a class="headerlink" href="#tags" title="Permanent link">&para;</a></h3>
+<h3 id="tags">tags<a class="headerlink" href="#tags" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: String list</li>
 <li><strong>Default</strong>: empty</li>
 <li><strong>Description</strong>: Optional tags filter parsed from <code>terragrunt.hcl</code> comments (example: <code># cultivator:tags=app,db</code>)</li>
 </ul>
-<h3 id="parallelism"><code>parallelism</code><a class="headerlink" href="#parallelism" title="Permanent link">&para;</a></h3>
+<h3 id="parallelism">parallelism<a class="headerlink" href="#parallelism" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: Integer</li>
 <li><strong>Default</strong>: number of CPUs</li>
 <li><strong>Description</strong>: Maximum number of stacks to execute in parallel</li>
 </ul>
-<h3 id="non_interactive"><code>non_interactive</code><a class="headerlink" href="#non_interactive" title="Permanent link">&para;</a></h3>
+<h3 id="non_interactive">non_interactive<a class="headerlink" href="#non_interactive" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: Boolean</li>
 <li><strong>Default</strong>: <code>false</code></li>
 <li><strong>Description</strong>: Adds <code>-input=false</code> to Terragrunt commands</li>
 </ul>
-<h3 id="plandestroy"><code>plan.destroy</code><a class="headerlink" href="#plandestroy" title="Permanent link">&para;</a></h3>
+<h3 id="plandestroy">plan.destroy<a class="headerlink" href="#plandestroy" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: Boolean</li>
 <li><strong>Default</strong>: <code>false</code></li>
 <li><strong>Description</strong>: Run <code>terragrunt plan -destroy</code></li>
 </ul>
-<h3 id="applyauto_approve"><code>apply.auto_approve</code><a class="headerlink" href="#applyauto_approve" title="Permanent link">&para;</a></h3>
+<h3 id="applyauto_approve">apply.auto_approve<a class="headerlink" href="#applyauto_approve" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: Boolean</li>
 <li><strong>Default</strong>: <code>false</code></li>
 <li><strong>Description</strong>: Add <code>-auto-approve</code> to <code>terragrunt apply</code></li>
 </ul>
-<h3 id="destroyauto_approve"><code>destroy.auto_approve</code><a class="headerlink" href="#destroyauto_approve" title="Permanent link">&para;</a></h3>
+<h3 id="destroyauto_approve">destroy.auto_approve<a class="headerlink" href="#destroyauto_approve" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Type</strong>: Boolean</li>
 <li><strong>Default</strong>: <code>false</code></li>
@@ -1458,7 +1458,7 @@
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w">   </span><span class="c1"># enable verbose Cultivator logs</span>
 </span></code></pre></div>
 <h2 id="cli-flags">CLI Flags<a class="headerlink" href="#cli-flags" title="Permanent link">&para;</a></h2>
-<p>Flags override environment variables and config file</p>
+<p>Flags override environment variables and config file.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--root<span class="o">=</span>live<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>--env<span class="o">=</span>prod<span class="w"> </span><span class="se">\</span>
