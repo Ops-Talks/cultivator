@@ -1255,7 +1255,13 @@
 
 
 <h1 id="github-actions-integration">GitHub Actions Integration<a class="headerlink" href="#github-actions-integration" title="Permanent link">&para;</a></h1>
-<p>This guide shows how to run Cultivator in GitHub Actions using a GitHub-native workflow model.</p>
+<p>This guide shows production-ready patterns for running Cultivator in GitHub Actions.</p>
+<p>Key features of this approach:</p>
+<ul>
+<li>Pre-compiled binaries: No compilation overhead; fast and efficient</li>
+<li>Versioned tools: Pin OpenTofu, Terragrunt, and Cultivator versions</li>
+<li>Structured workflow: Doctor check before plan/apply for early error detection</li>
+</ul>
 <p>Unlike GitLab CI, GitHub Actions uses:</p>
 <ul>
 <li><code>on:</code> events (<code>pull_request</code>, <code>workflow_dispatch</code>)</li>
