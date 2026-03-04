@@ -221,7 +221,7 @@ docker run cultivator:latest plan --help
 - **[FAQ](faq.md)** — Common questions answered
 - **[GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)** — Report bugs
 - **[GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)** — Ask questions
-- **[Contributing Guide](../CONTRIBUTING.md)** — Contribute to the project
+- **[Contributing Guide](development/contributing.md)** — Contribute to the project
 
 ## Requirements
 
@@ -231,4 +231,4 @@ docker run cultivator:latest plan --help
 
 ## License
 
-Cultivator is licensed under the MIT License. See [LICENSE](../LICENSE) for details.
+Cultivator is licensed under the GNU General Public License v3. See [LICENSE](../LICENSE) for details.

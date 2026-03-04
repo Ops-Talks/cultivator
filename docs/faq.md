@@ -399,7 +399,7 @@ on_failure:
 - **Documentation**: [Full documentation](/)
 - **Issues**: [GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)
-- **Contributing**: [Contributing Guide](../CONTRIBUTING.md)
+- **Contributing**: [Contributing Guide](development/contributing.md)
 
 ### How do I report bugs?
 
@@ -413,4 +413,4 @@ on_failure:
 
 ### Can I contribute?
 
-Yes! See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+Yes! See [Contributing Guide](development/contributing.md) for guidelines.
