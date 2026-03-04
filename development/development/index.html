@@ -1020,9 +1020,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#testing_1" class="md-nav__link">
+  <a href="#running-tests" class="md-nav__link">
     <span class="md-ellipsis">
-      Testing
+      Running Tests
     </span>
   </a>
   
@@ -1451,9 +1451,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#testing_1" class="md-nav__link">
+  <a href="#running-tests" class="md-nav__link">
     <span class="md-ellipsis">
-      Testing
+      Running Tests
     </span>
   </a>
   
@@ -1769,64 +1769,84 @@
 <h2 id="key-packages">Key Packages<a class="headerlink" href="#key-packages" title="Permanent link">&para;</a></h2>
 <h3 id="1-config-package-internalconfig">1. Config Package (<code>internal/config/</code>)<a class="headerlink" href="#1-config-package-internalconfig" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Load and merge configuration from multiple sources.</p>
-<p><strong>Responsibilities</strong>:
-- Read <code>cultivator.yml</code> / <code>cultivator.yaml</code> from filesystem
-- Merge with environment variables (CULTIVATOR_* prefix)
-- Merge with CLI flags (highest precedence)
-- Validate configuration schema
-- Provide typed access to settings</p>
-<p><strong>Test Files</strong>:
-- <code>config_test.go</code> - Unit tests
-- <code>benchmark_test.go</code> - Performance measurements
-- <code>coverage_test.go</code> - Additional coverage gaps
-- <code>fuzz_test.go</code> - Fuzzing for edge cases
-- <code>integration_test.go</code> - End-to-end workflows</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Read <code>cultivator.yml</code> / <code>cultivator.yaml</code> from filesystem</li>
+<li>Merge with environment variables (CULTIVATOR_* prefix)</li>
+<li>Merge with CLI flags (highest precedence)</li>
+<li>Validate configuration schema</li>
+<li>Provide typed access to settings</li>
+</ul>
+<p><strong>Test Files</strong>:</p>
+<ul>
+<li><code>config_test.go</code> - Unit tests</li>
+<li><code>benchmark_test.go</code> - Performance measurements</li>
+<li><code>coverage_test.go</code> - Additional coverage gaps</li>
+<li><code>fuzz_test.go</code> - Fuzzing for edge cases</li>
+<li><code>integration_test.go</code> - End-to-end workflows</li>
+</ul>
 <p><strong>Test Coverage</strong>: 97.4%</p>
 <h3 id="2-discovery-package-internaldiscovery">2. Discovery Package (<code>internal/discovery/</code>)<a class="headerlink" href="#2-discovery-package-internaldiscovery" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Discover and filter Terragrunt stacks in the filesystem.</p>
-<p><strong>Responsibilities</strong>:
-- Recursively walk directory tree from root
-- Find all <code>terragrunt.hcl</code> files
-- Filter stacks by environment, path patterns, and tags
-- Parse stack metadata
-- Build list of available stacks</p>
-<p><strong>Test Files</strong>:
-- <code>discovery_test.go</code> - Unit tests
-- <code>benchmark_test.go</code> - Performance measurements
-- <code>coverage_test.go</code> - Additional coverage gaps
-- <code>fuzz_test.go</code> - Fuzzing for edge cases</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Recursively walk directory tree from root</li>
+<li>Find all <code>terragrunt.hcl</code> files</li>
+<li>Filter stacks by environment, path patterns, and tags</li>
+<li>Parse stack metadata</li>
+<li>Build list of available stacks</li>
+</ul>
+<p><strong>Test Files</strong>:</p>
+<ul>
+<li><code>discovery_test.go</code> - Unit tests</li>
+<li><code>benchmark_test.go</code> - Performance measurements</li>
+<li><code>coverage_test.go</code> - Additional coverage gaps</li>
+<li><code>fuzz_test.go</code> - Fuzzing for edge cases</li>
+</ul>
 <p><strong>Test Coverage</strong>: 93.7%</p>
 <h3 id="3-cli-package-internalcli">3. CLI Package (<code>internal/cli/</code>)<a class="headerlink" href="#3-cli-package-internalcli" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Handle command-line interface and flag parsing.</p>
-<p><strong>Responsibilities</strong>:
-- Parse CLI arguments and flags
-- Route commands (plan, apply, destroy, version, doctor)
-- Build configuration from CLI flags
-- Format and display output
-- Handle user interaction</p>
-<p><strong>Test Files</strong>:
-- <code>cli_test.go</code> - Comprehensive unit tests</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Parse CLI arguments and flags</li>
+<li>Route commands (plan, apply, destroy, version, doctor)</li>
+<li>Build configuration from CLI flags</li>
+<li>Format and display output</li>
+<li>Handle user interaction</li>
+</ul>
+<p><strong>Test Files</strong>:</p>
+<ul>
+<li><code>cli_test.go</code> - Comprehensive unit tests</li>
+</ul>
 <p><strong>Test Coverage</strong>: 69.2%</p>
 <h3 id="4-logging-package-internallogging">4. Logging Package (<code>internal/logging/</code>)<a class="headerlink" href="#4-logging-package-internallogging" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Structured logging throughout the application.</p>
-<p><strong>Responsibilities</strong>:
-- Create and manage loggers
-- Format log messages
-- Support multiple output levels
-- Redact sensitive information</p>
-<p><strong>Test Files</strong>:
-- <code>logger_test.go</code> - Unit tests</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Create and manage loggers</li>
+<li>Format log messages</li>
+<li>Support multiple output levels</li>
+<li>Redact sensitive information</li>
+</ul>
+<p><strong>Test Files</strong>:</p>
+<ul>
+<li><code>logger_test.go</code> - Unit tests</li>
+</ul>
 <p><strong>Test Coverage</strong>: 94.9%</p>
 <h3 id="5-runner-package-internalrunner">5. Runner Package (<code>internal/runner/</code>)<a class="headerlink" href="#5-runner-package-internalrunner" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Execute Terragrunt commands and capture results.</p>
-<p><strong>Responsibilities</strong>:
-- Execute <code>terragrunt</code> commands per stack
-- Handle command initialization and lifecycle
-- Capture stdout and stderr in a single chronologically-ordered stream using <code>cmd.CombinedOutput()</code>
-- Report execution results
-- Manage concurrent execution with worker pool</p>
-<p><strong>Test Files</strong>:
-- <code>runner_test.go</code> - Unit tests</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Execute <code>terragrunt</code> commands per stack</li>
+<li>Handle command initialization and lifecycle</li>
+<li>Capture stdout and stderr in a single chronologically-ordered stream using <code>cmd.CombinedOutput()</code></li>
+<li>Report execution results</li>
+<li>Manage concurrent execution with worker pool</li>
+</ul>
+<p><strong>Test Files</strong>:</p>
+<ul>
+<li><code>runner_test.go</code> - Unit tests</li>
+</ul>
 <p><strong>Test Coverage</strong>: 95.5%</p>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
 <p>For comprehensive information on testing strategy, test types, and guidelines, see the <a href="../TESTING/">Testing Guide</a>.</p>
@@ -1846,7 +1866,7 @@
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>go<span class="w"> </span>build<span class="w"> </span>-ldflags<span class="o">=</span><span class="s2">&quot;-X main.version=v0.3.10 -X main.commit=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span>-o<span class="w"> </span>cultivator<span class="w"> </span>./cmd/cultivator
 </span></code></pre></div>
-<h3 id="testing_1">Testing<a class="headerlink" href="#testing_1" title="Permanent link">&para;</a></h3>
+<h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Run all tests</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>./...
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
@@ -1870,11 +1890,13 @@
 </span></code></pre></div>
 <h2 id="contributing-guidelines">Contributing Guidelines<a class="headerlink" href="#contributing-guidelines" title="Permanent link">&para;</a></h2>
 <p>See <a href="../contributing/">Contributing</a> for detailed contribution guidelines.</p>
-<p>Key points:
-- Write tests for new functionality
-- Maintain or improve test coverage
-- Follow Go conventions from the <a href="https://go.dev/wiki/CodeReviewComments">Go Code Review Comments</a>
-- Update documentation when making changes</p>
+<p>Key points:</p>
+<ul>
+<li>Write tests for new functionality</li>
+<li>Maintain or improve test coverage</li>
+<li>Follow Go conventions from the <a href="https://go.dev/wiki/CodeReviewComments">Go Code Review Comments</a></li>
+<li>Update documentation when making changes</li>
+</ul>
 <h2 id="code-quality-standards">Code Quality Standards<a class="headerlink" href="#code-quality-standards" title="Permanent link">&para;</a></h2>
 <h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
 <p>All exported functions, types, and packages must be documented.</p>
@@ -1925,11 +1947,13 @@
 </span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>./...
 </span></code></pre></div>
 <h2 id="continuous-integration">Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
-<p>All pull requests must pass:
-- Unit tests: <code>go test ./...</code>
-- Linting: <code>golangci-lint run</code>
-- Code formatting: <code>go fmt ./...</code>
-- Coverage: Maintained at project baseline</p>
+<p>All pull requests must pass:</p>
+<ul>
+<li>Unit tests: <code>go test ./...</code></li>
+<li>Linting: <code>golangci-lint run</code></li>
+<li>Code formatting: <code>go fmt ./...</code></li>
+<li>Coverage: Maintained at project baseline</li>
+</ul>
 <p>Tests run automatically on all pull requests to <code>main</code> and commits to <code>main</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Install dependencies</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>make<span class="w"> </span>deps
@@ -2013,11 +2037,13 @@
 </span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>make<span class="w"> </span>fmt
 </span></code></pre></div>
 <h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
-<p>See the <a href="../contributing/">Contributing Guide</a> for:
-- Contribution workflow
-- Pull request checklist
-- Code style requirements
-- Testing requirements</p>
+<p>See the <a href="../contributing/">Contributing Guide</a> for:</p>
+<ul>
+<li>Contribution workflow</li>
+<li>Pull request checklist</li>
+<li>Code style requirements</li>
+<li>Testing requirements</li>
+</ul>
 <h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://terragrunt.gruntwork.io/">Terragrunt Documentation</a></li>

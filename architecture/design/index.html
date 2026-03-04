@@ -922,9 +922,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#6-output-agnostic" class="md-nav__link">
+  <a href="#6-human-readable-output" class="md-nav__link">
     <span class="md-ellipsis">
-      6. Output Agnostic
+      6. Human-Readable Output
     </span>
   </a>
   
@@ -1322,9 +1322,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#6-output-agnostic" class="md-nav__link">
+  <a href="#6-human-readable-output" class="md-nav__link">
     <span class="md-ellipsis">
-      6. Output Agnostic
+      6. Human-Readable Output
     </span>
   </a>
   
@@ -1443,9 +1443,8 @@
 </ul>
 <h3 id="6-output-formatter">6. Output Formatter<a class="headerlink" href="#6-output-formatter" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Formats results as text or JSON</li>
-<li>Redacts sensitive data (passwords, tokens)</li>
-<li>Reports exit codes and errors</li>
+<li>Formats and displays results in human-readable text</li>
+<li>Reports exit codes and errors per module</li>
 </ul>
 <h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CLI Invocation (plan/apply/destroy)
@@ -1460,7 +1459,7 @@
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    ↓
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Executor (parallel worker pool) → Run Terragrunt commands
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ↓
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Output Formatter → Display results (text or JSON)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Output Formatter → Display results
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    ↓
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
 </span></code></pre></div>
@@ -1495,24 +1494,22 @@
 <li>Runs independent stacks concurrently</li>
 <li>Respects dependency graph for safe parallelism</li>
 </ul>
-<h3 id="6-output-agnostic">6. Output Agnostic<a class="headerlink" href="#6-output-agnostic" title="Permanent link">&para;</a></h3>
+<h3 id="6-human-readable-output">6. Human-Readable Output<a class="headerlink" href="#6-human-readable-output" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Formats for human (text) or machine (JSON) consumption</li>
-<li>Redacts secrets from logs</li>
+<li>Structured text output with a clear per-module section header</li>
 <li>Compatible with GitHub Actions, GitLab CI, and local debugging</li>
 </ul>
 <h2 id="configuration-reference">Configuration Reference<a class="headerlink" href="#configuration-reference" title="Permanent link">&para;</a></h2>
 <p>Cultivator reads from <code>cultivator.yml</code> in the repository root:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span><span class="w">                    </span><span class="c1"># Root directory to scan for stacks</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">               </span><span class="c1"># Worker pool size</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">output_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span><span class="w">          </span><span class="c1"># &#39;text&#39; or &#39;json&#39;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">non_interactive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">       </span><span class="c1"># Equivalent to -input=false</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nt">plan</span><span class="p">:</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">destroy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">             </span><span class="c1"># Defaults for &#39;plan&#39; subcommand</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">apply</span><span class="p">:</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">         </span><span class="c1"># Defaults for &#39;apply&#39; subcommand</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="nt">destroy</span><span class="p">:</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">         </span><span class="c1"># Defaults for &#39;destroy&#39; subcommand</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">non_interactive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">       </span><span class="c1"># Equivalent to -input=false</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">plan</span><span class="p">:</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">destroy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">             </span><span class="c1"># Defaults for &#39;plan&#39; subcommand</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">apply</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">         </span><span class="c1"># Defaults for &#39;apply&#39; subcommand</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nt">destroy</span><span class="p">:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">auto_approve</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">         </span><span class="c1"># Defaults for &#39;destroy&#39; subcommand</span>
 </span></code></pre></div>
 <p>CLI flags and environment variables override the config file. Flags take highest precedence.</p>
 <p>See <a href="../../getting-started/configuration/">Configuration</a> for full reference.</p>

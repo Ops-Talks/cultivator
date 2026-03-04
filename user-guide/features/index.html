@@ -676,15 +676,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#consistent-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Consistent Output
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#configurable-log-levels" class="md-nav__link">
     <span class="md-ellipsis">
       Configurable Log Levels
@@ -1063,15 +1054,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#consistent-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Consistent Output
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#configurable-log-levels" class="md-nav__link">
     <span class="md-ellipsis">
       Configurable Log Levels
@@ -1131,13 +1113,9 @@
 <p>Run stacks concurrently with a configurable worker pool:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 </span></code></pre></div>
-<h2 id="consistent-output">Consistent Output<a class="headerlink" href="#consistent-output" title="Permanent link">&para;</a></h2>
-<p>Choose <code>text</code> or <code>json</code> output to fit CI log requirements:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">output_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-</span></code></pre></div>
 <h2 id="configurable-log-levels">Configurable Log Levels<a class="headerlink" href="#configurable-log-levels" title="Permanent link">&para;</a></h2>
 <p>Control Cultivator's own log verbosity via the <code>CULTIVATOR_LOG_LEVEL</code> environment variable:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div>
 <p>Accepted values: <code>debug</code>, <code>info</code>, <code>warning</code>, <code>error</code>. Default: <code>info</code>.
 Terragrunt output is always printed in full, regardless of this setting.</p>

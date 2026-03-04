@@ -1599,26 +1599,32 @@
 <h3 id="1-unit-tests">1. Unit Tests<a class="headerlink" href="#1-unit-tests" title="Permanent link">&para;</a></h3>
 <p>Located in <code>*_test.go</code> files alongside source code.</p>
 <p><strong>Purpose</strong>: Test individual functions and methods in isolation.</p>
-<p><strong>Example</strong>:
+<p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>./internal/config
-</span></code></pre></div></p>
-<p><strong>Guidelines</strong>:
-- One test file per source file
-- Use table-driven tests for multiple cases
-- Name tests descriptively: <code>Test_functionName_scenario</code>
-- Use <code>t.Parallel()</code> for independent tests
-- Avoid external dependencies; use mocks when needed</p>
-<p><strong>Sample Tests</strong>:
-- <code>internal/config/config_test.go</code> - Configuration loading and merging
-- <code>internal/discovery/discovery_test.go</code> - Stack discovery logic
-- <code>internal/cli/cli_test.go</code> - CLI flag parsing and routing
-- <code>internal/runner/runner_test.go</code> - Terragrunt execution and argument construction
-- <code>cmd/cultivator/main_test.go</code> - Binary entry point exit codes</p>
+</span></code></pre></div>
+<p><strong>Guidelines</strong>:</p>
+<ul>
+<li>One test file per source file</li>
+<li>Use table-driven tests for multiple cases</li>
+<li>Name tests descriptively: <code>Test_functionName_scenario</code></li>
+<li>Use <code>t.Parallel()</code> for independent tests</li>
+<li>Avoid external dependencies; use mocks when needed</li>
+</ul>
+<p><strong>Sample Tests</strong>:</p>
+<ul>
+<li><code>internal/config/config_test.go</code> - Configuration loading and merging</li>
+<li><code>internal/discovery/discovery_test.go</code> - Stack discovery logic</li>
+<li><code>internal/cli/cli_test.go</code> - CLI flag parsing and routing</li>
+<li><code>internal/runner/runner_test.go</code> - Terragrunt execution and argument construction</li>
+<li><code>cmd/cultivator/main_test.go</code> - Binary entry point exit codes</li>
+</ul>
 <h3 id="2-fuzz-testing">2. Fuzz Testing<a class="headerlink" href="#2-fuzz-testing" title="Permanent link">&para;</a></h3>
 <p>Fuzz tests exercise code with randomly generated inputs to find edge cases and panics.</p>
-<p><strong>Files</strong>:
-- <code>internal/config/fuzz_test.go</code>
-- <code>internal/discovery/fuzz_test.go</code></p>
+<p><strong>Files</strong>:</p>
+<ul>
+<li><code>internal/config/fuzz_test.go</code></li>
+<li><code>internal/discovery/fuzz_test.go</code></li>
+</ul>
 <p><strong>Fuzz Functions</strong>:</p>
 <table>
 <thead>
@@ -1666,40 +1672,46 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Run Fuzz Tests</strong>:
+<p><strong>Run Fuzz Tests</strong>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Run for 60 seconds</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-fuzz<span class="o">=</span>FuzzParseBool<span class="w"> </span>-fuzztime<span class="o">=</span>60s<span class="w"> </span>./internal/config
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Run all fuzz tests</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-fuzz<span class="o">=</span>.<span class="w"> </span>./internal/config<span class="w"> </span>./internal/discovery
-</span></code></pre></div></p>
-<p><strong>Expected Behavior</strong>:
-- No panics discovered
-- Handles malformed input gracefully
-- Edge cases identified and documented</p>
+</span></code></pre></div>
+<p><strong>Expected Behavior</strong>:</p>
+<ul>
+<li>No panics discovered</li>
+<li>Handles malformed input gracefully</li>
+<li>Edge cases identified and documented</li>
+</ul>
 <h3 id="3-integration-tests">3. Integration Tests<a class="headerlink" href="#3-integration-tests" title="Permanent link">&para;</a></h3>
 <p>Integration tests verify multiple components working together.</p>
-<p><strong>Files</strong>:
-- <code>internal/config/integration_test.go</code></p>
+<p><strong>Files</strong>:</p>
+<ul>
+<li><code>internal/config/integration_test.go</code></li>
+</ul>
 <p><strong>Purpose</strong>: Validate end-to-end workflows.</p>
-<p><strong>Example</strong>:
+<p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>./internal/config<span class="w"> </span>-run<span class="w"> </span>TestIntegration
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h3 id="4-benchmark-tests">4. Benchmark Tests<a class="headerlink" href="#4-benchmark-tests" title="Permanent link">&para;</a></h3>
 <p>Benchmark tests measure performance characteristics.</p>
-<p><strong>Files</strong>:
-- <code>internal/config/benchmark_test.go</code>
-- <code>internal/discovery/benchmark_test.go</code></p>
-<p><strong>Run Benchmarks</strong>:
+<p><strong>Files</strong>:</p>
+<ul>
+<li><code>internal/config/benchmark_test.go</code></li>
+<li><code>internal/discovery/benchmark_test.go</code></li>
+</ul>
+<p><strong>Run Benchmarks</strong>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Run benchmarks with memory stats</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-bench<span class="o">=</span>.<span class="w"> </span>-benchmem<span class="w"> </span>./internal/config
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Run specific benchmark for 10 seconds</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-bench<span class="o">=</span>BenchmarkLoadFile<span class="w"> </span>-benchtime<span class="o">=</span>10s<span class="w"> </span>./internal/config
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h2 id="test-fixtures">Test Fixtures<a class="headerlink" href="#test-fixtures" title="Permanent link">&para;</a></h2>
 <p>Test fixture files are located in the <code>testdata/</code> directory at the project root.</p>
-<p><strong>Structure</strong>:
+<p><strong>Structure</strong>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>testdata/
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── terragrunt-large/
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>│   ├── dev/
@@ -1709,7 +1721,7 @@
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>└── terragrunt-structure/
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    ├── dev/
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    └── prod/
-</span></code></pre></div></p>
+</span></code></pre></div>
 <p><strong>Purpose</strong>: Provide realistic Terragrunt configurations for testing.</p>
 <h2 id="how-to-write-tests">How to Write Tests<a class="headerlink" href="#how-to-write-tests" title="Permanent link">&para;</a></h2>
 <h3 id="basic-unit-test">Basic Unit Test<a class="headerlink" href="#basic-unit-test" title="Permanent link">&para;</a></h3>
@@ -1789,15 +1801,19 @@
 <li><strong>Critical paths</strong>: 95%+ coverage</li>
 <li><strong>Public APIs</strong>: 100% coverage on happy path</li>
 </ul>
-<p>Current package coverage reflects these goals. Untested functions are typically:
-- Integration code requiring complex setup
-- Error paths that are difficult to reproduce
-- Signal handling and OS-level interactions</p>
+<p>Current package coverage reflects these goals. Untested functions are typically:</p>
+<ul>
+<li>Integration code requiring complex setup</li>
+<li>Error paths that are difficult to reproduce</li>
+<li>Signal handling and OS-level interactions</li>
+</ul>
 <h2 id="cicd-integration">CI/CD Integration<a class="headerlink" href="#cicd-integration" title="Permanent link">&para;</a></h2>
-<p>Tests run automatically on:
-- Pull requests to <code>main</code> and <code>develop</code>
-- Commits to <code>main</code> and <code>develop</code>
-- Release builds</p>
+<p>Tests run automatically on:</p>
+<ul>
+<li>Pull requests to <code>main</code> and <code>develop</code></li>
+<li>Commits to <code>main</code> and <code>develop</code></li>
+<li>Release builds</li>
+</ul>
 <p><strong>GitHub Actions workflow</strong>: <code>.github/workflows/ci.yml</code></p>
 <h3 id="ci-pipeline">CI Pipeline<a class="headerlink" href="#ci-pipeline" title="Permanent link">&para;</a></h3>
 <p>The CI pipeline runs the following checks:</p>
@@ -1831,9 +1847,9 @@
 <li><strong>PR Comments</strong>: Automatic coverage diffs on pull requests</li>
 <li><strong>Trends</strong>: Historical coverage trends over time</li>
 </ul>
-<p>To generate coverage locally:
+<p>To generate coverage locally:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>make<span class="w"> </span>coverage
-</span></code></pre></div></p>
+</span></code></pre></div>
 <p>This will generate <code>coverage.out</code> and open an HTML report in your browser.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="test-timeouts">Test Timeouts<a class="headerlink" href="#test-timeouts" title="Permanent link">&para;</a></h3>
@@ -1842,9 +1858,9 @@
 <h3 id="fuzz-test-not-finding-seed">Fuzz Test Not Finding Seed<a class="headerlink" href="#fuzz-test-not-finding-seed" title="Permanent link">&para;</a></h3>
 <p>Check that fuzz test is properly structured and accepts <code>*testing.F</code> parameter.</p>
 <h3 id="coverage-measurement-issues">Coverage Measurement Issues<a class="headerlink" href="#coverage-measurement-issues" title="Permanent link">&para;</a></h3>
-<p>Clear fuzzing cache:
+<p>Clear fuzzing cache:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>go<span class="w"> </span>clean<span class="w"> </span>-fuzzcache
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://golang.org/doc/effective_go#testing">Go Testing Handbook</a></li>

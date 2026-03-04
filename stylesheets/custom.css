@@ -7,11 +7,11 @@
   --md-primary-fg-color--dark: #1f5428;     /* Very dark green */
   --md-primary-bg-color: #f0fdf5;           /* Very light green background */
   --md-primary-bg-color--light: #f8fbf7;    /* Almost white green */
-  
+
   /* Accent colors - light green variants */
   --md-accent-fg-color: #65d867;            /* Bright light green */
   --md-accent-bg-color: #e8f8ec;            /* Very pale green */
-  
+
   /* Light theme specific */
   --md-default-fg-color: #1f1f1f;           /* Near black for text */
   --md-default-bg-color: #ffffff;           /* Pure white */
@@ -19,7 +19,7 @@
   --md-default-fg-color--lighter: #999999;  /* Lighter gray */
   --md-default-bg-color--light: #f5f5f5;    /* Very light gray */
   --md-default-bg-color--lighter: #fafafa;  /* Almost white */
-  
+
   /* Code colors */
   --md-code-fg-color: #2d7a3a;              /* Green for code */
   --md-code-bg-color: #f0fdf5;              /* Light green background */
@@ -32,17 +32,17 @@
   --md-primary-fg-color--dark: #4db84f;     /* Medium green */
   --md-primary-bg-color: #1a3a23;           /* Dark green background */
   --md-primary-bg-color--light: #234d34;    /* Slightly lighter dark green */
-  
+
   --md-accent-fg-color: #a0f0a0;            /* Very light green */
   --md-accent-bg-color: #1f352a;            /* Very dark green */
-  
+
   --md-default-fg-color: #e8e8e8;           /* Light gray text */
   --md-default-bg-color: #1e1e1e;           /* Very dark background */
   --md-default-fg-color--light: #b0b0b0;    /* Light gray secondary */
   --md-default-fg-color--lighter: #808080;  /* Medium gray */
   --md-default-bg-color--light: #262626;    /* Slightly lighter dark */
   --md-default-bg-color--lighter: #303030;  /* Even lighter dark */
-  
+
   --md-code-fg-color: #90e891;              /* Light green for code */
   --md-code-bg-color: #1f352a;              /* Very dark green background */
 }

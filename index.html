@@ -1491,7 +1491,7 @@
 <li><strong>Dependency-Aware</strong> — Respects Terragrunt dependencies, runs stacks in correct order</li>
 <li><strong>Parallel Execution</strong> — Configurable worker pool for fast, safe concurrent runs</li>
 <li><strong>No Server Required</strong> — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)</li>
-<li><strong>Multi-Format Output</strong> — Human-readable text or machine-parseable JSON</li>
+<li><strong>Structured Output</strong> — Human-readable logs with clear per-module sections</li>
 </ul>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Cultivator solves the complexity of orchestrating Terragrunt:</p>
@@ -1573,13 +1573,15 @@
 </span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">exit 1</span>
 </span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">fi</span>
 </span></code></pre></div>
-<p><strong>Problems:</strong>
-- <strong>Manual maintenance</strong> — Update pipeline when adding/removing stacks
-- <strong>No filtering</strong> — Complex bash logic for environment/tag filtering
-- <strong>Sequential execution</strong> — Slow; implementing parallelization is complex
-- <strong>No dependency handling</strong> — Must manually order stacks
-- <strong>Inconsistent errors</strong> — Hard to parse failures across stacks
-- <strong>Not portable</strong> — Rewrite for each CI system</p>
+<p><strong>Problems:</strong></p>
+<ul>
+<li><strong>Manual maintenance</strong> — Update pipeline when adding/removing stacks</li>
+<li><strong>No filtering</strong> — Complex bash logic for environment/tag filtering</li>
+<li><strong>Sequential execution</strong> — Slow; implementing parallelization is complex</li>
+<li><strong>No dependency handling</strong> — Must manually order stacks</li>
+<li><strong>Inconsistent errors</strong> — Hard to parse failures across stacks</li>
+<li><strong>Not portable</strong> — Rewrite for each CI system</li>
+</ul>
 <h3 id="the-solution-automated-orchestration">The Solution: Automated Orchestration<a class="headerlink" href="#the-solution-automated-orchestration" title="Permanent link">&para;</a></h3>
 <p>Cultivator automates discovery, filtering, and execution:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># With Cultivator: One command</span>
@@ -1587,13 +1589,15 @@
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cultivator plan --root=live --env=prod --exclude=experimental --parallelism=8 --non-interactive</span>
 </span></code></pre></div>
-<p><strong>Benefits:</strong>
-- <strong>Automatic discovery</strong> — Finds all stacks with <code>terragrunt.hcl</code>
-- <strong>Smart filtering</strong> — By environment, path patterns, and tags
-- <strong>Parallel execution</strong> — Safe concurrent runs with configurable workers
-- <strong>Dependency awareness</strong> — Parses and respects stack dependencies
-- <strong>Structured output</strong> — JSON or text format with clear exit codes
-- <strong>Same everywhere</strong> — Identical command works in CI and locally</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li><strong>Automatic discovery</strong> — Finds all stacks with <code>terragrunt.hcl</code></li>
+<li><strong>Smart filtering</strong> — By environment, path patterns, and tags</li>
+<li><strong>Parallel execution</strong> — Safe concurrent runs with configurable workers</li>
+<li><strong>Dependency awareness</strong> — Parses and respects stack dependencies</li>
+<li><strong>Structured output</strong> — Human-readable logs with clear exit codes</li>
+<li><strong>Same everywhere</strong> — Identical command works in CI and locally</li>
+</ul>
 <h3 id="real-world-example">Real-World Example<a class="headerlink" href="#real-world-example" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Scenario: Run plan on production stacks tagged &quot;critical&quot;, exclude experiments</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
@@ -1650,7 +1654,7 @@
 <tr>
 <td><strong>Error reporting</strong></td>
 <td>Custom aggregation</td>
-<td>Structured JSON/text output</td>
+<td>Structured per-module output</td>
 </tr>
 </tbody>
 </table>
