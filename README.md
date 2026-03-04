@@ -1,6 +1,6 @@
 # Cultivator
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.25%2B-blue.svg)](https://golang.org)
 [![Release](https://img.shields.io/github/v/release/Ops-Talks/cultivator.svg)](https://github.com/Ops-Talks/cultivator/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Ops-Talks/cultivator/ci.yml?branch=main)](https://github.com/Ops-Talks/cultivator/actions)
@@ -17,7 +17,6 @@
 - 🎯 **Flexible Filtering**: Environment, path patterns, and custom tags
 - ⚡ **Parallel Execution**: Configurable worker pool with dependency awareness
 - 🔒 **No Server**: Pure CLI; uses existing Terraform/OpenTofu backends
-- 📊 **Multiple Formats**: Human-readable or JSON output
 
 ## 🚀 Quick Start
 
@@ -54,25 +53,6 @@ Full documentation is available at: **[https://ops-talks.github.io/cultivator](h
 - [Architecture](https://ops-talks.github.io/cultivator/architecture/design/) - Design and internals
 - [FAQ](https://ops-talks.github.io/cultivator/faq/) - Common questions
 
-## 🛠️ Development
-
-```bash
-# Clone
-git clone https://github.com/Ops-Talks/cultivator.git
-cd cultivator
-
-# Build
-go build -o cultivator ./cmd/cultivator
-
-# Test
-go test ./...
-
-# Lint
-golangci-lint run
-```
-
-For detailed development guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE)
+GNU GPL v3 License - see [LICENSE](LICENSE)
