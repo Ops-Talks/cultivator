@@ -1,6 +1,12 @@
 # GitHub Actions Integration
 
-This guide shows how to run Cultivator in GitHub Actions using a GitHub-native workflow model.
+This guide shows production-ready patterns for running Cultivator in GitHub Actions.
+
+Key features of this approach:
+
+- Pre-compiled binaries: No compilation overhead; fast and efficient
+- Versioned tools: Pin OpenTofu, Terragrunt, and Cultivator versions
+- Structured workflow: Doctor check before plan/apply for early error detection
 
 Unlike GitLab CI, GitHub Actions uses:
 

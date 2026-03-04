@@ -10,15 +10,15 @@
 
 **Cultivator** is a lightweight CLI that orchestrates **Terragrunt** stack discovery, filtering, and execution across CI/CD systems and local environments.
 
-## ✨ Why Cultivator?
+## Why Cultivator?
 
-- 🚀 **CLI-first**: Works in GitHub Actions, GitLab CI, and locally
-- 🔍 **Smart Discovery**: Finds all Terragrunt stacks automatically
-- 🎯 **Flexible Filtering**: Environment, path patterns, and custom tags
-- ⚡ **Parallel Execution**: Configurable worker pool with dependency awareness
-- 🔒 **No Server**: Pure CLI; uses existing Terraform/OpenTofu backends
+- **CLI-first**: Works in GitHub Actions, GitLab CI, and locally
+- **Smart Discovery**: Finds all Terragrunt stacks automatically
+- **Flexible Filtering**: Environment, path patterns, and custom tags
+- **Parallel Execution**: Configurable worker pool with dependency awareness
+- **No Server**: Pure CLI; uses existing Terraform/OpenTofu backends
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Build
 
@@ -38,13 +38,13 @@ go build -o cultivator ./cmd/cultivator
 ./cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
 
-## 📋 Requirements
+## Requirements
 
 - **Terragrunt** v0.50.0+ (recommended: v1.0+)
 - **OpenTofu** v1.6+ or **Terraform** v1.5+
 - **Go** v1.25+ (for building from source)
 
-## 📚 Documentation
+## Documentation
 
 Full documentation is available at: **[https://ops-talks.github.io/cultivator](https://ops-talks.github.io/cultivator)**
 
@@ -53,6 +53,6 @@ Full documentation is available at: **[https://ops-talks.github.io/cultivator](h
 - [Architecture](https://ops-talks.github.io/cultivator/architecture/design/) - Design and internals
 - [FAQ](https://ops-talks.github.io/cultivator/faq/) - Common questions
 
-## 📄 License
+## License
 
 GNU GPL v3 License - see [LICENSE](LICENSE)

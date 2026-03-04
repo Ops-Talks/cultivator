@@ -45,39 +45,12 @@ Use it explicitly:
 ./cultivator plan --config=cultivator.yml
 ```
 
-## Step 4: Add a CI job
+## Next: CI/CD Integration
 
-Example GitHub Actions workflow for `plan` on pull requests:
+Once you're comfortable running Cultivator locally, set up CI/CD pipelines:
 
-```yaml
-name: Cultivator Plan
-
-on:
-  pull_request:
-
-jobs:
-  plan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
-
-      - name: Build Cultivator
-        run: go build -o bin/cultivator ./cmd/cultivator
-
-      - name: Install Terragrunt
-        run: |
-          curl -L https://github.com/gruntwork-io/terragrunt/releases/latest/download/terragrunt_linux_amd64 -o terragrunt
-          chmod +x terragrunt
-          sudo mv terragrunt /usr/local/bin/terragrunt
-
-      - name: Cultivator plan
-        run: ./bin/cultivator plan --root=live --env=dev --non-interactive
-```
+- [GitHub Actions Integration](../user-guide/github-actions.md) - Production-ready workflows
+- [GitLab CI Integration](../user-guide/gitlab-pipelines.md) - Complete pipeline examples
 
 ## Next Steps
 

@@ -87,6 +87,42 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
 ```
 
+## Output Format
+
+Cultivator produces human-readable text output by default, organized by module with clear section headers:
+
+```
+=== plan: live/prod/vpc ===
+Running terragrunt plan in /path/to/live/prod/vpc...
+[output from terragrunt]
+
+=== plan: live/prod/app ===
+Running terragrunt plan in /path/to/live/prod/app...
+[output from terragrunt]
+```
+
+Each stack shows:
+- Module path
+- Terragrunt output and any errors
+- Clear demarcation for easy scanning
+
+## Binary Invocation
+
+Local development (after building):
+```bash
+go build -o cultivator ./cmd/cultivator
+./cultivator plan --root=live --env=dev
+```
+
+CI/CD environments (pre-compiled/downloaded binaries in PATH):
+```bash
+cultivator plan --root=live --env=dev
+```
+
+Both forms are equivalent. The difference:
+- `./cultivator` - Runs binary in current directory (local builds)
+- `cultivator` - Runs binary found in system PATH (CI/production installs)
+
 ## Exit Codes
 
 - `0` - Success (all stacks executed successfully)

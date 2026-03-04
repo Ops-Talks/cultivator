@@ -9,6 +9,8 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 
 ## General Instructions
 
+- All code comments and documentation should be written in English by default.
+- Never use emoji in code or comments, as it can cause issues with readability and tooling.
 - Write simple, clear, and idiomatic Go code
 - Favor clarity and simplicity over cleverness
 - Follow the principle of least surprise
