@@ -4,7 +4,7 @@ This directory contains an example Terragrunt project structure to demonstrate h
 
 ## Structure
 
-```
+```text
 examples/
 ├── terragrunt/
 │   ├── terragrunt.hcl              # Root Terragrunt config
@@ -46,20 +46,23 @@ examples/
 ## Example Scenarios
 
 ### Scenario 1: Change VPC in Dev
+
 - **Changed**: `environments/dev/vpc/terragrunt.hcl`
-- **Affected modules**: 
+- **Affected modules**:
   - `environments/dev/vpc` (direct)
   - `environments/dev/database` (depends on vpc)
   - `environments/dev/app` (depends on vpc and database)
 - **Execution order**: vpc → database → app
 
 ### Scenario 2: Change App in Staging
+
 - **Changed**: `environments/staging/app/terragrunt.hcl`
-- **Affected modules**: 
+- **Affected modules**:
   - `environments/staging/app` (direct)
 - **Execution order**: app
 
 ### Scenario 3: Change Root Config
+
 - **Changed**: `terragrunt.hcl` (root)
 - **Affected modules**: ALL (because all inherit from root)
 - **Execution order**: Topologically sorted based on dependencies

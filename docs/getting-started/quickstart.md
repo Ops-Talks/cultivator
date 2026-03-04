@@ -29,7 +29,6 @@ Create `cultivator.yml` in the repository root only if you want defaults:
 ```yaml
 root: live
 parallelism: 4
-output_format: text
 non_interactive: true
 
 plan:

@@ -10,7 +10,7 @@ theme:
   language: en
   logo: assets/logo.svg
   favicon: assets/logo.svg
-  
+
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -19,7 +19,7 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    
+
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: custom
@@ -27,7 +27,7 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-  
+
   features:
     - content.code.copy
     - content.code.annotate

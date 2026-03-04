@@ -11,7 +11,7 @@
 - **Dependency-Aware** — Respects Terragrunt dependencies, runs stacks in correct order
 - **Parallel Execution** — Configurable worker pool for fast, safe concurrent runs
 - **No Server Required** — Pure CLI; works in any CI system (GitHub Actions, GitLab CI, etc.)
-- **Multi-Format Output** — Human-readable text or machine-parseable JSON
+- **Structured Output** — Human-readable logs with clear per-module sections
 
 ## Overview
 
@@ -39,23 +39,27 @@ Unlike webhook-based automation, Cultivator is a **CLI you invoke explicitly** f
 ## Typical Workflow
 
 ### 1. Local Development
+
 ```bash
 ./cultivator plan --root=live --env=dev
 # Review plan, iterate on infrastructure code
 ```
 
 ### 2. Create Pull Request
+
 ```bash
 git push origin feature-branch
 # CI automatically runs: cultivator plan --root=live --env=dev
 ```
 
 ### 3. Review & Merge
+
 ```bash
 # Team reviews plan output, merges to main after approval
 ```
 
-### 4. Production Deployment  
+### 4. Production Deployment
+
 ```bash
 # CI automatically runs: cultivator apply --root=live --env=prod --auto-approve
 ```
@@ -63,11 +67,13 @@ git push origin feature-branch
 ## Use Case Examples
 
 ### Multi-Environment Deployment
+
 ```bash
 cultivator apply --root=live --env=prod --tags=critical --auto-approve
 ```
 
 ### Target Specific Stacks
+
 ```bash
 cultivator plan --root=live \
   --include=envs/prod/database \
@@ -75,6 +81,7 @@ cultivator plan --root=live \
 ```
 
 ### Exclude Experimental Infrastructure
+
 ```bash
 cultivator plan --root=live --exclude=experimental --non-interactive
 ```
@@ -91,7 +98,7 @@ plan:
   script:
     # Manual discovery
     - STACKS=$(find live/prod -name "terragrunt.hcl" -type f)
-    
+
     # Manual filtering
     - FILTERED=()
     - for stack in $STACKS; do
@@ -99,7 +106,7 @@ plan:
           FILTERED+=("$stack")
         fi
       done
-    
+
     # Sequential execution (slow!)
     - FAILED=()
     - for stack in "${FILTERED[@]}"; do
@@ -110,7 +117,7 @@ plan:
         fi
         cd -
       done
-    
+
     # Manual error reporting
     - if [ ${#FAILED[@]} -gt 0 ]; then
         echo "Failed stacks: ${FAILED[*]}"
@@ -119,6 +126,7 @@ plan:
 ```
 
 **Problems:**
+
 - **Manual maintenance** — Update pipeline when adding/removing stacks
 - **No filtering** — Complex bash logic for environment/tag filtering
 - **Sequential execution** — Slow; implementing parallelization is complex
@@ -138,11 +146,12 @@ plan:
 ```
 
 **Benefits:**
+
 - **Automatic discovery** — Finds all stacks with `terragrunt.hcl`
 - **Smart filtering** — By environment, path patterns, and tags
 - **Parallel execution** — Safe concurrent runs with configurable workers
 - **Dependency awareness** — Parses and respects stack dependencies
-- **Structured output** — JSON or text format with clear exit codes
+- **Structured output** — Human-readable logs with clear exit codes
 - **Same everywhere** — Identical command works in CI and locally
 
 ### Real-World Example
@@ -171,7 +180,7 @@ cultivator plan --root=live --env=prod --tags=critical --exclude=experimental --
 | **Parallel execution** | Implement semaphores | `--parallelism=8` |
 | **Handle dependencies** | Manual ordering | Automatic graph parsing |
 | **Local testing** | Rewrite for local use | Same command everywhere |
-| **Error reporting** | Custom aggregation | Structured JSON/text output |
+| **Error reporting** | Custom aggregation | Structured per-module output |
 
 ## What's Different?
 
@@ -188,18 +197,21 @@ cultivator plan --root=live --env=prod --tags=critical --exclude=experimental --
 ## Getting Started
 
 ### Build Locally
+
 ```bash
 go build -o cultivator ./cmd/cultivator
 ./cultivator version
 ```
 
 ### Run in Docker
+
 ```bash
 make docker-build
 docker run cultivator:latest plan --help
 ```
 
 ### Integrate with CI/CD
+
 - **[GitHub Actions](user-guide/github-actions.md)** — Full workflow examples
 - **[GitLab CI/CD](user-guide/gitlab-pipelines.md)** — Full pipeline examples
 

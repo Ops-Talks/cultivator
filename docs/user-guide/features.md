@@ -22,14 +22,6 @@ Run stacks concurrently with a configurable worker pool:
 parallelism: 4
 ```
 
-## Consistent Output
-
-Choose `text` or `json` output to fit CI log requirements:
-
-```yaml
-output_format: json
-```
-
 ## Configurable Log Levels
 
 Control Cultivator's own log verbosity via the `CULTIVATOR_LOG_LEVEL` environment variable:

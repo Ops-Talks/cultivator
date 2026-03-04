@@ -28,11 +28,13 @@ Located in `*_test.go` files alongside source code.
 **Purpose**: Test individual functions and methods in isolation.
 
 **Example**:
+
 ```bash
 go test -v ./internal/config
 ```
 
 **Guidelines**:
+
 - One test file per source file
 - Use table-driven tests for multiple cases
 - Name tests descriptively: `Test_functionName_scenario`
@@ -40,6 +42,7 @@ go test -v ./internal/config
 - Avoid external dependencies; use mocks when needed
 
 **Sample Tests**:
+
 - `internal/config/config_test.go` - Configuration loading and merging
 - `internal/discovery/discovery_test.go` - Stack discovery logic
 - `internal/cli/cli_test.go` - CLI flag parsing and routing
@@ -51,6 +54,7 @@ go test -v ./internal/config
 Fuzz tests exercise code with randomly generated inputs to find edge cases and panics.
 
 **Files**:
+
 - `internal/config/fuzz_test.go`
 - `internal/discovery/fuzz_test.go`
 
@@ -67,6 +71,7 @@ Fuzz tests exercise code with randomly generated inputs to find edge cases and p
 | FuzzEnvFromPath     | discovery  | Path-to-environment parsing      |
 
 **Run Fuzz Tests**:
+
 ```bash
 # Run for 60 seconds
 go test -fuzz=FuzzParseBool -fuzztime=60s ./internal/config
@@ -76,6 +81,7 @@ go test -fuzz=. ./internal/config ./internal/discovery
 ```
 
 **Expected Behavior**:
+
 - No panics discovered
 - Handles malformed input gracefully
 - Edge cases identified and documented
@@ -85,11 +91,13 @@ go test -fuzz=. ./internal/config ./internal/discovery
 Integration tests verify multiple components working together.
 
 **Files**:
+
 - `internal/config/integration_test.go`
 
 **Purpose**: Validate end-to-end workflows.
 
 **Example**:
+
 ```bash
 go test -v ./internal/config -run TestIntegration
 ```
@@ -99,10 +107,12 @@ go test -v ./internal/config -run TestIntegration
 Benchmark tests measure performance characteristics.
 
 **Files**:
+
 - `internal/config/benchmark_test.go`
 - `internal/discovery/benchmark_test.go`
 
 **Run Benchmarks**:
+
 ```bash
 # Run benchmarks with memory stats
 go test -bench=. -benchmem ./internal/config
@@ -116,7 +126,8 @@ go test -bench=BenchmarkLoadFile -benchtime=10s ./internal/config
 Test fixture files are located in the `testdata/` directory at the project root.
 
 **Structure**:
-```
+
+```text
 testdata/
 ├── terragrunt-large/
 │   ├── dev/
@@ -174,7 +185,7 @@ func FuzzParseBool(f *testing.F) {
     for _, tc := range testcases {
         f.Add(tc)
     }
-    
+
     f.Fuzz(func(t *testing.T, input string) {
         _, _ = ParseBool(input)
         // If we reach here without panic, test passes
@@ -185,27 +196,32 @@ func FuzzParseBool(f *testing.F) {
 ## Running Tests
 
 ### All Tests
+
 ```bash
 go test ./...
 ```
 
 ### Specific Package
+
 ```bash
 go test './internal/config' -v
 ```
 
 ### With Coverage Report
+
 ```bash
 go test -cover ./...
 ```
 
 ### Generate Coverage HTML
+
 ```bash
 go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out
 ```
 
 ### With Race Detector
+
 ```bash
 go test -race ./...
 ```
@@ -227,6 +243,7 @@ go test -race ./...
 - **Public APIs**: 100% coverage on happy path
 
 Current package coverage reflects these goals. Untested functions are typically:
+
 - Integration code requiring complex setup
 - Error paths that are difficult to reproduce
 - Signal handling and OS-level interactions
@@ -234,6 +251,7 @@ Current package coverage reflects these goals. Untested functions are typically:
 ## CI/CD Integration
 
 Tests run automatically on:
+
 - Pull requests to `main` and `develop`
 - Commits to `main` and `develop`
 - Release builds
@@ -269,6 +287,7 @@ Coverage is tracked via **Codecov**:
 - **Trends**: Historical coverage trends over time
 
 To generate coverage locally:
+
 ```bash
 make coverage
 ```
@@ -278,15 +297,19 @@ This will generate `coverage.out` and open an HTML report in your browser.
 ## Troubleshooting
 
 ### Test Timeouts
+
 ```bash
 go test -timeout=30s ./...
 ```
 
 ### Fuzz Test Not Finding Seed
+
 Check that fuzz test is properly structured and accepts `*testing.F` parameter.
 
 ### Coverage Measurement Issues
+
 Clear fuzzing cache:
+
 ```bash
 go clean -fuzzcache
 ```
@@ -296,4 +319,3 @@ go clean -fuzzcache
 - [Go Testing Handbook](https://golang.org/doc/effective_go#testing)
 - [Table-Driven Tests](https://github.com/golang/go/wiki/TableDrivenTests)
 - [Fuzzing in Go](https://go.dev/doc/fuzz/)
-

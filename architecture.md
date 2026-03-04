@@ -76,14 +76,18 @@ Key features:
 1. A developer opens a PR with changes in a Terragrunt repository.
 2. GitHub Actions / GitLab CI triggers the PR pipeline.
 3. The job runs:
-  - repo checkout;
-  - Go setup (if building Cultivator in the pipeline) or binary download;
-  - cloud authentication (IAM, service accounts, etc.);
-  - `cultivator plan` with scope parameters (e.g., environment, folder).
+
+- repo checkout;
+- Go setup (if building Cultivator in the pipeline) or binary download;
+- cloud authentication (IAM, service accounts, etc.);
+- `cultivator plan` with scope parameters (e.g., environment, folder).
+
 4. Cultivator:
-  - discovers modules;
-  - runs `terragrunt plan` for each eligible module;
-  - returns consolidated output + exit code.
+
+- discovers modules;
+- runs `terragrunt plan` for each eligible module;
+- returns consolidated output + exit code.
+
 5. CI marks the job as success/failure and can post logs on the PR (platform-native).
 
 For `apply`/`destroy`, the recommendation is to run separate pipelines (e.g., triggered on merge or manual approval in the pipeline), following the pattern suggested by Gruntwork for Terragrunt CI/CD.
@@ -113,6 +117,7 @@ cultivator doctor
   - Internally normalized and treated as a filter (equivalent to `--include` flag)
 
 Examples:
+
 ```bash
 # Run plan on a specific module
 cultivator plan cloudwatch/log-group/lambda-example
@@ -126,6 +131,7 @@ cultivator plan cloudwatch/log-group/lambda-example --destroy
 ```
 
 **Backward Compatibility**: All existing flag-based invocations continue to work:
+
 ```bash
 cultivator plan --include cloudwatch/log-group/lambda-example --parallelism=5
 ```
@@ -178,9 +184,11 @@ live/
 1. Receive `rootDir` (default or via flag/config).
 2. Recursively walk (`filepath.WalkDir`) looking for `terragrunt.hcl` files.
 3. For each `terragrunt.hcl`, create a `Module` object:
-  - `Path` (directory where the file lives);
-  - `Env` (derived from the path or an attribute in `terragrunt.hcl`);
-  - `Tags` (optionally derived from comments or extra blocks).
+
+- `Path` (directory where the file lives);
+- `Env` (derived from the path or an attribute in `terragrunt.hcl`);
+- `Tags` (optionally derived from comments or extra blocks).
+
 4. Apply filters (`Env`, `Include`, `Exclude`, `Tags`).
 5. Return the list of modules to execute.
 

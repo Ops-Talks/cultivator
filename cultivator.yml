@@ -29,13 +29,13 @@ projects:
 settings:
   # Automatically run plan when PR is opened/updated
   auto_plan: true
-  
+
   # Timeout for acquiring locks
   lock_timeout: 10m
-  
+
   # Run plans in parallel when possible
   parallel_plan: true
-  
+
   # Maximum number of parallel operations
   max_parallel: 5
 
@@ -45,16 +45,15 @@ hooks:
   pre_plan:
     - echo "Running pre-plan checks..."
     - terragrunt validate-all
-    
+
   # Run after plan
   post_plan:
     - echo "Plan completed"
-    
+
   # Run before apply
   pre_apply:
     - echo "Starting apply..."
-    
+
   # Run after apply
   post_apply:
     - echo "Apply completed successfully"
-

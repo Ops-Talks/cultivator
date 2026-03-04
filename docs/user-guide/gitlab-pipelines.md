@@ -28,9 +28,6 @@ variables:
   CULTIVATOR_ROOT: "providers"
   CULTIVATOR_ENV: ""
   CULTIVATOR_PARALLELISM: "4"
-  # CULTIVATOR_OUTPUT_FORMAT is read from the environment by Cultivator
-  # automatically via CULTIVATOR_OUTPUT_FORMAT; no --output-format CLI flag exists.
-  CULTIVATOR_OUTPUT_FORMAT: "text"
 
 workflow:
   rules:
@@ -173,7 +170,6 @@ A config file is optional. If you use one, pass it explicitly with `--config`.
 # cultivator.yml
 root: providers
 parallelism: 4
-output_format: text
 non_interactive: true
 ```
 
@@ -196,12 +192,15 @@ script:
 ## Troubleshooting
 
 ### `cultivator: command not found`
+
 Confirm binary installation and `PATH`; keep `doctor` job enabled.
 
 ### `terragrunt: command not found`
+
 Cultivator delegates execution to Terragrunt. Install both binaries in the same job.
 
 ### No stacks discovered
+
 Check `CULTIVATOR_ROOT` path and optional `CULTIVATOR_ENV` filter.
 
 ---

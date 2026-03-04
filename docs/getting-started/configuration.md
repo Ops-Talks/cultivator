@@ -23,7 +23,6 @@ Supported filename is up to you (`cultivator.yml`, `.cultivator.yaml`, etc.).
 ```yaml
 root: live
 parallelism: 4
-output_format: text
 non_interactive: true
 
 include:
@@ -53,53 +52,56 @@ Highest to lowest:
 
 ## Supported keys
 
-#### `root`
+### `root`
+
 - **Type**: String
 - **Default**: `.`
 - **Description**: Root directory used to discover `terragrunt.hcl` stacks
 
-#### `env`
+### `env`
+
 - **Type**: String
 - **Default**: empty
 - **Description**: Environment filter derived from the first directory under `root`
 
-#### `include` / `exclude`
+### `include` / `exclude`
+
 - **Type**: String list
 - **Default**: empty
 - **Description**: Relative paths under `root` to include or exclude
 
-#### `tags`
+### `tags`
+
 - **Type**: String list
 - **Default**: empty
 - **Description**: Optional tags filter parsed from `terragrunt.hcl` comments (example: `# cultivator:tags=app,db`)
 
-#### `parallelism`
+### `parallelism`
+
 - **Type**: Integer
 - **Default**: number of CPUs
 - **Description**: Maximum number of stacks to execute in parallel
 
-#### `output_format`
-- **Type**: String
-- **Default**: `text`
-- **Valid values**: `text`, `json`
-- **Description**: Log output format
+### `non_interactive`
 
-#### `non_interactive`
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Adds `-input=false` to Terragrunt commands
 
-#### `plan.destroy`
+### `plan.destroy`
+
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Run `terragrunt plan -destroy`
 
-#### `apply.auto_approve`
+### `apply.auto_approve`
+
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Add `-auto-approve` to `terragrunt apply`
 
-#### `destroy.auto_approve`
+### `destroy.auto_approve`
+
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Add `-auto-approve` to `terragrunt destroy`
@@ -114,7 +116,6 @@ Environment variables override the config file:
 - `CULTIVATOR_EXCLUDE`
 - `CULTIVATOR_TAGS`
 - `CULTIVATOR_PARALLELISM`
-- `CULTIVATOR_OUTPUT_FORMAT`
 - `CULTIVATOR_NON_INTERACTIVE`
 - `CULTIVATOR_PLAN_DESTROY`
 - `CULTIVATOR_APPLY_AUTO_APPROVE`
@@ -140,8 +141,7 @@ export CULTIVATOR_LOG_LEVEL=debug   # enable verbose Cultivator logs
 Flags override environment variables and config file
 
 ```bash
-# CULTIVATOR_OUTPUT_FORMAT is an environment variable; there is no --output-format CLI flag.
-CULTIVATOR_OUTPUT_FORMAT=json cultivator plan \
+cultivator plan \
   --root=live \
   --env=prod \
   --include=envs/prod/app1 \

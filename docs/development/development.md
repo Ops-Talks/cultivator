@@ -19,7 +19,7 @@
 
 ## Architecture Overview
 
-```
+```text
 User invokes Cultivator
     ↓
 Config Loader (merge cultivator.yml + env vars + CLI flags)
@@ -42,7 +42,7 @@ Exit with status code (0=success, 1=failure, 2=usage error)
 
 ## Directory Structure
 
-```
+```text
 cultivator/
 ├── cmd/
 │   └── cultivator/
@@ -94,6 +94,7 @@ cultivator/
 **Purpose**: Load and merge configuration from multiple sources.
 
 **Responsibilities**:
+
 - Read `cultivator.yml` / `cultivator.yaml` from filesystem
 - Merge with environment variables (CULTIVATOR_* prefix)
 - Merge with CLI flags (highest precedence)
@@ -101,6 +102,7 @@ cultivator/
 - Provide typed access to settings
 
 **Test Files**:
+
 - `config_test.go` - Unit tests
 - `benchmark_test.go` - Performance measurements
 - `coverage_test.go` - Additional coverage gaps
@@ -114,6 +116,7 @@ cultivator/
 **Purpose**: Discover and filter Terragrunt stacks in the filesystem.
 
 **Responsibilities**:
+
 - Recursively walk directory tree from root
 - Find all `terragrunt.hcl` files
 - Filter stacks by environment, path patterns, and tags
@@ -121,6 +124,7 @@ cultivator/
 - Build list of available stacks
 
 **Test Files**:
+
 - `discovery_test.go` - Unit tests
 - `benchmark_test.go` - Performance measurements
 - `coverage_test.go` - Additional coverage gaps
@@ -133,6 +137,7 @@ cultivator/
 **Purpose**: Handle command-line interface and flag parsing.
 
 **Responsibilities**:
+
 - Parse CLI arguments and flags
 - Route commands (plan, apply, destroy, version, doctor)
 - Build configuration from CLI flags
@@ -140,6 +145,7 @@ cultivator/
 - Handle user interaction
 
 **Test Files**:
+
 - `cli_test.go` - Comprehensive unit tests
 
 **Test Coverage**: 69.2%
@@ -149,12 +155,14 @@ cultivator/
 **Purpose**: Structured logging throughout the application.
 
 **Responsibilities**:
+
 - Create and manage loggers
 - Format log messages
 - Support multiple output levels
 - Redact sensitive information
 
 **Test Files**:
+
 - `logger_test.go` - Unit tests
 
 **Test Coverage**: 94.9%
@@ -164,6 +172,7 @@ cultivator/
 **Purpose**: Execute Terragrunt commands and capture results.
 
 **Responsibilities**:
+
 - Execute `terragrunt` commands per stack
 - Handle command initialization and lifecycle
 - Capture stdout and stderr in a single chronologically-ordered stream using `cmd.CombinedOutput()`
@@ -171,6 +180,7 @@ cultivator/
 - Manage concurrent execution with worker pool
 
 **Test Files**:
+
 - `runner_test.go` - Unit tests
 
 **Test Coverage**: 95.5%
@@ -200,7 +210,7 @@ go build -ldflags="-X main.version=v0.3.10 -X main.commit=$(git rev-parse HEAD)"
   -o cultivator ./cmd/cultivator
 ```
 
-### Testing
+### Running Tests
 
 ```bash
 # Run all tests
@@ -233,11 +243,11 @@ goimports -w ./...
 See [Contributing](contributing.md) for detailed contribution guidelines.
 
 Key points:
+
 - Write tests for new functionality
 - Maintain or improve test coverage
 - Follow Go conventions from the [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 - Update documentation when making changes
-
 
 ## Code Quality Standards
 
@@ -303,6 +313,7 @@ go test ./...
 ## Continuous Integration
 
 All pull requests must pass:
+
 - Unit tests: `go test ./...`
 - Linting: `golangci-lint run`
 - Code formatting: `go fmt ./...`
@@ -414,6 +425,7 @@ make fmt
 ## Contributing
 
 See the [Contributing Guide](contributing.md) for:
+
 - Contribution workflow
 - Pull request checklist
 - Code style requirements

@@ -35,9 +35,6 @@ env:
   CULTIVATOR_ROOT: providers
   CULTIVATOR_ENV: ""
   CULTIVATOR_PARALLELISM: "4"
-  # CULTIVATOR_OUTPUT_FORMAT is read from the environment automatically;
-  # no --output-format CLI flag exists.
-  CULTIVATOR_OUTPUT_FORMAT: text
 
 jobs:
   doctor:
@@ -285,7 +282,6 @@ jobs:
           root: providers
           env: dev
           parallelism: '4'
-          output-format: text
           non-interactive: 'true'
 
   apply:
@@ -303,7 +299,6 @@ jobs:
           root: providers
           env: prod
           parallelism: '4'
-          output-format: text
           non-interactive: 'true'
           auto-approve: 'true'
 
@@ -413,12 +408,15 @@ Cultivator does not manage credentials; Terragrunt/OpenTofu/Terraform reads them
 ## Troubleshooting
 
 ### `cultivator: command not found`
+
 Verify install step ran successfully and binary was moved to `/usr/local/bin`.
 
 ### `terragrunt: command not found`
+
 Cultivator delegates to Terragrunt. Install both binaries in the same job.
 
 ### PR comment step fails with 403
+
 Ensure workflow includes:
 
 ```yaml
@@ -427,6 +425,7 @@ permissions:
 ```
 
 ### No stacks discovered
+
 Check `CULTIVATOR_ROOT` and optional `CULTIVATOR_ENV` filter.
 
 ---

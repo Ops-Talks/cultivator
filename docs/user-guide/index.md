@@ -14,33 +14,41 @@ Learn how to use Cultivator to automate Terragrunt workflows in CI and locally.
 
 Cultivator is a lightweight CLI that discovers Terragrunt stacks and orchestrates execution:
 
-```
+```text
 You call cultivator → Discovers stacks → Applies filters → Executes Terragrunt → Shows results
 ```
 
 ## Use Cases
 
 ### Local Development
+
 Run plans locally to validate changes before committing:
+
 ```bash
 cultivator plan --root=live --env=dev
 ```
 
 ### Pull Request CI
+
 Test changes safely on PRs—no approval required until review:
+
 ```bash
 # GitHub Actions or GitLab CI can run this automatically
 cultivator plan --root=live --env=dev --non-interactive
 ```
 
 ### Main Branch Deployment
+
 Apply approved changes after merging to main:
+
 ```bash
 cultivator apply --root=live --env=prod --non-interactive --auto-approve
 ```
 
 ### Cross-Environment Promotion
+
 Test in one environment, apply in others:
+
 ```bash
 # Test in staging
 cultivator plan --root=live --env=staging --tags=critical
@@ -52,39 +60,46 @@ cultivator apply --root=live --env=prod --tags=critical --auto-approve
 ## Key Concepts
 
 ### Stack Discovery
+
 Cultivator recursively walks the root directory, finds all `terragrunt.hcl` files, and maintains a registry of available stacks.
 
 ### Scope Filters
+
 Use multiple filters to narrow execution:
+
 - `--env=dev` - by environment variable
 - `--include=envs/prod/* --include=envs/staging/*` - by path pattern
 - `--exclude=experimental` - exclude paths
 - `--tags=critical,prod` - by inline tags (e.g., `# cultivator:tags=critical,prod`)
 
 ### Dependency Ordering
+
 Cultivator parses `dependency` blocks in Terragrunt configs and runs stacks in the correct order automatically.
 
 ### Parallelism
-Run independent stacks concurrently. Default: 4 workers. Override with `--parallelism=N`.
 
-### Output Formats
-- `text` (default) - human-readable logs
-- `json` - machine-parseable for CI integrations
+Run independent stacks concurrently. Default: 4 workers. Override with `--parallelism=N`.
 
 ## Integration Paths
 
 ### GitHub Actions
+
 Add a workflow file to run Cultivator on PR and main branch:
+
 - See [GitHub Actions](github-actions.md) for setup and examples
 - Features: matrix strategies, secrets integration, caching, artifacts
 
 ### GitLab CI/CD
+
 Define jobs in `.gitlab-ci.yml` to orchestrate Cultivator:
+
 - See [GitLab Pipelines](gitlab-pipelines.md) for setup and examples
 - Features: parallel jobs, dependency stages, caching, environment-based deployment
 
-### Local Development
+### Local CLI Usage
+
 Run Cultivator directly in your terminal:
+
 1. Build: `make build` or `go build -o cultivator ./cmd/cultivator`
 2. Execute: `./cultivator plan --root=live --env=dev`
 3. Review output and commit changes
@@ -96,5 +111,3 @@ Run Cultivator directly in your terminal:
 - **[Configuration](../getting-started/configuration.md)** - Full config file reference
 - **[FAQ](../faq.md)** - Common questions answered
 - **[Architecture](../architecture/design.md)** - Understand how Cultivator works
-
-

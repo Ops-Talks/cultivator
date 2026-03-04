@@ -22,16 +22,19 @@
 ## 🚀 Quick Start
 
 ### Build
+
 ```bash
 go build -o cultivator ./cmd/cultivator
 ```
 
 ### Plan
+
 ```bash
 ./cultivator plan --root=live --env=dev --non-interactive
 ```
 
 ### Apply
+
 ```bash
 ./cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```

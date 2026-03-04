@@ -13,6 +13,7 @@ cultivator plan --root=live --env=dev --non-interactive
 ```
 
 **Options**:
+
 - `--destroy` - run `terragrunt plan -destroy`
 - `--non-interactive` - add `-input=false`
 
@@ -25,6 +26,7 @@ cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
 
 **Options**:
+
 - `--auto-approve` - add `-auto-approve`
 - `--non-interactive` - add `-input=false`
 
@@ -37,6 +39,7 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ```
 
 **Options**:
+
 - `--auto-approve` - add `-auto-approve`
 - `--non-interactive` - add `-input=false`
 
@@ -72,14 +75,6 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ./cultivator plan --root=live --parallelism=8 --non-interactive
 ```
 
-### Output JSON for CI/CD systems
-
-Set `CULTIVATOR_OUTPUT_FORMAT` before running — there is no `--output-format` CLI flag:
-
-```bash
-CULTIVATOR_OUTPUT_FORMAT=json ./cultivator plan --root=live --non-interactive
-```
-
 ## Environment Variables
 
 | Variable               | Values                              | Default | Description                                                  |
@@ -87,6 +82,7 @@ CULTIVATOR_OUTPUT_FORMAT=json ./cultivator plan --root=live --non-interactive
 | `CULTIVATOR_LOG_LEVEL` | `debug`, `info`, `warning`, `error` | `info`  | Minimum log level emitted by Cultivator. Terragrunt output is always printed regardless of this setting. |
 
 **Example — enable debug logging:**
+
 ```bash
 CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
 ```
@@ -102,6 +98,7 @@ CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
 For pull requests + main branch merges:
 
 1. **PR triggers plan:**
+
    ```bash
    cultivator plan --root=live --env=dev --non-interactive
    ```
@@ -111,6 +108,7 @@ For pull requests + main branch merges:
 3. **Merge PR**
 
 4. **Main branch triggers apply:**
+
    ```bash
    cultivator apply --root=live --env=dev --non-interactive --auto-approve
    ```

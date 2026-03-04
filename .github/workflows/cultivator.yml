@@ -23,21 +23,21 @@ jobs:
     name: Terragrunt Plan
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
-          
+
       - name: Build Cultivator
         run: make build
-        
+
       - name: Setup Terraform/Terragrunt
         run: |
           # Install Terragrunt
@@ -46,14 +46,14 @@ jobs:
             -o ~/.local/bin/terragrunt
           chmod +x ~/.local/bin/terragrunt
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-          
+
       - name: Run Cultivator plan
         id: plan
         run: ./cultivator plan --root=live --env=dev --non-interactive 2>&1 | tee plan-output.txt
@@ -109,21 +109,21 @@ jobs:
     name: Terragrunt Apply
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
-          
+
       - name: Build Cultivator
         run: make build
-        
+
       - name: Setup Terraform/Terragrunt
         run: |
           mkdir -p ~/.local/bin
@@ -131,14 +131,14 @@ jobs:
             -o ~/.local/bin/terragrunt
           chmod +x ~/.local/bin/terragrunt
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-          
+
       - name: Cache Terragrunt
         uses: actions/cache@v4
         with:
@@ -146,6 +146,6 @@ jobs:
           key: terragrunt-cache-${{ hashFiles('**/terragrunt.hcl') }}
           restore-keys: |
             terragrunt-cache-
-        
+
       - name: Run Cultivator apply
         run: ./cultivator apply --root=live --env=prod --non-interactive --auto-approve

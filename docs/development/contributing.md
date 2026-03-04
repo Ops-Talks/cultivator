@@ -51,7 +51,7 @@ Minimum test coverage for new code: 80% for critical functionality.
 ## Questions?
 
 - Check existing [Issues](https://github.com/Ops-Talks/cultivator/issues)
-- Review the [Development Guide](development.md) 
+- Review the [Development Guide](development.md)
 - Open a new issue with your question
 
 ---
