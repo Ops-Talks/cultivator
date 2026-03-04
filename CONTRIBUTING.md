@@ -19,4 +19,3 @@ The Contributing Guide includes:
 - Architecture: [docs/architecture/design.md](docs/architecture/design.md)
 - Report Issues: [GitHub Issues](https://github.com/Ops-Talks/cultivator/issues)
 - Discussions: [GitHub Discussions](https://github.com/Ops-Talks/cultivator/discussions)
-Olhe o 
