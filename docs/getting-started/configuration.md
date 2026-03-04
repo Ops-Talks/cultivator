@@ -16,7 +16,7 @@ When using a file, pass it explicitly via `--config`:
 cultivator plan --config=cultivator.yml
 ```
 
-Supported filename is up to you (`cultivator.yml`, `.cultivator.yaml`, etc.).
+Supported filenames include `cultivator.yml`, `.cultivator.yaml`, etc.
 
 ## Minimal config example
 
@@ -47,60 +47,60 @@ Highest to lowest:
 
 1. CLI flags
 2. Environment variables
-3. Config file (when passed with `--config`)
+3. Config file (when passed with --config)
 4. Built-in defaults
 
 ## Supported keys
 
-### `root`
+### root
 
 - **Type**: String
 - **Default**: `.`
 - **Description**: Root directory used to discover `terragrunt.hcl` stacks
 
-### `env`
+### env
 
 - **Type**: String
 - **Default**: empty
-- **Description**: Environment filter derived from the first directory under `root`
+- **Description**: Environment filter derived from the first directory under root
 
-### `include` / `exclude`
+### include / exclude
 
 - **Type**: String list
 - **Default**: empty
-- **Description**: Relative paths under `root` to include or exclude
+- **Description**: Relative paths under root to include or exclude
 
-### `tags`
+### tags
 
 - **Type**: String list
 - **Default**: empty
 - **Description**: Optional tags filter parsed from `terragrunt.hcl` comments (example: `# cultivator:tags=app,db`)
 
-### `parallelism`
+### parallelism
 
 - **Type**: Integer
 - **Default**: number of CPUs
 - **Description**: Maximum number of stacks to execute in parallel
 
-### `non_interactive`
+### non_interactive
 
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Adds `-input=false` to Terragrunt commands
 
-### `plan.destroy`
+### plan.destroy
 
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Run `terragrunt plan -destroy`
 
-### `apply.auto_approve`
+### apply.auto_approve
 
 - **Type**: Boolean
 - **Default**: `false`
 - **Description**: Add `-auto-approve` to `terragrunt apply`
 
-### `destroy.auto_approve`
+### destroy.auto_approve
 
 - **Type**: Boolean
 - **Default**: `false`
@@ -138,7 +138,7 @@ export CULTIVATOR_LOG_LEVEL=debug   # enable verbose Cultivator logs
 
 ## CLI Flags
 
-Flags override environment variables and config file
+Flags override environment variables and config file.
 
 ```bash
 cultivator plan \

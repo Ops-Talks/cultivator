@@ -109,11 +109,11 @@ Cultivator **coordinates execution** but doesn't manage module versioning or cac
 
 ```text
 Cultivator (orchestration)
-    ↓
+    |
 Terragrunt (module sourcing, state management)
-    ↓
+    |
 Terraform/OpenTofu (module execution, state backend)
-    ↓
+    |
 External Module (downloaded and executed)
 ```
 
@@ -132,14 +132,7 @@ Cultivator:
 
 ## Caching and Performance
 
-Terragrunt caches downloaded modules in `.terragrunt-cache/` by default:
-
-```text
-.terragrunt-cache/
-└── [hash]/
-    └── modules/
-        └── [downloaded module files]
-```
+Terragrunt caches downloaded modules in `.terragrunt-cache/` by default.
 
 Terragrunt manages cache invalidation automatically. To clear the cache manually, remove the `.terragrunt-cache/` directories:
 
@@ -168,10 +161,6 @@ Cultivator parses this graph and executes stacks in the correct order.
 
 ### Module Not Found
 
-```text
-Error: Failed to download module from git::https://...
-```
-
 **Solutions:**
 
 - Verify the repository URL is correct
@@ -181,21 +170,13 @@ Error: Failed to download module from git::https://...
 
 ### Version Constraint Errors
 
-```text
-Error: Unsupported version constraint
-```
-
 **Solutions:**
 
 - Update Terraform to latest
-- Check version constraint syntax (see [Terraform version constraints](https://www.terraform.io/language/settings/version-constraints))
+- Check version constraint syntax
 - Verify the module provides the requested version
 
 ### Permission Denied
-
-```text
-Error: ssh: Permission denied (publickey)
-```
 
 **Solutions (GitHub Actions):**
 
@@ -219,64 +200,29 @@ before_script:
   - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 ```
 
-### Slow Downloads
-
-If modules are slow to download, consider:
-
-- Using `git clone --depth 1` for shallow clones (Terragrunt controls this)
-- Caching `.terragrunt-cache/` in your CI system
-- Using a faster module repository mirror
-- Compressing large modules
-
 ## Best Practices
 
 ### 1. Version All External Modules
 
-```hcl
-terraform {
-  source = "github.com/your-org/module.git//path?ref=v1.2.3"
-  #                                              ^^^^^^^^^^^^^^
-  #                          Always use exact versions
-}
-```
+Always use exact versions (e.g., `?ref=v1.2.3`).
 
 ### 2. Separate Module Repository from Infrastructure Repo
 
 - Keep modules in a dedicated Git repository
 - Tag releases explicitly
-- Update module versions deliberately (not `?ref=main`)
+- Update module versions deliberately
 
 ### 3. Use Dependency Blocks for Cross-Module Data
 
-```hcl
-dependency "vpc" {
-  config_path = "../vpc"
-}
-
-inputs = {
-  vpc_id = dependency.vpc.outputs.vpc_id
-}
-```
-
-**Not:** Hardcoding outputs or using `data` blocks across modules.
+Use `dependency` blocks instead of hardcoding outputs or using `data` blocks across modules.
 
 ### 4. Cache `.terragrunt-cache/` in CI
 
-```yaml
-# GitHub Actions
-- uses: actions/cache@v4
-  with:
-    path: .terragrunt-cache
-    key: terragrunt-cache-${{ hashFiles('**/terragrunt.hcl') }}
-```
+Use CI caching mechanisms to speed up module downloads.
 
 ### 5. Document Module Requirements
 
-In your module's README, list:
-
-- External dependencies
-- Minimum Terraform/Terragrunt versions
-- Required credentials or environment variables
+List external dependencies, minimum versions, and required credentials in your module README.
 
 ---
 

@@ -2,15 +2,21 @@
 
 Get Cultivator running in your repository in a few minutes.
 
-No `cultivator.yml` is required for the first run.
+A `cultivator.yml` configuration file is not required for basic usage; Cultivator will use default settings if it is missing.
 
-## Step 1: Build the CLI
+## Step 1: Build or Install the CLI
+
+Build from source:
 
 ```bash
 go build -o cultivator ./cmd/cultivator
 ```
 
+Alternatively, you can download a pre-compiled binary from the [Releases page](https://github.com/Ops-Talks/cultivator/releases).
+
 ## Step 2: Run a plan locally
+
+Cultivator automatically discovers Terragrunt stacks. Run a plan by specifying the root directory and the environment:
 
 ```bash
 ./cultivator plan --root=live --env=dev --non-interactive
@@ -24,7 +30,7 @@ If your Terragrunt root is the current directory, you can also run:
 
 ## Step 3 (optional): Create a config file
 
-Create `cultivator.yml` in the repository root only if you want defaults:
+Cultivator automatically looks for `cultivator.yml` in the current directory. You can use it to set project-wide defaults:
 
 ```yaml
 root: live
@@ -39,18 +45,44 @@ destroy:
   auto_approve: false
 ```
 
-Use it explicitly:
+You can also specify a custom configuration file path using the `--config` flag:
 
 ```bash
-./cultivator plan --config=cultivator.yml
+./cultivator plan --config=custom-config.yml
 ```
 
-## Next: CI/CD Integration
+## Step 4: Add a CI job
 
-Once you're comfortable running Cultivator locally, set up CI/CD pipelines:
+Example GitHub Actions workflow for plan on pull requests. Note that downloading a pre-compiled binary is more efficient than building from source in every job:
 
-- [GitHub Actions Integration](../user-guide/github-actions.md) - Production-ready workflows
-- [GitLab CI Integration](../user-guide/gitlab-pipelines.md) - Complete pipeline examples
+```yaml
+name: Cultivator Plan
+
+on:
+  pull_request:
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Cultivator
+        run: |
+          CULTIVATOR_VERSION="v1.0.0" # Use the desired version
+          curl -L https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64 -o cultivator
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
+
+      - name: Install Terragrunt
+        run: |
+          curl -L https://github.com/gruntwork-io/terragrunt/releases/latest/download/terragrunt_linux_amd64 -o terragrunt
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+      - name: Cultivator plan
+        run: cultivator plan --root=live --env=dev --non-interactive
+```
 
 ## Next Steps
 

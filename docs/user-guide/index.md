@@ -14,9 +14,11 @@ Learn how to use Cultivator to automate Terragrunt workflows in CI and locally.
 
 Cultivator is a lightweight CLI that discovers Terragrunt stacks and orchestrates execution:
 
-```text
-You call cultivator → Discovers stacks → Applies filters → Executes Terragrunt → Shows results
-```
+1.  Call cultivator
+2.  Discovers stacks
+3.  Applies filters
+4.  Executes Terragrunt
+5.  Shows results
 
 ## Use Cases
 
@@ -100,7 +102,7 @@ Define jobs in `.gitlab-ci.yml` to orchestrate Cultivator:
 
 Run Cultivator directly in your terminal:
 
-1. Build: `make build` or `go build -o cultivator ./cmd/cultivator`
+1. Build from source or download binary
 2. Execute: `./cultivator plan --root=live --env=dev`
 3. Review output and commit changes
 

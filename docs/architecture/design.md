@@ -50,19 +50,19 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 
 ```md
 CLI Invocation (plan/apply/destroy)
-    ↓
-Config Loader → Parse defaults + optional --config file + env vars + flags
-    ↓
-Stack Discovery → Find all terragrunt.hcl files
-    ↓
-Scope Filter → Apply --env, --include, --exclude, --tags
-    ↓
-Dependency Graph → Build execution order
-    ↓
-Executor (parallel worker pool) → Run Terragrunt commands
-    ↓
-Output Formatter → Display results
-    ↓
+    |
+Config Loader -> Parse defaults + optional --config file + env vars + flags
+    |
+Stack Discovery -> Find all terragrunt.hcl files
+    |
+Scope Filter -> Apply --env, --include, --exclude, --tags
+    |
+Dependency Graph -> Build execution order
+    |
+Executor (parallel worker pool) -> Run Terragrunt commands
+    |
+Output Formatter -> Display results
+    |
 Exit Code (0 = success, 1 = failure, 2 = usage error)
 ```
 

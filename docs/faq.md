@@ -262,13 +262,7 @@ Cultivator writes to stdout/stderr. CI systems capture automatically:
 
 ### How do I debug Cultivator in detail?
 
-Set verbose logging:
-
-```bash
-CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
-```
-
-For deeper inspection, enable debug logging:
+To enable detailed logging for troubleshooting, use the `CULTIVATOR_LOG_LEVEL` environment variable:
 
 ```bash
 CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev

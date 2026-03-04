@@ -2,18 +2,18 @@
 
 ## Project Status
 
-**Status**: Actively maintained at **v0.3.10**  
-**Language**: Go 1.25+  
-**Module**: `github.com/Ops-Talks/cultivator`  
+**Status**: Actively maintained
+**Language**: Go 1.25+
+**Module**: `github.com/Ops-Talks/cultivator`
 **External Dependency**: `gopkg.in/yaml.v3` v3.0.1
 
 **Core Functionality**:
 
-- Stack discovery (recursive walk for `terragrunt.hcl`)
+- Stack discovery (recursive walk for terragrunt.hcl)
 - Scope filtering (environment, paths, tags)
 - Dependency graph (topological sorting)
 - Parallel execution (configurable worker pool)
-- Output formatting (text, JSON)
+- Output formatting (text-based)
 - Configuration management (YAML + CLI flags + env vars)
 - CI/CD integration (GitHub Actions, GitLab CI)
 
@@ -21,22 +21,22 @@
 
 ```text
 User invokes Cultivator
-    ↓
+    |
 Config Loader (merge cultivator.yml + env vars + CLI flags)
-    ↓
+    |
 Stack Discovery (find all terragrunt.hcl files)
-    ↓
+    |
 Scope Filter (apply --env, --include, --exclude, --tags)
-    ↓
+    |
 Dependency Graph (parse dependencies, build execution order)
-    ↓
+    |
 Executor (parallel worker pool)
-    ├─→ Run Terragrunt command per stack
-    ├─→ Capture output on per-stack basis
-    └─→ Handle locks for concurrent operations
-    ↓
-Output Formatter (redact secrets, format text/JSON)
-    ↓
+    |-- Run Terragrunt command per stack
+    |-- Capture output on per-stack basis
+    |-- Handle locks for concurrent operations
+    |
+Output Formatter (format text)
+    |
 Exit with status code (0=success, 1=failure, 2=usage error)
 ```
 
@@ -73,13 +73,7 @@ cultivator/
 │       └── runner_test.go       # Runner tests
 ├── testdata/
 │   ├── terragrunt-large/        # Large-scale test fixtures
-│   │   ├── dev/
-│   │   ├── prod/
-│   │   ├── staging/
-│   │   └── test/
 │   └── terragrunt-structure/    # Simple test fixtures
-│       ├── dev/
-│       └── prod/
 ├── docs/                        # MkDocs documentation
 ├── go.mod                       # Module definition
 ├── go.sum                       # Dependency checksums
@@ -89,50 +83,31 @@ cultivator/
 
 ## Key Packages
 
-### 1. Config Package (`internal/config/`)
+### 1. Config Package (internal/config/)
 
 **Purpose**: Load and merge configuration from multiple sources.
 
 **Responsibilities**:
 
-- Read `cultivator.yml` / `cultivator.yaml` from filesystem
+- Read configuration from filesystem
 - Merge with environment variables (CULTIVATOR_* prefix)
 - Merge with CLI flags (highest precedence)
 - Validate configuration schema
 - Provide typed access to settings
 
-**Test Files**:
-
-- `config_test.go` - Unit tests
-- `benchmark_test.go` - Performance measurements
-- `coverage_test.go` - Additional coverage gaps
-- `fuzz_test.go` - Fuzzing for edge cases
-- `integration_test.go` - End-to-end workflows
-
-**Test Coverage**: 97.4%
-
-### 2. Discovery Package (`internal/discovery/`)
+### 2. Discovery Package (internal/discovery/)
 
 **Purpose**: Discover and filter Terragrunt stacks in the filesystem.
 
 **Responsibilities**:
 
 - Recursively walk directory tree from root
-- Find all `terragrunt.hcl` files
+- Find all terragrunt.hcl files
 - Filter stacks by environment, path patterns, and tags
 - Parse stack metadata
 - Build list of available stacks
 
-**Test Files**:
-
-- `discovery_test.go` - Unit tests
-- `benchmark_test.go` - Performance measurements
-- `coverage_test.go` - Additional coverage gaps
-- `fuzz_test.go` - Fuzzing for edge cases
-
-**Test Coverage**: 93.7%
-
-### 3. CLI Package (`internal/cli/`)
+### 3. CLI Package (internal/cli/)
 
 **Purpose**: Handle command-line interface and flag parsing.
 
@@ -144,13 +119,7 @@ cultivator/
 - Format and display output
 - Handle user interaction
 
-**Test Files**:
-
-- `cli_test.go` - Comprehensive unit tests
-
-**Test Coverage**: 69.2%
-
-### 4. Logging Package (`internal/logging/`)
+### 4. Logging Package (internal/logging/)
 
 **Purpose**: Structured logging throughout the application.
 
@@ -161,41 +130,21 @@ cultivator/
 - Support multiple output levels
 - Redact sensitive information
 
-**Test Files**:
-
-- `logger_test.go` - Unit tests
-
-**Test Coverage**: 94.9%
-
-### 5. Runner Package (`internal/runner/`)
+### 5. Runner Package (internal/runner/)
 
 **Purpose**: Execute Terragrunt commands and capture results.
 
 **Responsibilities**:
 
-- Execute `terragrunt` commands per stack
+- Execute terragrunt commands per stack
 - Handle command initialization and lifecycle
-- Capture stdout and stderr in a single chronologically-ordered stream using `cmd.CombinedOutput()`
+- Capture stdout and stderr in a single stream
 - Report execution results
 - Manage concurrent execution with worker pool
-
-**Test Files**:
-
-- `runner_test.go` - Unit tests
-
-**Test Coverage**: 95.5%
 
 ## Testing
 
 For comprehensive information on testing strategy, test types, and guidelines, see the [Testing Guide](TESTING.md).
-
-### Coverage Summary
-
-Current test coverage reflects a focus on critical functionality:
-
-- **Core libraries** (config, discovery, logging, runner): 93-97% coverage
-- **CLI interface**: 69.2% coverage
-- **cmd/main**: 50.0% (expected; OS exit calls cannot be tested directly)
 
 ## Development Workflow
 
@@ -206,7 +155,7 @@ Current test coverage reflects a focus on critical functionality:
 go build -o cultivator ./cmd/cultivator
 
 # Build with version information
-go build -ldflags="-X main.version=v0.3.10 -X main.commit=$(git rev-parse HEAD)" \
+go build -ldflags="-X main.version=v1.0.0 -X main.commit=$(git rev-parse HEAD)" \
   -o cultivator ./cmd/cultivator
 ```
 
@@ -235,19 +184,11 @@ golangci-lint run
 
 # Format code
 go fmt ./...
-goimports -w ./...
 ```
 
 ## Contributing Guidelines
 
 See [Contributing](contributing.md) for detailed contribution guidelines.
-
-Key points:
-
-- Write tests for new functionality
-- Maintain or improve test coverage
-- Follow Go conventions from the [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
-- Update documentation when making changes
 
 ## Code Quality Standards
 
@@ -255,43 +196,15 @@ Key points:
 
 All exported functions, types, and packages must be documented.
 
-```go
-// Config represents application configuration loaded from multiple sources.
-// Configuration is merged in precedence order: defaults, YAML file, env vars, CLI flags.
-type Config struct {
-    Root        string
-    Env         string
-    Parallelism int
-    // ...
-}
-
-// LoadFile reads and parses a YAML configuration file from the given path.
-// It returns the parsed config, the resolved path, whether a file was found, and any error.
-func LoadFile(path string) (Config, string, bool, error) {
-    // ...
-}
-```
-
 ### Error Handling
 
-Always wrap errors with context:
-
-```go
-// Good: Add context using %w
-if err != nil {
-    return fmt.Errorf("failed to load config from %s: %w", path, err)
-}
-
-// Avoid: Ignoring errors
-_ = someOperation()
-```
+Always wrap errors with context using fmt.Errorf with %w verb.
 
 ### Naming Conventions
 
 - Use clear, descriptive names
 - Avoid single-letter variables except for loop indices and receivers
 - Package names should be concise and lowercase
-- Avoid repetition in names (e.g., `discovery.Discover` instead of `discovery.DiscoveryDiscover`)
 
 ## Local Development Setup
 
@@ -314,100 +227,46 @@ go test ./...
 
 All pull requests must pass:
 
-- Unit tests: `go test ./...`
-- Linting: `golangci-lint run`
-- Code formatting: `go fmt ./...`
-- Coverage: Maintained at project baseline
-
-Tests run automatically on all pull requests to `main` and commits to `main`.
-
-```bash
-# Install dependencies
-make deps
-
-# Build binary
-make build
-
-# Run tests
-make test
-
-# Run tests with coverage
-make coverage
-
-# Lint code
-make lint
-
-# Format code
-make fmt
-
-# Run all checks
-make check
-```
-
-### Testing with Docker
-
-```bash
-# Build image
-docker build -t cultivator:dev .
-
-# Run help
-docker run cultivator:dev plan --help
-```
+- Unit tests
+- Linting
+- Code formatting
+- Coverage baseline
 
 ## Common Development Tasks
 
 ### Adding a New Subcommand
 
-1. Add a constant in `internal/cli/cli.go` alongside `cmdPlan`, `cmdApply`, `cmdDestroy`
-2. Add a case in the `switch command` block in `Run`
+1. Add a constant in internal/cli/cli.go
+2. Add a case in the switch command block in Run
 3. Implement the handler function
-4. Write tests in `internal/cli/cli_test.go`
+4. Write tests in internal/cli/cli_test.go
 5. Update CLI reference documentation
 
 ### Extending Stack Discovery
 
-Discovery logic lives in `internal/discovery/discovery.go`. Adding a new filter type:
-
-1. Add the field to `Options` struct
-2. Apply the filter inside `Discover`
-3. Add unit tests in `discovery_test.go` covering the new filter
-4. Add fuzz test seeds in `fuzz_test.go` if the field is string-typed
+Discovery logic lives in internal/discovery/discovery.go.
 
 ### Modifying Configuration
 
-Configuration loading lives in `internal/config/config.go`:
-
-1. Add the field to the `Config` struct
-2. Set the default in `DefaultConfig`
-3. Map the environment variable in `LoadEnv`
-4. Add merge logic in `MergeConfig` and `ApplyOverrides`
-5. Validate in `Validate` if the field has constraints
-6. Update `docs/getting-started/configuration.md`
+Configuration loading lives in internal/config/config.go.
 
 ### Changing Runner Behavior
 
-The runner lives in `internal/runner/runner.go`. It uses `cmd.CombinedOutput()` to merge stdout and stderr in write order, preserving chronological output from Terragrunt. When changing how output is captured, update the corresponding tests in `runner_test.go`.
+The runner lives in internal/runner/runner.go. It uses cmd.CombinedOutput() to merge stdout and stderr.
 
 ## Troubleshooting
 
-### Tests failing
+### Test failing
 
 ```bash
 # Run a specific test with verbose output
-go test -v ./internal/cli -run TestBuildTerragruntConfig
-
-# Run all tests with the race detector
-go test -race ./...
-
-# Run Make full check (fmt, vet, lint, test, coverage)
-make check
+go test -v ./internal/cli -run TestSomeFunction
 ```
 
 ### Build issues
 
 ```bash
 # Clean build artifacts and rebuild
-make clean
 go mod tidy
 make build
 ```
@@ -417,19 +276,7 @@ make build
 ```bash
 # See all lint issues
 golangci-lint run
-
-# Auto-format code
-make fmt
 ```
-
-## Contributing
-
-See the [Contributing Guide](contributing.md) for:
-
-- Contribution workflow
-- Pull request checklist
-- Code style requirements
-- Testing requirements
 
 ## Resources
 
@@ -437,4 +284,3 @@ See the [Contributing Guide](contributing.md) for:
 - [OpenTofu Documentation](https://opentofu.org/docs/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Go Testing](https://go.dev/doc/tutorial/add-a-test)
-- [Effective Go](https://go.dev/doc/effective_go)
