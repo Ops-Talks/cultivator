@@ -25,6 +25,7 @@ root: live
 parallelism: 4
 non_interactive: true
 dry_run: false
+show_graph: true
 changed_only: false
 base_ref: main
 
@@ -97,6 +98,12 @@ Highest to lowest:
 - **Default**: `false`
 - **Description**: If `true`, Cultivator will only log the commands it would execute without actually running them.
 
+### show_graph
+
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: If `true`, Cultivator will output a Mermaid.js dependency graph of the modules to be executed.
+
 ### changed_only
 
 - **Type**: Boolean
@@ -139,6 +146,7 @@ Environment variables override the config file:
 - `CULTIVATOR_PARALLELISM`
 - `CULTIVATOR_NON_INTERACTIVE`
 - `CULTIVATOR_DRY_RUN`
+- `CULTIVATOR_SHOW_GRAPH`
 - `CULTIVATOR_CHANGED_ONLY`
 - `CULTIVATOR_BASE_REF`
 - `CULTIVATOR_PLAN_DESTROY`

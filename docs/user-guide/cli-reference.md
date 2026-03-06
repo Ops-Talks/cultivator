@@ -17,6 +17,7 @@ cultivator plan --root=live --env=dev --non-interactive
 - `--destroy` - run `terragrunt plan -destroy`
 - `--non-interactive` - add `-input=false`
 - `--dry-run` - don't execute terragrunt commands
+- `--graph` - show mermaid dependency graph
 - `--changed-only` - only execute modules with changed files
 - `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
@@ -33,6 +34,7 @@ cultivator apply --root=live --env=dev --non-interactive --auto-approve
 - `--auto-approve` - add `-auto-approve`
 - `--non-interactive` - add `-input=false`
 - `--dry-run` - don't execute terragrunt commands
+- `--graph` - show mermaid dependency graph
 - `--changed-only` - only execute modules with changed files
 - `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
@@ -49,6 +51,7 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 - `--auto-approve` - add `-auto-approve`
 - `--non-interactive` - add `-input=false`
 - `--dry-run` - don't execute terragrunt commands
+- `--graph` - show mermaid dependency graph
 - `--changed-only` - only execute modules with changed files
 - `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
@@ -132,6 +135,7 @@ cultivator plan cloudwatch/log-group/example
 | `CULTIVATOR_PARALLELISM` | integer | CPU count | Max parallel executions. |
 | `CULTIVATOR_NON_INTERACTIVE` | `true`, `false` | `false` | Force non-interactive mode. |
 | `CULTIVATOR_DRY_RUN` | `true`, `false` | `false` | Enable dry-run mode. |
+| `CULTIVATOR_SHOW_GRAPH` | `true`, `false` | `false` | Enable Mermaid graph output. |
 | `CULTIVATOR_CHANGED_ONLY` | `true`, `false` | `false` | Enable Magic Mode (Git changes). |
 | `CULTIVATOR_BASE_REF` | string | `HEAD` | Git base reference for Magic Mode. |
 

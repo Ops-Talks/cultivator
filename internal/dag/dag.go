@@ -5,6 +5,7 @@ package dag
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Graph represents a directed graph.
@@ -111,4 +112,60 @@ func (g *Graph) GetNodes() []string {
 	}
 	sort.Strings(nodes)
 	return nodes
+}
+
+// ToMermaid returns a Mermaid.js flowchart representation of the graph.
+func (g *Graph) ToMermaid() string {
+	var sb strings.Builder
+	sb.WriteString("graph TD\n")
+
+	// Sort nodes for deterministic output
+	var nodes []string
+	for n := range g.nodes {
+		nodes = append(nodes, n)
+	}
+	sort.Strings(nodes)
+
+	// Sort edges for deterministic output
+	type edge struct {
+		from, to string
+	}
+	var edges []edge
+	for from, deps := range g.dependencies {
+		for to := range deps {
+			edges = append(edges, edge{from, to})
+		}
+	}
+	sort.Slice(edges, func(i, j int) bool {
+		if edges[i].from != edges[j].from {
+			return edges[i].from < edges[j].from
+		}
+		return edges[i].to < edges[j].to
+	})
+
+	// Add edges to Mermaid string
+	// In Mermaid TD, arrows usually go from dependency to dependent
+	// to show flow of "readiness" or data.
+	for _, e := range edges {
+		fmt.Fprintf(&sb, "    %s --> %s\n", e.to, e.from)
+	}
+
+	// Add isolated nodes
+	for _, n := range nodes {
+		if _, hasDeps := g.dependencies[n]; !hasDeps {
+			// Check if it's a dependency for someone else
+			isDependency := false
+			for _, deps := range g.dependencies {
+				if deps[n] {
+					isDependency = true
+					break
+				}
+			}
+			if !isDependency {
+				fmt.Fprintf(&sb, "    %s\n", n)
+			}
+		}
+	}
+
+	return sb.String()
 }

@@ -20,6 +20,7 @@ type Config struct {
 	Parallelism    int                    `yaml:"parallelism"`
 	NonInteractive bool                   `yaml:"non_interactive"`
 	DryRun         bool                   `yaml:"dry_run"`
+	ShowGraph      bool                   `yaml:"show_graph"`
 	ChangedOnly    bool                   `yaml:"changed_only"`
 	BaseRef        string                 `yaml:"base_ref"`
 	Plan           map[string]interface{} `yaml:"plan"`
@@ -40,6 +41,7 @@ type Overrides struct {
 	Parallelism    *int
 	NonInteractive *bool
 	DryRun         *bool
+	ShowGraph      *bool
 	ChangedOnly    *bool
 	BaseRef        *string
 	PlanDestroy    *bool
@@ -135,6 +137,9 @@ func LoadEnv(prefix string) Config {
 	if dryRun := os.Getenv(prefix + "_DRY_RUN"); dryRun != "" {
 		cfg.DryRun = parseBool(dryRun)
 	}
+	if showGraph := os.Getenv(prefix + "_SHOW_GRAPH"); showGraph != "" {
+		cfg.ShowGraph = parseBool(showGraph)
+	}
 	if changedOnly := os.Getenv(prefix + "_CHANGED_ONLY"); changedOnly != "" {
 		cfg.ChangedOnly = parseBool(changedOnly)
 	}
@@ -171,6 +176,9 @@ func MergeConfig(base, override Config) Config {
 	}
 	if override.DryRun {
 		result.DryRun = override.DryRun
+	}
+	if override.ShowGraph {
+		result.ShowGraph = override.ShowGraph
 	}
 	if override.ChangedOnly {
 		result.ChangedOnly = override.ChangedOnly
@@ -226,6 +234,9 @@ func ApplyOverrides(cfg Config, ovr Overrides) Config {
 	}
 	if ovr.DryRun != nil {
 		cfg.DryRun = *ovr.DryRun
+	}
+	if ovr.ShowGraph != nil {
+		cfg.ShowGraph = *ovr.ShowGraph
 	}
 	if ovr.ChangedOnly != nil {
 		cfg.ChangedOnly = *ovr.ChangedOnly

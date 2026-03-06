@@ -126,3 +126,62 @@ func TestGraph_GetDependencies(t *testing.T) {
 		t.Errorf("GetDependencies() = %v, want %v", deps, want)
 	}
 }
+
+func TestGraph_ToMermaid(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		edges [][2]string
+		nodes []string
+		want  string
+	}{
+		{
+			name: "linear dependency",
+			edges: [][2]string{
+				{"B", "A"},
+			},
+			want: "graph TD\n    A --> B\n",
+		},
+		{
+			name: "diamond dependency",
+			edges: [][2]string{
+				{"B", "A"},
+				{"C", "A"},
+				{"D", "B"},
+				{"D", "C"},
+			},
+			want: "graph TD\n    A --> B\n    A --> C\n    B --> D\n    C --> D\n",
+		},
+		{
+			name:  "isolated nodes",
+			nodes: []string{"Isolated"},
+			want:  "graph TD\n    Isolated\n",
+		},
+		{
+			name:  "mixed edges and isolated nodes",
+			nodes: []string{"Z"},
+			edges: [][2]string{
+				{"B", "A"},
+			},
+			want: "graph TD\n    A --> B\n    Z\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := New()
+			for _, n := range tt.nodes {
+				g.AddNode(n)
+			}
+			for _, edge := range tt.edges {
+				g.AddEdge(edge[0], edge[1])
+			}
+
+			got := g.ToMermaid()
+			if got != tt.want {
+				t.Errorf("ToMermaid() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

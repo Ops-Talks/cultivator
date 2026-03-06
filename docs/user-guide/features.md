@@ -114,6 +114,18 @@ Preview exactly what Cultivator would do without actually running any Terragrunt
 cultivator apply --tags=critical --dry-run
 ```
 
+## Visualizing Dependencies
+
+For complex projects, you can generate a visual representation of the execution order.
+
+- **Mermaid.js Output**: Use the `--graph` flag to output a Mermaid-compatible flowchart string.
+- **Native Rendering**: GitHub and GitLab automatically render these strings into visual diagrams when placed in Markdown files or Pull Request comments.
+
+```bash
+# Generate a graph of the execution plan
+cultivator plan --changed-only --base=main --graph
+```
+
 ## Parallel Execution
 
 Run stacks concurrently with a configurable worker pool:

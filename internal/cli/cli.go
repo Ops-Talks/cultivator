@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/Ops-Talks/cultivator/internal/config"
+	"github.com/Ops-Talks/cultivator/internal/dag"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
 	"github.com/Ops-Talks/cultivator/internal/git"
 	"github.com/Ops-Talks/cultivator/internal/logging"
@@ -128,6 +129,23 @@ func runTerragruntCommand(args []string, command string, r *runner.Runner) int {
 
 	logger.Info("modules discovered", logging.Fields{"count": len(modules), "root": cfg.Root})
 
+	if cfg.ShowGraph {
+		g := dag.New()
+		pathMap := make(map[string]bool)
+		for _, mod := range modules {
+			pathMap[mod.Path] = true
+			g.AddNode(mod.Path)
+		}
+		for _, mod := range modules {
+			for _, dep := range mod.Dependencies {
+				if pathMap[dep] {
+					g.AddEdge(mod.Path, dep)
+				}
+			}
+		}
+		logger.Output("\nDependency Graph (Mermaid):\n```mermaid\n" + g.ToMermaid() + "```\n")
+	}
+
 	startTime := time.Now()
 	results, runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
 	duration := time.Since(startTime)
@@ -189,6 +207,8 @@ type terragruntFlagState struct {
 	nonInteractiveSet       bool
 	dryRunValue             bool
 	dryRunSet               bool
+	showGraphValue          bool
+	showGraphSet            bool
 	changedOnlyValue        bool
 	changedOnlySet          bool
 	baseRefValue            string
@@ -215,6 +235,7 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	parallelism := newIntFlag(fs, "parallelism", "max parallel executions")
 	nonInteractive := newBoolFlag(fs, "non-interactive", "force non-interactive mode")
 	dryRun := newBoolFlag(fs, "dry-run", "don't execute terragrunt commands")
+	showGraph := newBoolFlag(fs, "graph", "show mermaid dependency graph")
 	changedOnly := newBoolFlag(fs, "changed-only", "only execute modules with changed files")
 	baseRef := fs.String("base", "", "git base reference for --changed-only")
 
@@ -239,12 +260,12 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	state.root = *root
 	state.env = *env
 
-	populateFlagState(&state, fs, include, exclude, tags, parallelism, nonInteractive, dryRun, changedOnly, baseRef, planDestroy, applyAutoApprove, destroyAutoApprove, command)
+	populateFlagState(&state, fs, include, exclude, tags, parallelism, nonInteractive, dryRun, showGraph, changedOnly, baseRef, planDestroy, applyAutoApprove, destroyAutoApprove, command)
 
 	return state, 0
 }
 
-func populateFlagState(state *terragruntFlagState, fs *flag.FlagSet, include, exclude, tags *stringSliceFlag, parallelism *intFlag, nonInteractive, dryRun, changedOnly *boolFlag, baseRef *string, planDestroy, applyAutoApprove, destroyAutoApprove *boolFlag, command string) {
+func populateFlagState(state *terragruntFlagState, fs *flag.FlagSet, include, exclude, tags *stringSliceFlag, parallelism *intFlag, nonInteractive, dryRun, showGraph, changedOnly *boolFlag, baseRef *string, planDestroy, applyAutoApprove, destroyAutoApprove *boolFlag, command string) {
 	// Capture positional argument (module path) if provided.
 	if len(fs.Args()) > 0 {
 		state.module = normalizePath(fs.Args()[0])
@@ -285,6 +306,10 @@ func populateFlagState(state *terragruntFlagState, fs *flag.FlagSet, include, ex
 	if dryRun.set {
 		state.dryRunValue = dryRun.value
 		state.dryRunSet = true
+	}
+	if showGraph.set {
+		state.showGraphValue = showGraph.value
+		state.showGraphSet = true
 	}
 	if changedOnly.set {
 		state.changedOnlyValue = changedOnly.value
@@ -374,6 +399,10 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 	if state.dryRunSet {
 		value := state.dryRunValue
 		flagOverrides.DryRun = &value
+	}
+	if state.showGraphSet {
+		value := state.showGraphValue
+		flagOverrides.ShowGraph = &value
 	}
 	if state.changedOnlySet {
 		value := state.changedOnlyValue
