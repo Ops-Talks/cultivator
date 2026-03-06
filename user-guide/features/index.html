@@ -709,6 +709,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#visualizing-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualizing Dependencies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#parallel-execution" class="md-nav__link">
     <span class="md-ellipsis">
       Parallel Execution
@@ -1129,6 +1138,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#visualizing-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualizing Dependencies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#parallel-execution" class="md-nav__link">
     <span class="md-ellipsis">
       Parallel Execution
@@ -1264,13 +1282,22 @@
 </ul>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--tags<span class="o">=</span>critical<span class="w"> </span>--dry-run
 </span></code></pre></div>
+<h2 id="visualizing-dependencies">Visualizing Dependencies<a class="headerlink" href="#visualizing-dependencies" title="Permanent link">&para;</a></h2>
+<p>For complex projects, you can generate a visual representation of the execution order.</p>
+<ul>
+<li><strong>Mermaid.js Output</strong>: Use the <code>--graph</code> flag to output a Mermaid-compatible flowchart string.</li>
+<li><strong>Native Rendering</strong>: GitHub and GitLab automatically render these strings into visual diagrams when placed in Markdown files or Pull Request comments.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Generate a graph of the execution plan</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--changed-only<span class="w"> </span>--base<span class="o">=</span>main<span class="w"> </span>--graph
+</span></code></pre></div>
 <h2 id="parallel-execution">Parallel Execution<a class="headerlink" href="#parallel-execution" title="Permanent link">&para;</a></h2>
 <p>Run stacks concurrently with a configurable worker pool:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 </span></code></pre></div>
 <h2 id="configurable-log-levels">Configurable Log Levels<a class="headerlink" href="#configurable-log-levels" title="Permanent link">&para;</a></h2>
 <p>Control Cultivator's own log verbosity via the <code>CULTIVATOR_LOG_LEVEL</code> environment variable:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div>
 <p>Accepted values: <code>debug</code>, <code>info</code>, <code>warning</code>, <code>error</code>. Default: <code>info</code>.
 Terragrunt output is always printed in full, regardless of this setting.</p>
