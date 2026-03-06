@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Ops-Talks/cultivator/internal/dag"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
@@ -27,6 +28,7 @@ type Result struct {
 	Stderr   string
 	ExitCode int
 	Error    error
+	Duration time.Duration
 }
 
 // Options configures the behavior of a Runner.Run call.
@@ -164,12 +166,14 @@ func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Mo
 			var exitCode int
 			var execErr error
 
+			start := time.Now()
 			if opts.DryRun {
 				stdout = "Dry run: terragrunt " + strings.Join(args, " ")
 				exitCode = 0
 			} else {
 				stdout, stderr, exitCode, execErr = r.executor.Run(ctx, mod.Path, "terragrunt", args, []string{})
 			}
+			duration := time.Since(start)
 
 			results[idx] = Result{
 				Module:   mod,
@@ -178,6 +182,7 @@ func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Mo
 				Stderr:   stderr,
 				ExitCode: exitCode,
 				Error:    execErr,
+				Duration: duration,
 			}
 		})
 	}

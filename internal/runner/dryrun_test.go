@@ -39,6 +39,9 @@ func Test_Run_DryRun(t *testing.T) {
 	if !strings.Contains(res.Stdout, "-input=false") {
 		t.Errorf("expected stdout to contain flags, got %q", res.Stdout)
 	}
+	if res.Duration <= 0 {
+		t.Errorf("res.Duration = %v, want > 0", res.Duration)
+	}
 
 	fake.mu.Lock()
 	defer fake.mu.Unlock()

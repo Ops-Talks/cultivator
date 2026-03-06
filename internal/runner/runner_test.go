@@ -124,6 +124,9 @@ func Test_Run(t *testing.T) {
 					if !strings.Contains(results[i].Module.Path, want) {
 						t.Errorf("results[%d].Module.Path = %q, want to contain %q", i, results[i].Module.Path, want)
 					}
+					if results[i].Duration <= 0 {
+						t.Errorf("results[%d].Duration = %v, want > 0", i, results[i].Duration)
+					}
 				}
 				fake.mu.Lock()
 				defer fake.mu.Unlock()
@@ -142,6 +145,9 @@ func Test_Run(t *testing.T) {
 			validate: func(t *testing.T, results []Result, fake *fakeExecutor) {
 				if len(results) != 1 {
 					t.Fatalf("got %d results, want 1", len(results))
+				}
+				if results[0].Duration <= 0 {
+					t.Errorf("results[0].Duration = %v, want > 0", results[0].Duration)
 				}
 			},
 		},

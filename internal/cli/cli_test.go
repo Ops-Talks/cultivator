@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Ops-Talks/cultivator/internal/discovery"
 	"github.com/Ops-Talks/cultivator/internal/logging"
@@ -347,17 +348,22 @@ func Test_LogExecutionResults(t *testing.T) {
 					Command:  "plan",
 					Stdout:   "Plan: 1 to add",
 					ExitCode: 0,
+					Duration: 123 * time.Millisecond,
 				},
 			},
 			validate: func(t *testing.T, out, errOut string, err error) {
 				if err != nil {
 					t.Fatalf("unexpected error: %v", err)
 				}
-				if !strings.Contains(out, "=== plan: app/module ===") {
-					t.Errorf("missing header, got %q", out)
+				combined := out + errOut
+				if !strings.Contains(combined, "=== plan: app/module ===") {
+					t.Errorf("missing header, got %q", combined)
 				}
-				if !strings.Contains(out, "Plan: 1 to add") {
-					t.Errorf("missing stdout, got %q", out)
+				if !strings.Contains(combined, "Plan: 1 to add") {
+					t.Errorf("missing stdout, got %q", combined)
+				}
+				if !strings.Contains(combined, "duration=123ms") {
+					t.Errorf("missing duration, got %q", combined)
 				}
 			},
 		},
@@ -369,14 +375,19 @@ func Test_LogExecutionResults(t *testing.T) {
 					Command:  "plan",
 					ExitCode: 1,
 					Stdout:   "Error: something went wrong",
+					Duration: 456 * time.Millisecond,
 				},
 			},
 			validate: func(t *testing.T, out, errOut string, err error) {
 				if err == nil {
 					t.Fatal("expected error, got nil")
 				}
-				if !strings.Contains(out, "Error: something went wrong") {
-					t.Errorf("missing error output, got %q", out)
+				combined := out + errOut
+				if !strings.Contains(combined, "Error: something went wrong") {
+					t.Errorf("missing error output, got %q", combined)
+				}
+				if !strings.Contains(combined, "duration=456ms") {
+					t.Errorf("missing duration in error, got %q", combined)
 				}
 			},
 		},

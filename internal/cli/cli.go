@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
@@ -127,13 +128,22 @@ func runTerragruntCommand(args []string, command string) int {
 	logger.Info("modules discovered", logging.Fields{"count": len(modules), "root": cfg.Root})
 
 	r := runner.New()
+	startTime := time.Now()
 	runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
+	duration := time.Since(startTime)
+
 	if runErr != nil {
-		logger.Error("execution completed with errors", logging.Fields{"error": runErr.Error()})
+		logger.Error("execution completed with errors", logging.Fields{
+			"error":    runErr.Error(),
+			"duration": duration.String(),
+		})
 		return 1
 	}
 
-	logger.Info("execution completed", logging.Fields{"modules": len(modules)})
+	logger.Info("execution completed", logging.Fields{
+		"modules":  len(modules),
+		"duration": duration.String(),
+	})
 	return 0
 }
 
@@ -440,7 +450,10 @@ func logExecutionResults(logger *logging.Logger, results []runner.Result) error 
 
 		if result.Error != nil || result.ExitCode != 0 {
 			hasErrors = true
-			fields := logging.Fields{"exit_code": result.ExitCode}
+			fields := logging.Fields{
+				"exit_code": result.ExitCode,
+				"duration":  result.Duration.String(),
+			}
 			if result.Error != nil {
 				fields["error"] = result.Error.Error()
 			}
@@ -448,6 +461,7 @@ func logExecutionResults(logger *logging.Logger, results []runner.Result) error 
 		} else {
 			logger.Info(fmt.Sprintf("%s %s", result.Command, result.Module.Path), logging.Fields{
 				"exit_code": result.ExitCode,
+				"duration":  result.Duration.String(),
 			})
 		}
 	}

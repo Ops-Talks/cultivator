@@ -44,9 +44,15 @@ func Test_Run_RespectsDependencies(t *testing.T) {
 
 	modules := []discovery.Module{app, db, vpc}
 
-	_, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 3})
+	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 3})
 	if err != nil {
 		t.Fatalf("Run() error: %v", err)
+	}
+
+	for _, res := range results {
+		if res.Duration < 100*time.Millisecond {
+			t.Errorf("module %s duration = %v, want >= 100ms", res.Module.Path, res.Duration)
+		}
 	}
 
 	executor.mu.Lock()

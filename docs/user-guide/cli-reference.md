@@ -183,6 +183,14 @@ Both forms are equivalent. The difference:
 - `1` - Failure (one or more stacks failed)
 - `2` - Usage error (invalid flags or arguments)
 
+## Execution Metrics
+
+Cultivator automatically tracks and reports execution time:
+- **Per-module duration**: Displayed in the logs for each module upon completion.
+- **Total duration**: Displayed at the end of the command execution.
+
+These metrics help identify infrastructure bottlenecks and optimize CI/CD runtime.
+
 ## Standard Workflow
 
 For pull requests + main branch merges:
