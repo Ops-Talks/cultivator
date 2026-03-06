@@ -191,6 +191,17 @@ Cultivator automatically tracks and reports execution time:
 
 These metrics help identify infrastructure bottlenecks and optimize CI/CD runtime.
 
+## Summary Table
+
+At the end of each execution, Cultivator displays a summary table with the following information:
+- **Module**: The relative path to the module.
+- **Command**: The Terragrunt command executed.
+- **Status**: `SUCCESS` or `FAILURE`.
+- **Duration**: The time taken to execute the module.
+- **Notes**: Additional context, such as exit codes or error messages.
+
+This table provides a high-level overview of the entire run, making it easy to identify failed modules in large projects.
+
 ## Standard Workflow
 
 For pull requests + main branch merges:

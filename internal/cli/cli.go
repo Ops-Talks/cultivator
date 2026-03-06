@@ -129,8 +129,33 @@ func runTerragruntCommand(args []string, command string) int {
 
 	r := runner.New()
 	startTime := time.Now()
-	runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
+	results, runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
 	duration := time.Since(startTime)
+
+	// Log summary table at the end
+	if len(results) > 0 {
+		var rows []logging.SummaryRow
+		for _, res := range results {
+			status := "SUCCESS"
+			notes := ""
+			if res.Error != nil || res.ExitCode != 0 {
+				status = "FAILURE"
+				if res.Error != nil {
+					notes = res.Error.Error()
+				} else {
+					notes = fmt.Sprintf("exit code %d", res.ExitCode)
+				}
+			}
+			rows = append(rows, logging.SummaryRow{
+				Module:   res.Module.Path,
+				Command:  res.Command,
+				Status:   status,
+				Duration: res.Duration.String(),
+				Notes:    notes,
+			})
+		}
+		logger.LogSummaryTable(rows, duration.String())
+	}
 
 	if runErr != nil {
 		logger.Error("execution completed with errors", logging.Fields{
@@ -374,7 +399,7 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 	return flagOverrides
 }
 
-func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner.Runner, command string, cfg config.Config, modules []discovery.Module) error {
+func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner.Runner, command string, cfg config.Config, modules []discovery.Module) ([]runner.Result, error) {
 	switch command {
 	case cmdPlan:
 		planDestroy := false
@@ -390,9 +415,9 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 			PlanDestroy:    planDestroy,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return logExecutionResults(logger, results)
+		return results, logExecutionResults(logger, results)
 	case cmdApply:
 		applyAutoApprove := false
 		if val, ok := cfg.Apply["auto_approve"]; ok {
@@ -407,9 +432,9 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 			ApplyAutoApprove: applyAutoApprove,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return logExecutionResults(logger, results)
+		return results, logExecutionResults(logger, results)
 	case cmdDestroy:
 		destroyAutoApprove := false
 		if val, ok := cfg.Destroy["auto_approve"]; ok {
@@ -424,11 +449,11 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 			DestroyAutoApprove: destroyAutoApprove,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return logExecutionResults(logger, results)
+		return results, logExecutionResults(logger, results)
 	default:
-		return fmt.Errorf("unknown command: %s", command)
+		return nil, fmt.Errorf("unknown command: %s", command)
 	}
 }
 

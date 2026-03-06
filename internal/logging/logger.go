@@ -6,7 +6,63 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/olekukonko/tablewriter"
 )
+
+// SummaryResult interface avoids circular dependency if we ever need it,
+// but for now we'll use a concrete type or simple fields to keep it clean.
+// Actually, let's define what we need for the table.
+type SummaryRow struct {
+	Module   string
+	Command  string
+	Status   string
+	Duration string
+	Notes    string
+}
+
+// LogSummaryTable renders a formatted table of execution results.
+func (l *Logger) LogSummaryTable(rows []SummaryRow, totalDuration string) {
+	if l.out == nil {
+		return
+	}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	table := tablewriter.NewWriter(l.out)
+	table.SetHeader([]string{"Module", "Command", "Status", "Duration", "Notes"})
+	table.SetAutoWrapText(false)
+	table.SetAutoFormatHeaders(true)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.SetBorder(false)
+	table.SetTablePadding("\t") // Using tabs for better spacing
+
+	// We'll use a more standard table style for CI logs
+	table.SetHeaderLine(true)
+	table.SetBorder(true)
+	table.SetCenterSeparator("|")
+	table.SetColumnSeparator("|")
+	table.SetRowSeparator("-")
+
+	for _, row := range rows {
+		table.Append([]string{
+			row.Module,
+			row.Command,
+			row.Status,
+			row.Duration,
+			row.Notes,
+		})
+	}
+
+	table.SetFooter([]string{"TOTAL RUNTIME", "", "", totalDuration, ""})
+	table.Render()
+}
 
 // Level represents the severity of a log message.
 type Level int

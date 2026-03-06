@@ -311,6 +311,35 @@ func Test_ParseLevel_emptyString(t *testing.T) {
 	}
 }
 
+func Test_LogSummaryTable(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	l := New(LevelInfo, &out, &bytes.Buffer{})
+
+	rows := []SummaryRow{
+		{Module: "vpc", Command: "plan", Status: "SUCCESS", Duration: "1s", Notes: ""},
+		{Module: "db", Command: "plan", Status: "FAILURE", Duration: "500ms", Notes: "error"},
+	}
+
+	l.LogSummaryTable(rows, "1.5s")
+
+	result := out.String()
+	// tablewriter by default upper-cases headers and footers
+	expectedStrings := []string{
+		"MODULE", "COMMAND", "STATUS", "DURATION", "NOTES",
+		"vpc", "plan", "SUCCESS", "1s",
+		"db", "FAILURE", "500ms", "error",
+		"TOTAL RUNTIME", "1.5S",
+	}
+
+	for _, s := range expectedStrings {
+		if !strings.Contains(result, s) {
+			t.Errorf("expected summary table to contain %q, but it didn't. Result:\n%s", s, result)
+		}
+	}
+}
+
 func Test_Level_String(t *testing.T) {
 	t.Parallel()
 
