@@ -10,14 +10,15 @@ Cultivator uses a comprehensive testing strategy combining unit tests, integrati
 
 | Package    | Coverage | Status      |
 |------------|----------|-------------|
-| config     | 97.4%    | Excellent   |
-| discovery  | 93.7%    | Excellent   |
-| logging    | 94.9%    | Excellent   |
-| runner     | 95.5%    | Excellent   |
-| cli        | 69.2%    | Good        |
+| config     | 92.4%    | Excellent   |
+| discovery  | 93.1%    | Excellent   |
+| hcl        | 100.0%   | Excellent   |
+| logging    | 95.3%    | Excellent   |
+| runner     | 90.7%    | Excellent   |
+| cli        | 85.5%    | Excellent   |
 | cmd        | 50.0%    | Good        |
 
-**Total Project Coverage**: ~79.4% (statement coverage)
+**Total Project Coverage**: ~88.5% (statement coverage)
 
 ## Test Types
 
@@ -49,6 +50,7 @@ Fuzz tests exercise code with randomly generated inputs to find edge cases and p
 
 - `internal/config/fuzz_test.go`
 - `internal/discovery/fuzz_test.go`
+- `internal/hcl/fuzz_test.go`
 
 **Run Fuzz Tests**:
 
@@ -56,8 +58,8 @@ Fuzz tests exercise code with randomly generated inputs to find edge cases and p
 # Run for 60 seconds
 go test -fuzz=FuzzParseBool -fuzztime=60s ./internal/config
 
-# Run all fuzz tests
-go test -fuzz=. ./internal/config ./internal/discovery
+# Run all fuzz tests in a package
+go test -fuzz=. ./internal/config
 ```
 
 **Expected Behavior**:

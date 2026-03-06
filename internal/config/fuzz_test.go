@@ -94,7 +94,7 @@ func FuzzParseInt(f *testing.F) {
 
 		// Validate result consistency
 		if err == nil {
-			// Result should always be within int64 range when no error occurs
+			// Result should always be within int range
 			_ = result
 		}
 
@@ -133,27 +133,75 @@ func FuzzParseInt(f *testing.F) {
 	})
 }
 
-// FuzzMergeConfig tests MergeConfig with random Config values
+// FuzzMergeConfig tests MergeConfig with various inputs
 func FuzzMergeConfig(f *testing.F) {
-	// This is a more limited fuzz test since Config is complex
-	// We'll test with simpler base and override configs
+	f.Add(".", "dev", 2, true, false)
+	f.Add("/tmp", "prod", 10, false, true)
+	f.Add("", "", 0, false, false)
 
-	f.Fuzz(func(t *testing.T, parallelism int) {
+	f.Fuzz(func(t *testing.T, root, env string, parallelism int, nonInteractive, dryRun bool) {
 		base := DefaultConfig()
 		override := Config{
-			Parallelism: parallelism,
+			Root:           root,
+			Env:            env,
+			Parallelism:    parallelism,
+			NonInteractive: nonInteractive,
+			DryRun:         dryRun,
 		}
 
 		result := MergeConfig(base, override)
 
-		// When override parallelism is zero (not set), base value must be preserved.
-		if parallelism == 0 && result.Parallelism <= 0 {
-			t.Errorf("MergeConfig lost base parallelism when override is 0: %d", result.Parallelism)
-		}
-
-		// Basic sanity checks
+		// Basic validation
 		if result.Root == "" {
 			t.Error("MergeConfig returned empty Root")
+		}
+
+		if parallelism > 0 && result.Parallelism != parallelism {
+			t.Errorf("MergeConfig failed to override parallelism: got %d, want %d", result.Parallelism, parallelism)
+		}
+
+		if nonInteractive && !result.NonInteractive {
+			t.Error("MergeConfig failed to override NonInteractive")
+		}
+
+		if dryRun && !result.DryRun {
+			t.Error("MergeConfig failed to override DryRun")
+		}
+	})
+}
+
+// FuzzApplyOverrides tests ApplyOverrides with various inputs
+func FuzzApplyOverrides(f *testing.F) {
+	f.Fuzz(func(t *testing.T, root, env string, parallelism int, nonInteractive, dryRun bool) {
+		cfg := DefaultConfig()
+		ovr := Overrides{
+			Root:           &root,
+			Env:            &env,
+			Parallelism:    &parallelism,
+			NonInteractive: &nonInteractive,
+			DryRun:         &dryRun,
+		}
+
+		result := ApplyOverrides(cfg, ovr)
+
+		if result.Root != root {
+			t.Errorf("ApplyOverrides failed to override root: got %q, want %q", result.Root, root)
+		}
+
+		if result.Env != env {
+			t.Errorf("ApplyOverrides failed to override env: got %q, want %q", result.Env, env)
+		}
+
+		if parallelism > 0 && result.Parallelism != parallelism {
+			t.Errorf("ApplyOverrides failed to override parallelism: got %d, want %d", result.Parallelism, parallelism)
+		}
+
+		if result.NonInteractive != nonInteractive {
+			t.Errorf("ApplyOverrides failed to override NonInteractive: got %v, want %v", result.NonInteractive, nonInteractive)
+		}
+
+		if result.DryRun != dryRun {
+			t.Errorf("ApplyOverrides failed to override DryRun: got %v, want %v", result.DryRun, dryRun)
 		}
 	})
 }

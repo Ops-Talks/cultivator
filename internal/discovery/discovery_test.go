@@ -1,10 +1,13 @@
 package discovery
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/Ops-Talks/cultivator/internal/logging"
 )
 
 func TestDiscover(t *testing.T) {
@@ -145,5 +148,37 @@ func TestDiscover(t *testing.T) {
 				tc.validate(t, modules)
 			}
 		})
+	}
+}
+
+func TestDiscover_Verbose(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	moduleDir := filepath.Join(root, "prod", "app1")
+	_ = os.MkdirAll(moduleDir, 0o755)
+	_ = os.WriteFile(filepath.Join(moduleDir, "terragrunt.hcl"), []byte("# cultivator:tags=app"), 0o644)
+
+	var buf bytes.Buffer
+	logger := logging.New(logging.LevelDebug, &buf, &buf)
+
+	_, err := Discover(root, Options{
+		Logger: logger,
+	})
+	if err != nil {
+		t.Fatalf("Discover() error: %v", err)
+	}
+
+	output := buf.String()
+	expected := []string{
+		"starting discovery",
+		"found terragrunt.hcl",
+		"module discovered",
+	}
+
+	for _, s := range expected {
+		if !strings.Contains(output, s) {
+			t.Errorf("expected output to contain %q, but it didn't. Output:\n%s", s, output)
+		}
 	}
 }

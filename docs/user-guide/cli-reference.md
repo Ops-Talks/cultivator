@@ -141,6 +141,22 @@ cultivator plan cloudwatch/log-group/example
 CULTIVATOR_CHANGED_ONLY=true CULTIVATOR_BASE_REF=main cultivator plan
 ```
 
+## Debugging and Verbose Logging
+
+If you are experiencing issues with module discovery or filtering, you can enable verbose logging by setting the `CULTIVATOR_LOG_LEVEL` environment variable to `debug`.
+
+```bash
+CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live
+```
+
+Verbose mode provides detailed information about:
+- Starting the discovery process with normalized paths.
+- Directories being skipped (e.g., `.git`, `node_modules`).
+- Filter matching logic (include/exclude/environment/tags).
+- Dependency extraction for each module.
+
+This is especially useful for troubleshooting why a specific module was or was not included in the execution set.
+
 ## Output Format
 
 Cultivator produces human-readable text output by default, organized by module with clear section headers:

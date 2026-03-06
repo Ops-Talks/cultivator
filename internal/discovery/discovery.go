@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Ops-Talks/cultivator/internal/hcl"
+	"github.com/Ops-Talks/cultivator/internal/logging"
 )
 
 // Module represents a discovered Terragrunt module with its path, environment, and tags.
@@ -27,6 +28,7 @@ type Options struct {
 	Include []string
 	Exclude []string
 	Tags    []string
+	Logger  *logging.Logger
 }
 
 var (
@@ -47,6 +49,16 @@ func Discover(root string, options Options) ([]Module, error) {
 	include := normalizePaths(root, options.Include)
 	exclude := normalizePaths(root, options.Exclude)
 
+	if options.Logger != nil {
+		options.Logger.Debug("starting discovery", logging.Fields{
+			"root":    root,
+			"env":     options.Env,
+			"tags":    options.Tags,
+			"include": include,
+			"exclude": exclude,
+		})
+	}
+
 	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -54,6 +66,9 @@ func Discover(root string, options Options) ([]Module, error) {
 
 		if entry.IsDir() {
 			if shouldSkipDir(entry.Name()) {
+				if options.Logger != nil {
+					options.Logger.Debug("skipping directory", logging.Fields{"path": path})
+				}
 				return filepath.SkipDir
 			}
 			return nil
@@ -63,13 +78,27 @@ func Discover(root string, options Options) ([]Module, error) {
 			return nil
 		}
 
+		if options.Logger != nil {
+			options.Logger.Debug("found terragrunt.hcl", logging.Fields{"path": path})
+		}
+
 		moduleDir := filepath.Dir(path)
 		if !matchesIncludeExclude(moduleDir, include, exclude) {
+			if options.Logger != nil {
+				options.Logger.Debug("skipping module: path filter mismatch", logging.Fields{"path": moduleDir})
+			}
 			return nil
 		}
 
 		env := envFromPath(root, moduleDir)
 		if options.Env != "" && options.Env != env {
+			if options.Logger != nil {
+				options.Logger.Debug("skipping module: environment mismatch", logging.Fields{
+					"path":     moduleDir,
+					"expected": options.Env,
+					"actual":   env,
+				})
+			}
 			return nil
 		}
 
@@ -80,6 +109,13 @@ func Discover(root string, options Options) ([]Module, error) {
 		}
 
 		if !matchesTags(module.Tags, options.Tags) {
+			if options.Logger != nil {
+				options.Logger.Debug("skipping module: tag mismatch", logging.Fields{
+					"path":     moduleDir,
+					"required": options.Tags,
+					"actual":   module.Tags,
+				})
+			}
 			return nil
 		}
 
@@ -90,6 +126,15 @@ func Discover(root string, options Options) ([]Module, error) {
 		}
 		for _, dep := range deps {
 			module.Dependencies = append(module.Dependencies, dep.Path)
+		}
+
+		if options.Logger != nil {
+			options.Logger.Debug("module discovered", logging.Fields{
+				"path":         module.Path,
+				"env":          module.Env,
+				"tags":         module.Tags,
+				"dependencies": module.Dependencies,
+			})
 		}
 
 		modules = append(modules, module)

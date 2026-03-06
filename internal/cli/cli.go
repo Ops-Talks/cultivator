@@ -82,6 +82,7 @@ func runTerragruntCommand(args []string, command string, r *runner.Runner) int {
 		Include: cfg.Include,
 		Exclude: cfg.Exclude,
 		Tags:    cfg.Tags,
+		Logger:  logger,
 	})
 	if err != nil {
 		logger.Error("module discovery failed", logging.Fields{"error": err.Error()})

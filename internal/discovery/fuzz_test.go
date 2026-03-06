@@ -81,6 +81,29 @@ func FuzzSplitTags(f *testing.F) {
 	})
 }
 
+// FuzzMatchesTags tests matchesTags function with random tag inputs
+func FuzzMatchesTags(f *testing.F) {
+	f.Add("tag1,tag2", "tag1")
+	f.Add("tag1", "tag1,tag2")
+	f.Add("", "tag1")
+	f.Add("tag1", "")
+
+	f.Fuzz(func(t *testing.T, actualTagsStr, requiredTagsStr string) {
+		actualTags := splitTags(actualTagsStr)
+		requiredTags := splitTags(requiredTagsStr)
+
+		// This should not panic
+		result := matchesTags(actualTags, requiredTags)
+
+		// If required tags is empty, result should always be true
+		if len(requiredTags) == 0 {
+			if !result {
+				t.Errorf("matchesTags should return true when no tags are required")
+			}
+		}
+	})
+}
+
 // FuzzEnvFromPath tests envFromPath function with random path input
 func FuzzEnvFromPath(f *testing.F) {
 	// Add seed corpus
