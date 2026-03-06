@@ -48,7 +48,7 @@ func Run(args []string, version VersionInfo) int {
 	command := args[1]
 	switch command {
 	case cmdPlan, cmdApply, cmdDestroy:
-		return runTerragruntCommand(args[2:], command)
+		return runTerragruntCommand(args[2:], command, runner.New())
 	case cmdVersion:
 		printVersion(version)
 		return 0
@@ -61,7 +61,7 @@ func Run(args []string, version VersionInfo) int {
 	}
 }
 
-func runTerragruntCommand(args []string, command string) int {
+func runTerragruntCommand(args []string, command string, r *runner.Runner) int {
 	state, code := parseTerragruntFlags(args, command)
 	if code != 0 {
 		return code
@@ -127,7 +127,6 @@ func runTerragruntCommand(args []string, command string) int {
 
 	logger.Info("modules discovered", logging.Fields{"count": len(modules), "root": cfg.Root})
 
-	r := runner.New()
 	startTime := time.Now()
 	results, runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
 	duration := time.Since(startTime)

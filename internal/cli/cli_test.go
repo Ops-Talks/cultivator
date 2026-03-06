@@ -2,10 +2,13 @@ package cli
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"flag"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -447,4 +450,86 @@ func Test_BuildTerragruntConfig_ChangedOnly(t *testing.T) {
 	if cfg.BaseRef != "main" {
 		t.Errorf("cfg.BaseRef = %q, want main", cfg.BaseRef)
 	}
+}
+
+func Test_runTerragruntCommand_Flow(t *testing.T) {
+	t.Parallel()
+
+	t.Run("successful plan flow", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		moduleDir := filepath.Join(tmpDir, "prod", "app1")
+		_ = os.MkdirAll(moduleDir, 0o755)
+		_ = os.WriteFile(filepath.Join(moduleDir, "terragrunt.hcl"), []byte("# cultivator:tags=app"), 0o644)
+
+		executor := &cliFakeExecutor{}
+		r := runner.New().WithExecutor(executor)
+
+		// Mock RunArgs
+		args := []string{"-root", tmpDir, "-tags", "app"}
+
+		code := runTerragruntCommand(args, cmdPlan, r)
+		if code != 0 {
+			t.Errorf("runTerragruntCommand() = %d, want 0", code)
+		}
+
+		if len(executor.calls) != 1 {
+			t.Errorf("expected 1 executor call, got %d", len(executor.calls))
+		}
+	})
+
+	t.Run("no modules matched", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		executor := &cliFakeExecutor{}
+		r := runner.New().WithExecutor(executor)
+
+		args := []string{"-root", tmpDir, "-tags", "nonexistent"}
+		code := runTerragruntCommand(args, cmdPlan, r)
+
+		if code != 0 {
+			t.Errorf("runTerragruntCommand() = %d, want 0 (graceful exit)", code)
+		}
+		if len(executor.calls) != 0 {
+			t.Errorf("expected 0 executor calls, got %d", len(executor.calls))
+		}
+	})
+
+	t.Run("execution failure", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		moduleDir := filepath.Join(tmpDir, "prod", "app1")
+		_ = os.MkdirAll(moduleDir, 0o755)
+		_ = os.WriteFile(filepath.Join(moduleDir, "terragrunt.hcl"), []byte(""), 0o644)
+
+		executor := &cliErrorExecutor{}
+		r := runner.New().WithExecutor(executor)
+
+		args := []string{"-root", tmpDir}
+		code := runTerragruntCommand(args, cmdPlan, r)
+
+		if code != 1 {
+			t.Errorf("runTerragruntCommand() = %d, want 1 (failure)", code)
+		}
+	})
+}
+
+type cliErrorExecutor struct{}
+
+func (e *cliErrorExecutor) Run(_ context.Context, _, _ string, _, _ []string) (string, string, int, error) {
+	return "", "error", 1, errors.New("command failed")
+}
+
+type cliFakeExecutor struct {
+	mu    sync.Mutex
+	calls []cliCall
+}
+
+type cliCall struct {
+	workDir string
+	args    []string
+}
+
+func (f *cliFakeExecutor) Run(_ context.Context, workDir string, _ string, args []string, _ []string) (string, string, int, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls = append(f.calls, cliCall{workDir: workDir, args: args})
+	return "ok", "", 0, nil
 }
