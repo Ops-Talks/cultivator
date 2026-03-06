@@ -37,7 +37,7 @@ workflow:
 
 .install_tools: &install_tools
   before_script:
-    - apk add --no-cache wget unzip curl jq ca-certificates
+    - apk add --no-cache wget unzip curl jq ca-certificates git
     - wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
     - unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
     - rm tofu_${TOFU_VERSION}_linux_amd64.zip
@@ -62,10 +62,19 @@ plan:
   <<: *install_tools
   script:
     - |
+      # Enable Magic Mode for Merge Requests to target only changed modules
+      EXTRA_FLAGS=""
+      if [ -n "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]; then
+        EXTRA_FLAGS="--changed-only --base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+        echo "Magic Mode active: comparing against origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+      fi
+
       set -- \
         --root "$CULTIVATOR_ROOT" \
         --parallelism "$CULTIVATOR_PARALLELISM" \
-        --non-interactive=true
+        --non-interactive=true \
+        $EXTRA_FLAGS
+
       if [ -n "$CULTIVATOR_ENV" ]; then
         set -- "$@" --env "$CULTIVATOR_ENV"
       fi
@@ -124,6 +133,7 @@ apply:
         set -- "$@" --env "$CULTIVATOR_ENV"
       fi
 
+      # Execution order is automatically determined by the built-in DAG engine.
       cultivator apply "$@" 2>&1 | tee apply_output.txt
       CULTIVATOR_EXIT=${PIPESTATUS[0]}
 

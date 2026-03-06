@@ -3,173 +3,330 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
-func TestLoadFileAndMerge(t *testing.T) {
+func TestLoadFile(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	configPath := filepath.Join(tempDir, ".cultivator.yaml")
-	content := []byte("root: live\nparallelism: 3\nnon_interactive: true\nplan:\n  destroy: true\napply:\n  auto_approve: true\n")
-	if err := os.WriteFile(configPath, content, 0o600); err != nil {
-		t.Fatalf("write config file: %v", err)
+
+	tests := []struct {
+		name       string
+		configPath string
+		content    string
+		wantFound  bool
+		wantErr    bool
+		validate   func(*testing.T, Config)
+	}{
+		{
+			name:       "valid config file",
+			configPath: filepath.Join(tempDir, "valid.yaml"),
+			content:    "root: live\nparallelism: 3\nnon_interactive: true\nplan:\n  destroy: true\napply:\n  auto_approve: true\n",
+			wantFound:  true,
+			validate: func(t *testing.T, cfg Config) {
+				if cfg.Root != "live" {
+					t.Errorf("expected root live, got %q", cfg.Root)
+				}
+				if cfg.Parallelism != 3 {
+					t.Errorf("expected parallelism 3, got %d", cfg.Parallelism)
+				}
+				if !cfg.NonInteractive {
+					t.Error("expected non-interactive true")
+				}
+				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
+					t.Errorf("expected plan.destroy=true, got %v", cfg.Plan)
+				}
+			},
+		},
+		{
+			name:       "missing file",
+			configPath: filepath.Join(tempDir, "nonexistent.yaml"),
+			wantFound:  false,
+		},
+		{
+			name:       "empty path",
+			configPath: "",
+			wantFound:  false,
+		},
+		{
+			name:       "invalid yaml",
+			configPath: filepath.Join(tempDir, "invalid.yaml"),
+			content:    "root: : :",
+			wantErr:    true,
+		},
 	}
 
-	cfg, _, found, err := LoadFile(configPath)
-	if err != nil {
-		t.Fatalf("load config file: %v", err)
-	}
-	if !found {
-		t.Fatalf("expected config file to be found")
-	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.content != "" {
+				if err := os.WriteFile(tc.configPath, []byte(tc.content), 0o600); err != nil {
+					t.Fatalf("write config file: %v", err)
+				}
+			}
 
-	merged := MergeConfig(DefaultConfig(), cfg)
-	if merged.Root != "live" {
-		t.Fatalf("expected root to be live, got %q", merged.Root)
-	}
-	if merged.Parallelism != 3 {
-		t.Fatalf("expected parallelism 3, got %d", merged.Parallelism)
-	}
-	if !merged.NonInteractive {
-		t.Fatalf("expected non-interactive true")
+			cfg, _, found, err := LoadFile(tc.configPath)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("LoadFile() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			if found != tc.wantFound {
+				t.Fatalf("LoadFile() found = %v, want %v", found, tc.wantFound)
+			}
+			if tc.validate != nil {
+				tc.validate(t, cfg)
+			}
+		})
 	}
 }
 
 func TestApplyOverrides(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultConfig()
-	root := "envs"
-	parallelism := 5
-	nonInteractive := true
+	s := func(v string) *string { return &v }
+	i := func(v int) *int { return &v }
+	b := func(v bool) *bool { return &v }
 
-	overrides := Overrides{
-		Root:           &root,
-		Parallelism:    &parallelism,
-		NonInteractive: &nonInteractive,
-		Include:        []string{"prod"},
-		IncludeSet:     true,
+	tests := []struct {
+		name      string
+		overrides Overrides
+		want      Config
+	}{
+		{
+			name: "override all basic fields",
+			overrides: Overrides{
+				Root:           s("envs"),
+				Parallelism:    i(5),
+				NonInteractive: b(true),
+				DryRun:         b(true),
+			},
+			want: Config{
+				Root:           "envs",
+				Parallelism:    5,
+				NonInteractive: true,
+				DryRun:         true,
+			},
+		},
+		{
+			name: "override filters",
+			overrides: Overrides{
+				Include:    []string{"prod"},
+				IncludeSet: true,
+				Exclude:    []string{"test"},
+				ExcludeSet: true,
+				Tags:       []string{"db"},
+				TagsSet:    true,
+			},
+			want: Config{
+				Include: []string{"prod"},
+				Exclude: []string{"test"},
+				Tags:    []string{"db"},
+			},
+		},
+		{
+			name: "override command flags",
+			overrides: Overrides{
+				PlanDestroy:    b(true),
+				ApplyAutoAppr:  b(true),
+				DestroyAutoApr: b(true),
+			},
+			want: Config{
+				Plan:    map[string]any{"destroy": true},
+				Apply:   map[string]any{"auto_approve": true},
+				Destroy: map[string]any{"auto_approve": true},
+			},
+		},
 	}
 
-	cfg = ApplyOverrides(cfg, overrides)
-	if cfg.Root != "envs" {
-		t.Fatalf("expected root envs, got %q", cfg.Root)
-	}
-	if cfg.Parallelism != 5 {
-		t.Fatalf("expected parallelism 5, got %d", cfg.Parallelism)
-	}
-	if !cfg.NonInteractive {
-		t.Fatalf("expected non-interactive true")
-	}
-	if len(cfg.Include) != 1 || cfg.Include[0] != prodEnv {
-		t.Fatalf("expected include to be set")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := ApplyOverrides(DefaultConfig(), tc.overrides)
+			if cfg.Root != "" && tc.want.Root != "" && cfg.Root != tc.want.Root {
+				t.Errorf("Root = %q, want %q", cfg.Root, tc.want.Root)
+			}
+			if tc.want.Parallelism != 0 && cfg.Parallelism != tc.want.Parallelism {
+				t.Errorf("Parallelism = %d, want %d", cfg.Parallelism, tc.want.Parallelism)
+			}
+			if tc.overrides.NonInteractive != nil && cfg.NonInteractive != *tc.overrides.NonInteractive {
+				t.Errorf("NonInteractive = %v, want %v", cfg.NonInteractive, *tc.overrides.NonInteractive)
+			}
+			if tc.overrides.DryRun != nil && cfg.DryRun != *tc.overrides.DryRun {
+				t.Errorf("DryRun = %v, want %v", cfg.DryRun, *tc.overrides.DryRun)
+			}
+			if tc.overrides.IncludeSet && !reflect.DeepEqual(cfg.Include, tc.want.Include) {
+				t.Errorf("Include = %v, want %v", cfg.Include, tc.want.Include)
+			}
+			if tc.overrides.ExcludeSet && !reflect.DeepEqual(cfg.Exclude, tc.want.Exclude) {
+				t.Errorf("Exclude = %v, want %v", cfg.Exclude, tc.want.Exclude)
+			}
+			if tc.overrides.TagsSet && !reflect.DeepEqual(cfg.Tags, tc.want.Tags) {
+				t.Errorf("Tags = %v, want %v", cfg.Tags, tc.want.Tags)
+			}
+			if tc.overrides.PlanDestroy != nil {
+				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
+					t.Errorf("Plan[destroy] = %v, want true", v)
+				}
+			}
+		})
 	}
 }
 
 func TestValidate(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultConfig()
-	cfg.Parallelism = 0
-	if err := Validate(cfg); err == nil {
-		t.Fatalf("expected invalid parallelism error")
+	tests := []struct {
+		name    string
+		cfg     Config
+		wantErr bool
+	}{
+		{
+			name:    "default config is valid",
+			cfg:     DefaultConfig(),
+			wantErr: false,
+		},
+		{
+			name: "missing root",
+			cfg: Config{
+				Root:        "",
+				Parallelism: 1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid parallelism",
+			cfg: Config{
+				Root:        ".",
+				Parallelism: 0,
+			},
+			wantErr: true,
+		},
 	}
 
-	cfg = DefaultConfig()
-	if err := Validate(cfg); err != nil {
-		t.Fatalf("expected default config to be valid, got: %v", err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Validate(tc.cfg)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
 	}
 }
 
 func TestLoadEnv(t *testing.T) {
-	const prefix = "CULTIVATOR"
+	const prefix = "TEST_CULTIVATOR"
 
-	t.Setenv(prefix+"_ROOT", "environments")
-	t.Setenv(prefix+"_ENV", "staging")
-	t.Setenv(prefix+"_INCLUDE", "app,db")
-	t.Setenv(prefix+"_EXCLUDE", "legacy;tmp")
-	t.Setenv(prefix+"_TAGS", "frontend,backend")
-	t.Setenv(prefix+"_PARALLELISM", "8")
-	t.Setenv(prefix+"_NON_INTERACTIVE", "true")
+	tests := []struct {
+		name string
+		envs map[string]string
+		want func(*testing.T, Config)
+	}{
+		{
+			name: "load all fields",
+			envs: map[string]string{
+				prefix + "_ROOT":            "environments",
+				prefix + "_ENV":             "staging",
+				prefix + "_INCLUDE":         "app,db",
+				prefix + "_EXCLUDE":         "legacy;tmp",
+				prefix + "_TAGS":            "frontend,backend",
+				prefix + "_PARALLELISM":     "8",
+				prefix + "_NON_INTERACTIVE": "true",
+			},
+			want: func(t *testing.T, cfg Config) {
+				if cfg.Root != "environments" {
+					t.Errorf("Root = %q, want environments", cfg.Root)
+				}
+				if cfg.Env != "staging" {
+					t.Errorf("Env = %q, want staging", cfg.Env)
+				}
+				if !reflect.DeepEqual(cfg.Include, []string{"app", "db"}) {
+					t.Errorf("Include = %v, want [app db]", cfg.Include)
+				}
+				if !reflect.DeepEqual(cfg.Exclude, []string{"legacy", "tmp"}) {
+					t.Errorf("Exclude = %v, want [legacy tmp]", cfg.Exclude)
+				}
+				if !reflect.DeepEqual(cfg.Tags, []string{"frontend", "backend"}) {
+					t.Errorf("Tags = %v, want [frontend backend]", cfg.Tags)
+				}
+				if cfg.Parallelism != 8 {
+					t.Errorf("Parallelism = %d, want 8", cfg.Parallelism)
+				}
+				if !cfg.NonInteractive {
+					t.Error("NonInteractive = false, want true")
+				}
+			},
+		},
+		{
+			name: "invalid parallelism fallback",
+			envs: map[string]string{
+				prefix + "_PARALLELISM": "not-a-number",
+			},
+			want: func(t *testing.T, cfg Config) {
+				if cfg.Parallelism < 1 {
+					t.Errorf("Parallelism = %d, want >= 1", cfg.Parallelism)
+				}
+			},
+		},
+	}
 
-	cfg := LoadEnv(prefix)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			for k, v := range tc.envs {
+				t.Setenv(k, v)
+			}
 
-	if cfg.Root != "environments" {
-		t.Errorf("expected root environments, got %q", cfg.Root)
-	}
-	if cfg.Env != "staging" {
-		t.Errorf("expected env staging, got %q", cfg.Env)
-	}
-	if len(cfg.Include) != 2 || cfg.Include[0] != "app" || cfg.Include[1] != "db" {
-		t.Errorf("unexpected include: %v", cfg.Include)
-	}
-	if len(cfg.Exclude) != 2 || cfg.Exclude[0] != "legacy" || cfg.Exclude[1] != "tmp" {
-		t.Errorf("unexpected exclude: %v", cfg.Exclude)
-	}
-	if len(cfg.Tags) != 2 || cfg.Tags[0] != "frontend" || cfg.Tags[1] != "backend" {
-		t.Errorf("unexpected tags: %v", cfg.Tags)
-	}
-	if cfg.Parallelism != 8 {
-		t.Errorf("expected parallelism 8, got %d", cfg.Parallelism)
-	}
-	if !cfg.NonInteractive {
-		t.Error("expected non-interactive true")
+			cfg := LoadEnv(prefix)
+			tc.want(t, cfg)
+		})
 	}
 }
 
-func TestLoadEnv_invalidParallelism(t *testing.T) {
-	const prefix = "CULTIVATOR"
-	t.Setenv(prefix+"_PARALLELISM", "not-a-number")
-
-	cfg := LoadEnv(prefix)
-
-	if cfg.Parallelism < 1 {
-		t.Errorf("expected parallelism to fallback to default (>= 1), got %d", cfg.Parallelism)
-	}
-}
-
-func TestLoadFile_missingFile(t *testing.T) {
+func TestMergeConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg, _, found, err := LoadFile("/nonexistent/path/.cultivator.yaml")
-	if err != nil {
-		t.Fatalf("expected no error for missing file, got: %v", err)
+	tests := []struct {
+		name     string
+		base     Config
+		override Config
+		validate func(*testing.T, Config)
+	}{
+		{
+			name: "merge command flags",
+			base: DefaultConfig(),
+			override: Config{
+				Plan:  map[string]any{"destroy": true},
+				Apply: map[string]any{"auto_approve": true},
+			},
+			validate: func(t *testing.T, cfg Config) {
+				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
+					t.Errorf("Plan[destroy] = %v, want true", v)
+				}
+				if v, ok := cfg.Apply["auto_approve"]; !ok || v != true {
+					t.Errorf("Apply[auto_approve] = %v, want true", v)
+				}
+			},
+		},
+		{
+			name: "override root and env",
+			base: DefaultConfig(),
+			override: Config{
+				Root: "new-root",
+				Env:  "prod",
+			},
+			validate: func(t *testing.T, cfg Config) {
+				if cfg.Root != "new-root" {
+					t.Errorf("Root = %q, want new-root", cfg.Root)
+				}
+				if cfg.Env != "prod" {
+					t.Errorf("Env = %q, want prod", cfg.Env)
+				}
+			},
+		},
 	}
-	if found {
-		t.Error("expected found=false for missing file")
-	}
-	if cfg.Parallelism < 1 {
-		t.Errorf("expected default parallelism, got %d", cfg.Parallelism)
-	}
-}
 
-func TestLoadFile_emptyPath(t *testing.T) {
-	t.Parallel()
-
-	_, _, found, err := LoadFile("")
-	if err != nil {
-		t.Fatalf("expected no error for empty path, got: %v", err)
-	}
-	if found {
-		t.Error("expected found=false for empty path")
-	}
-}
-
-func TestMergeConfig_extraFields(t *testing.T) {
-	t.Parallel()
-
-	base := DefaultConfig()
-	override := DefaultConfig()
-	override.Plan = map[string]interface{}{"destroy": true}
-	override.Apply = map[string]interface{}{"auto_approve": true}
-
-	merged := MergeConfig(base, override)
-
-	if v, ok := merged.Plan["destroy"]; !ok || v != true {
-		t.Errorf("expected plan.destroy=true, got %v", merged.Plan)
-	}
-	if v, ok := merged.Apply["auto_approve"]; !ok || v != true {
-		t.Errorf("expected apply.auto_approve=true, got %v", merged.Apply)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			merged := MergeConfig(tc.base, tc.override)
+			tc.validate(t, merged)
+		})
 	}
 }

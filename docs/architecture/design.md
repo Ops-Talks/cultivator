@@ -28,13 +28,20 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 - Filters stacks by `--include` / `--exclude` (path patterns)
 - Filters stacks by `--tags` (tag comments in `terragrunt.hcl`)
 
-### 4. Dependency Graph
+### 4. Git Integration (Magic Mode)
 
-- Parses `terragrunt.hcl` files
-- Builds dependency graph from `dependency` blocks
-- Determines correct execution order
+- Queries Git for changed files using `git diff`
+- Maps file changes to specific Terragrunt modules
+- Filters execution scope to only affected modules when `--changed-only` is active
 
-### 5. Executor
+### 5. Dependency Graph (DAG)
+
+- Parses `terragrunt.hcl` files to extract `dependency` blocks
+- Builds a Directed Acyclic Graph (DAG) representing module relationships
+- Performs topological sorting to determine the correct execution order
+- Detects and prevents circular dependencies
+
+### 6. Executor
 
 - Runs Terragrunt commands (`plan`, `apply`, `destroy`)
 - Manages parallel execution via worker pool
@@ -55,9 +62,11 @@ Config Loader -> Parse defaults + optional --config file + env vars + flags
     |
 Stack Discovery -> Find all terragrunt.hcl files
     |
+Git Integration -> Filter by changed files (if --changed-only)
+    |
 Scope Filter -> Apply --env, --include, --exclude, --tags
     |
-Dependency Graph -> Build execution order
+Dependency Graph -> Build execution order (DAG)
     |
 Executor (parallel worker pool) -> Run Terragrunt commands
     |

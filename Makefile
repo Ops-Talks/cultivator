@@ -6,7 +6,7 @@ GO=go
 GOOS=linux
 GOARCH=amd64
 GOFLAGS=-v
-LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
+LDFLAGS=-ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
 
 # Git info
 VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")

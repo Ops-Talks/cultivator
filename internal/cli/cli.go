@@ -16,6 +16,7 @@ import (
 
 	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
+	"github.com/Ops-Talks/cultivator/internal/git"
 	"github.com/Ops-Talks/cultivator/internal/logging"
 	"github.com/Ops-Talks/cultivator/internal/runner"
 )
@@ -86,8 +87,40 @@ func runTerragruntCommand(args []string, command string) int {
 		return 1
 	}
 
+	if cfg.ChangedOnly {
+		if !git.IsGitRepo(cfg.Root) {
+			logger.Error("not a git repository, --changed-only is not supported", logging.Fields{"root": cfg.Root})
+			return 1
+		}
+
+		changedFiles, err := git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef)
+		if err != nil {
+			logger.Error("failed to get changed files", logging.Fields{"error": err.Error(), "base": cfg.BaseRef})
+			return 1
+		}
+
+		var filtered []discovery.Module
+		for _, mod := range modules {
+			hasChanges := false
+			for _, changedFile := range changedFiles {
+				// Normalize both for comparison
+				modPath := filepath.Clean(mod.Path)
+				changePath := filepath.Clean(changedFile)
+
+				if strings.HasPrefix(changePath, modPath) {
+					hasChanges = true
+					break
+				}
+			}
+			if hasChanges {
+				filtered = append(filtered, mod)
+			}
+		}
+		modules = filtered
+	}
+
 	if len(modules) == 0 {
-		logger.Info("no modules matched", logging.Fields{"root": cfg.Root})
+		logger.Info("no modules matched", logging.Fields{"root": cfg.Root, "changed_only": cfg.ChangedOnly})
 		return 0
 	}
 
@@ -119,6 +152,12 @@ type terragruntFlagState struct {
 	parallelismSet          bool
 	nonInteractiveValue     bool
 	nonInteractiveSet       bool
+	dryRunValue             bool
+	dryRunSet               bool
+	changedOnlyValue        bool
+	changedOnlySet          bool
+	baseRefValue            string
+	baseRefSet              bool
 	planDestroyValue        bool
 	planDestroySet          bool
 	applyAutoApproveValue   bool
@@ -140,6 +179,9 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	tags := newStringSliceFlag(fs, "tags", "tag filters")
 	parallelism := newIntFlag(fs, "parallelism", "max parallel executions")
 	nonInteractive := newBoolFlag(fs, "non-interactive", "force non-interactive mode")
+	dryRun := newBoolFlag(fs, "dry-run", "don't execute terragrunt commands")
+	changedOnly := newBoolFlag(fs, "changed-only", "only execute modules with changed files")
+	baseRef := fs.String("base", "", "git base reference for --changed-only")
 
 	var planDestroy *boolFlag
 	var applyAutoApprove *boolFlag
@@ -201,6 +243,18 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	if nonInteractive.set {
 		state.nonInteractiveValue = nonInteractive.value
 		state.nonInteractiveSet = true
+	}
+	if dryRun.set {
+		state.dryRunValue = dryRun.value
+		state.dryRunSet = true
+	}
+	if changedOnly.set {
+		state.changedOnlyValue = changedOnly.value
+		state.changedOnlySet = true
+	}
+	if baseRef != nil && *baseRef != "" {
+		state.baseRefValue = *baseRef
+		state.baseRefSet = true
 	}
 
 	switch command {
@@ -281,6 +335,18 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 		value := state.nonInteractiveValue
 		flagOverrides.NonInteractive = &value
 	}
+	if state.dryRunSet {
+		value := state.dryRunValue
+		flagOverrides.DryRun = &value
+	}
+	if state.changedOnlySet {
+		value := state.changedOnlyValue
+		flagOverrides.ChangedOnly = &value
+	}
+	if state.baseRefSet {
+		value := state.baseRefValue
+		flagOverrides.BaseRef = &value
+	}
 	if state.planDestroySet {
 		value := state.planDestroyValue
 		flagOverrides.PlanDestroy = &value
@@ -309,6 +375,7 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 		results, err := r.Run(ctx, runner.CommandPlan, modules, runner.Options{
 			Parallelism:    cfg.Parallelism,
 			NonInteractive: cfg.NonInteractive,
+			DryRun:         cfg.DryRun,
 			PlanDestroy:    planDestroy,
 		})
 		if err != nil {
@@ -325,6 +392,7 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 		results, err := r.Run(ctx, runner.CommandApply, modules, runner.Options{
 			Parallelism:      cfg.Parallelism,
 			NonInteractive:   cfg.NonInteractive,
+			DryRun:           cfg.DryRun,
 			ApplyAutoApprove: applyAutoApprove,
 		})
 		if err != nil {
@@ -341,6 +409,7 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner
 		results, err := r.Run(ctx, runner.CommandDestroy, modules, runner.Options{
 			Parallelism:        cfg.Parallelism,
 			NonInteractive:     cfg.NonInteractive,
+			DryRun:             cfg.DryRun,
 			DestroyAutoApprove: destroyAutoApprove,
 		})
 		if err != nil {

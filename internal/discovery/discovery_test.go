@@ -3,65 +3,147 @@ package discovery
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-func TestDiscoverFilters(t *testing.T) {
+func TestDiscover(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	prod := filepath.Join(root, "prod", "app1")
-	dev := filepath.Join(root, "dev", "app2")
-	gitDir := filepath.Join(root, ".git")
 
-	if err := os.MkdirAll(prod, 0o750); err != nil {
-		t.Fatalf("mkdir prod: %v", err)
-	}
-	if err := os.MkdirAll(dev, 0o750); err != nil {
-		t.Fatalf("mkdir dev: %v", err)
-	}
-	if err := os.MkdirAll(gitDir, 0o750); err != nil {
-		t.Fatalf("mkdir git: %v", err)
-	}
+	// Setup a complex directory structure
+	// root/
+	//   prod/
+	//     app1/terragrunt.hcl (tags: app, db)
+	//     app2/terragrunt.hcl (tags: app, api)
+	//   dev/
+	//     app3/terragrunt.hcl (tags: api)
+	//   .git/
+	//     terragrunt.hcl (should be ignored)
 
-	prodFile := filepath.Join(prod, "terragrunt.hcl")
-	devFile := filepath.Join(dev, "terragrunt.hcl")
-	gitFile := filepath.Join(gitDir, "terragrunt.hcl")
-
-	if err := os.WriteFile(prodFile, []byte("# cultivator:tags=app,db\n"), 0o600); err != nil {
-		t.Fatalf("write prod file: %v", err)
-	}
-	if err := os.WriteFile(devFile, []byte("# cultivator:tags=api\n"), 0o600); err != nil {
-		t.Fatalf("write dev file: %v", err)
-	}
-	if err := os.WriteFile(gitFile, []byte(""), 0o600); err != nil {
-		t.Fatalf("write git file: %v", err)
+	dirs := []string{
+		filepath.Join(root, "prod", "app1"),
+		filepath.Join(root, "prod", "app2"),
+		filepath.Join(root, "dev", "app3"),
+		filepath.Join(root, ".git"),
 	}
 
-	modules, err := Discover(root, Options{Env: "prod"})
-	if err != nil {
-		t.Fatalf("discover: %v", err)
-	}
-	if len(modules) != 1 {
-		t.Fatalf("expected 1 module, got %d", len(modules))
-	}
-	if modules[0].Env != "prod" {
-		t.Fatalf("expected env prod, got %q", modules[0].Env)
+	for _, d := range dirs {
+		if err := os.MkdirAll(d, 0o750); err != nil {
+			t.Fatalf("setup: mkdir %s: %v", d, err)
+		}
 	}
 
-	modules, err = Discover(root, Options{Include: []string{"prod"}, Exclude: []string{"prod/app1"}})
-	if err != nil {
-		t.Fatalf("discover include/exclude: %v", err)
-	}
-	if len(modules) != 0 {
-		t.Fatalf("expected 0 modules after exclude, got %d", len(modules))
+	files := []struct {
+		path    string
+		content string
+	}{
+		{filepath.Join(root, "prod", "app1", "terragrunt.hcl"), "# cultivator:tags=app,db\n"},
+		{filepath.Join(root, "prod", "app2", "terragrunt.hcl"), "cultivator_tags = [\"app\", \"api\"]\ndependency \"vpc\" { config_path = \"../app1\" }\n"},
+		{filepath.Join(root, "dev", "app3", "terragrunt.hcl"), "# cultivator:tags=api\n"},
+		{filepath.Join(root, ".git", "terragrunt.hcl"), ""},
 	}
 
-	modules, err = Discover(root, Options{Tags: []string{"db"}})
-	if err != nil {
-		t.Fatalf("discover tags: %v", err)
+	for _, f := range files {
+		if err := os.WriteFile(f.path, []byte(f.content), 0o600); err != nil {
+			t.Fatalf("setup: write file %s: %v", f.path, err)
+		}
 	}
-	if len(modules) != 1 {
-		t.Fatalf("expected 1 tagged module, got %d", len(modules))
+
+	tests := []struct {
+		name      string
+		options   Options
+		wantCount int
+		validate  func(*testing.T, []Module)
+	}{
+		{
+			name:      "no filters finds all modules except hidden",
+			options:   Options{},
+			wantCount: 3,
+		},
+		{
+			name:      "filter by env prod",
+			options:   Options{Env: "prod"},
+			wantCount: 2,
+			validate: func(t *testing.T, modules []Module) {
+				for _, m := range modules {
+					if m.Env != "prod" {
+						t.Errorf("expected env prod, got %q for path %s", m.Env, m.Path)
+					}
+				}
+			},
+		},
+		{
+			name:      "filter by env dev",
+			options:   Options{Env: "dev"},
+			wantCount: 1,
+			validate: func(t *testing.T, modules []Module) {
+				if modules[0].Env != "dev" {
+					t.Errorf("expected env dev, got %q", modules[0].Env)
+				}
+			},
+		},
+		{
+			name:      "filter by tags (api)",
+			options:   Options{Tags: []string{"api"}},
+			wantCount: 2, // prod/app2 and dev/app3
+		},
+		{
+			name:      "filter by tags (db)",
+			options:   Options{Tags: []string{"db"}},
+			wantCount: 1, // prod/app1
+		},
+		{
+			name: "include specific path",
+			options: Options{
+				Include: []string{"prod/app1"},
+			},
+			wantCount: 1,
+		},
+		{
+			name: "exclude specific path",
+			options: Options{
+				Exclude: []string{"prod/app2"},
+			},
+			wantCount: 2, // prod/app1 and dev/app3
+		},
+		{
+			name: "include and exclude",
+			options: Options{
+				Include: []string{"prod"},
+				Exclude: []string{"prod/app1"},
+			},
+			wantCount: 1, // prod/app2
+		},
+		{
+			name:    "extract dependencies",
+			options: Options{Include: []string{"prod/app2"}},
+			wantCount: 1,
+			validate: func(t *testing.T, modules []Module) {
+				m := modules[0]
+				if len(m.Dependencies) != 1 {
+					t.Fatalf("expected 1 dependency, got %d", len(m.Dependencies))
+				}
+				if !strings.Contains(m.Dependencies[0], "prod/app1") {
+					t.Errorf("expected dependency on prod/app1, got %q", m.Dependencies[0])
+				}
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			modules, err := Discover(root, tc.options)
+			if err != nil {
+				t.Fatalf("Discover() error: %v", err)
+			}
+			if len(modules) != tc.wantCount {
+				t.Fatalf("Discover() got %d modules, want %d", len(modules), tc.wantCount)
+			}
+			if tc.validate != nil {
+				tc.validate(t, modules)
+			}
+		})
 	}
 }

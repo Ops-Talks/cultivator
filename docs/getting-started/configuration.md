@@ -24,6 +24,9 @@ Supported filenames include `cultivator.yml`, `.cultivator.yaml`, etc.
 root: live
 parallelism: 4
 non_interactive: true
+dry_run: false
+changed_only: false
+base_ref: main
 
 include:
   - envs/prod
@@ -88,6 +91,24 @@ Highest to lowest:
 - **Default**: `false`
 - **Description**: Adds `-input=false` to Terragrunt commands
 
+### dry_run
+
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: If `true`, Cultivator will only log the commands it would execute without actually running them.
+
+### changed_only
+
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: If `true`, Cultivator will query Git for changed files and only execute modules affected by those changes.
+
+### base_ref
+
+- **Type**: String
+- **Default**: `HEAD`
+- **Description**: The Git reference (branch or commit) to compare against when `changed_only` is enabled.
+
 ### plan.destroy
 
 - **Type**: Boolean
@@ -117,6 +138,9 @@ Environment variables override the config file:
 - `CULTIVATOR_TAGS`
 - `CULTIVATOR_PARALLELISM`
 - `CULTIVATOR_NON_INTERACTIVE`
+- `CULTIVATOR_DRY_RUN`
+- `CULTIVATOR_CHANGED_ONLY`
+- `CULTIVATOR_BASE_REF`
 - `CULTIVATOR_PLAN_DESTROY`
 - `CULTIVATOR_APPLY_AUTO_APPROVE`
 - `CULTIVATOR_DESTROY_AUTO_APPROVE`

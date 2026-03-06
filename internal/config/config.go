@@ -19,6 +19,9 @@ type Config struct {
 	Tags           []string               `yaml:"tags"`
 	Parallelism    int                    `yaml:"parallelism"`
 	NonInteractive bool                   `yaml:"non_interactive"`
+	DryRun         bool                   `yaml:"dry_run"`
+	ChangedOnly    bool                   `yaml:"changed_only"`
+	BaseRef        string                 `yaml:"base_ref"`
 	Plan           map[string]interface{} `yaml:"plan"`
 	Apply          map[string]interface{} `yaml:"apply"`
 	Destroy        map[string]interface{} `yaml:"destroy"`
@@ -36,6 +39,9 @@ type Overrides struct {
 	TagsSet        bool
 	Parallelism    *int
 	NonInteractive *bool
+	DryRun         *bool
+	ChangedOnly    *bool
+	BaseRef        *string
 	PlanDestroy    *bool
 	ApplyAutoAppr  *bool
 	DestroyAutoApr *bool
@@ -126,6 +132,15 @@ func LoadEnv(prefix string) Config {
 	if nonInt := os.Getenv(prefix + "_NON_INTERACTIVE"); nonInt != "" {
 		cfg.NonInteractive = parseBool(nonInt)
 	}
+	if dryRun := os.Getenv(prefix + "_DRY_RUN"); dryRun != "" {
+		cfg.DryRun = parseBool(dryRun)
+	}
+	if changedOnly := os.Getenv(prefix + "_CHANGED_ONLY"); changedOnly != "" {
+		cfg.ChangedOnly = parseBool(changedOnly)
+	}
+	if baseRef := os.Getenv(prefix + "_BASE_REF"); baseRef != "" {
+		cfg.BaseRef = baseRef
+	}
 
 	return cfg
 }
@@ -153,6 +168,15 @@ func MergeConfig(base, override Config) Config {
 	}
 	if override.NonInteractive {
 		result.NonInteractive = override.NonInteractive
+	}
+	if override.DryRun {
+		result.DryRun = override.DryRun
+	}
+	if override.ChangedOnly {
+		result.ChangedOnly = override.ChangedOnly
+	}
+	if override.BaseRef != "" {
+		result.BaseRef = override.BaseRef
 	}
 	if len(override.Plan) > 0 {
 		for key, value := range override.Plan {
@@ -199,6 +223,15 @@ func ApplyOverrides(cfg Config, ovr Overrides) Config {
 	}
 	if ovr.NonInteractive != nil {
 		cfg.NonInteractive = *ovr.NonInteractive
+	}
+	if ovr.DryRun != nil {
+		cfg.DryRun = *ovr.DryRun
+	}
+	if ovr.ChangedOnly != nil {
+		cfg.ChangedOnly = *ovr.ChangedOnly
+	}
+	if ovr.BaseRef != nil {
+		cfg.BaseRef = *ovr.BaseRef
 	}
 	if ovr.PlanDestroy != nil && *ovr.PlanDestroy {
 		if cfg.Plan == nil {

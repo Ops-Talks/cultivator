@@ -9,13 +9,16 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/Ops-Talks/cultivator/internal/hcl"
 )
 
 // Module represents a discovered Terragrunt module with its path, environment, and tags.
 type Module struct {
-	Path string
-	Env  string
-	Tags []string
+	Path         string
+	Env          string
+	Tags         []string
+	Dependencies []string // List of absolute paths to dependent modules
 }
 
 // Options controls which modules are returned by Discover.
@@ -78,6 +81,15 @@ func Discover(root string, options Options) ([]Module, error) {
 
 		if !matchesTags(module.Tags, options.Tags) {
 			return nil
+		}
+
+		// Extract dependencies
+		deps, err := hcl.ExtractDependencies(path)
+		if err != nil {
+			return fmt.Errorf("extract dependencies from %s: %w", path, err)
+		}
+		for _, dep := range deps {
+			module.Dependencies = append(module.Dependencies, dep.Path)
 		}
 
 		modules = append(modules, module)

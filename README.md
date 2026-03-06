@@ -14,8 +14,10 @@
 
 - **CLI-first**: Works in GitHub Actions, GitLab CI, and locally
 - **Smart Discovery**: Finds all Terragrunt stacks automatically
+- **Dependency Awareness**: Respects `dependency` blocks and runs stacks in the correct order
+- **Magic Mode**: Automatically filter execution by Git changes (`--changed-only`)
 - **Flexible Filtering**: Environment, path patterns, and custom tags
-- **Parallel Execution**: Configurable worker pool with dependency awareness
+- **Parallel Execution**: Configurable worker pool for concurrent stack runs
 - **No Server**: Pure CLI; uses existing Terraform/OpenTofu backends
 
 ## Quick Start

@@ -16,6 +16,9 @@ cultivator plan --root=live --env=dev --non-interactive
 
 - `--destroy` - run `terragrunt plan -destroy`
 - `--non-interactive` - add `-input=false`
+- `--dry-run` - don't execute terragrunt commands
+- `--changed-only` - only execute modules with changed files
+- `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
 ### Apply
 
@@ -29,6 +32,9 @@ cultivator apply --root=live --env=dev --non-interactive --auto-approve
 
 - `--auto-approve` - add `-auto-approve`
 - `--non-interactive` - add `-input=false`
+- `--dry-run` - don't execute terragrunt commands
+- `--changed-only` - only execute modules with changed files
+- `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
 ### Destroy
 
@@ -42,6 +48,9 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 
 - `--auto-approve` - add `-auto-approve`
 - `--non-interactive` - add `-input=false`
+- `--dry-run` - don't execute terragrunt commands
+- `--changed-only` - only execute modules with changed files
+- `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
 ## CLI Examples
 
@@ -75,16 +84,61 @@ cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ./cultivator plan --root=live --parallelism=8 --non-interactive
 ```
 
-## Environment Variables
+### Magic Mode: Plan only changed modules
 
-| Variable               | Values                              | Default | Description                                                  |
-|------------------------|-------------------------------------|---------|--------------------------------------------------------------|
-| `CULTIVATOR_LOG_LEVEL` | `debug`, `info`, `warning`, `error` | `info`  | Minimum log level emitted by Cultivator. Terragrunt output is always printed regardless of this setting. |
-
-**Example — enable debug logging:**
+Compare current branch against `main` and only run `plan` on modules that have file changes.
 
 ```bash
-CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
+./cultivator plan --changed-only --base=main
+```
+
+### Doctor
+
+Verify your environment and configuration.
+
+```bash
+cultivator doctor --root=live --config=cultivator.yml
+```
+
+### Version
+
+Print version information.
+
+```bash
+cultivator version
+```
+
+## CLI Arguments & Flags
+
+### Positional Arguments
+
+Cultivator supports a positional argument for the module path. This is a shorthand for filtering to a specific module.
+
+```bash
+cultivator plan cloudwatch/log-group/example
+```
+*Note: The path is automatically normalized (e.g., removing leading `./` or trailing `/terragrunt.hcl`).*
+
+## Environment Variables
+
+| Variable | Values | Default | Description |
+|----------|--------|---------|-------------|
+| `CULTIVATOR_LOG_LEVEL` | `debug`, `info`, `warning`, `error` | `info` | Minimum log level. |
+| `CULTIVATOR_ROOT` | path | `.` | Root directory for discovery. |
+| `CULTIVATOR_ENV` | string | | Environment filter. |
+| `CULTIVATOR_INCLUDE` | comma-separated paths | | Paths to include. |
+| `CULTIVATOR_EXCLUDE` | comma-separated paths | | Paths to exclude. |
+| `CULTIVATOR_TAGS` | comma-separated tags | | Tag filters. |
+| `CULTIVATOR_PARALLELISM` | integer | CPU count | Max parallel executions. |
+| `CULTIVATOR_NON_INTERACTIVE` | `true`, `false` | `false` | Force non-interactive mode. |
+| `CULTIVATOR_DRY_RUN` | `true`, `false` | `false` | Enable dry-run mode. |
+| `CULTIVATOR_CHANGED_ONLY` | `true`, `false` | `false` | Enable Magic Mode (Git changes). |
+| `CULTIVATOR_BASE_REF` | string | `HEAD` | Git base reference for Magic Mode. |
+
+**Example — enable Magic Mode in CI:**
+
+```bash
+CULTIVATOR_CHANGED_ONLY=true CULTIVATOR_BASE_REF=main cultivator plan
 ```
 
 ## Output Format

@@ -4,9 +4,12 @@ package runner
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os/exec"
+	"strings"
 	"sync"
 
+	"github.com/Ops-Talks/cultivator/internal/dag"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
 )
 
@@ -30,6 +33,7 @@ type Result struct {
 type Options struct {
 	Parallelism        int
 	NonInteractive     bool
+	DryRun             bool
 	PlanDestroy        bool
 	ApplyAutoApprove   bool
 	DestroyAutoApprove bool
@@ -86,26 +90,86 @@ func (r *Runner) WithExecutor(executor Executor) *Runner {
 	return r
 }
 
-// Run executes the given Terragrunt command for each module concurrently, bounded
-// by opts.Parallelism. It always returns the full result slice; individual errors
+// Run executes the given Terragrunt command for each module according to their dependencies,
+// bounded by opts.Parallelism. It always returns the full result slice; individual errors
 // are captured inside each Result.
 func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Module, opts Options) ([]Result, error) {
 	if opts.Parallelism < 1 {
 		opts.Parallelism = 1
 	}
 
+	// Build the dependency graph
+	g := dag.New()
+	pathMap := make(map[string]int) // path -> index in modules slice
+	for i, mod := range modules {
+		g.AddNode(mod.Path)
+		pathMap[mod.Path] = i
+	}
+
+	for _, mod := range modules {
+		for _, depPath := range mod.Dependencies {
+			// Only add dependencies that are part of the current execution set
+			if _, ok := pathMap[depPath]; ok {
+				g.AddEdge(mod.Path, depPath)
+			}
+		}
+	}
+
+	// Detect cycles
+	_, err := g.TopologicalSort()
+	if err != nil {
+		return nil, fmt.Errorf("dependency error: %w", err)
+	}
+
 	results := make([]Result, len(modules))
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, opts.Parallelism)
 
+	// Keep track of finished modules to signal dependents
+	finished := make(map[string]chan struct{})
+	for _, mod := range modules {
+		finished[mod.Path] = make(chan struct{})
+	}
+
 	for i, module := range modules {
 		idx, mod := i, module
 		wg.Go(func() {
+			// Wait for all dependencies to finish
+			deps := g.GetDependencies(mod.Path)
+			for _, dep := range deps {
+				select {
+				case <-finished[dep]:
+					// Dependency finished
+				case <-ctx.Done():
+					results[idx] = Result{
+						Module:  mod,
+						Command: command,
+						Error:   ctx.Err(),
+					}
+					close(finished[mod.Path])
+					return
+				}
+			}
+
 			semaphore <- struct{}{}
-			defer func() { <-semaphore }()
+			defer func() {
+				<-semaphore
+				close(finished[mod.Path])
+			}()
 
 			args := BuildArgs(command, opts)
-			stdout, stderr, exitCode, err := r.executor.Run(ctx, mod.Path, "terragrunt", args, []string{})
+
+			var stdout string
+			var stderr string
+			var exitCode int
+			var execErr error
+
+			if opts.DryRun {
+				stdout = "Dry run: terragrunt " + strings.Join(args, " ")
+				exitCode = 0
+			} else {
+				stdout, stderr, exitCode, execErr = r.executor.Run(ctx, mod.Path, "terragrunt", args, []string{})
+			}
 
 			results[idx] = Result{
 				Module:   mod,
@@ -113,7 +177,7 @@ func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Mo
 				Stdout:   stdout,
 				Stderr:   stderr,
 				ExitCode: exitCode,
-				Error:    err,
+				Error:    execErr,
 			}
 		})
 	}

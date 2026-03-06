@@ -27,263 +27,217 @@ func (f *fakeExecutor) Run(_ context.Context, workDir string, _ string, args []s
 	return "ok", "", 0, nil
 }
 
-func Test_BuildArgs_plan(t *testing.T) {
+func Test_BuildArgs(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		opts Options
-		want []string
+		name    string
+		command string
+		opts    Options
+		want    []string
 	}{
 		{
-			name: "no flags",
-			opts: Options{},
-			want: []string{"plan", "-no-color"},
+			name:    "plan: no flags",
+			command: CommandPlan,
+			opts:    Options{},
+			want:    []string{"plan", "-no-color"},
 		},
 		{
-			name: "destroy flag",
-			opts: Options{PlanDestroy: true},
-			want: []string{"plan", "-no-color", "-destroy"},
+			name:    "plan: destroy flag",
+			command: CommandPlan,
+			opts:    Options{PlanDestroy: true},
+			want:    []string{"plan", "-no-color", "-destroy"},
 		},
 		{
-			name: "non-interactive",
-			opts: Options{NonInteractive: true},
-			want: []string{"plan", "-no-color", "-input=false"},
+			name:    "plan: non-interactive",
+			command: CommandPlan,
+			opts:    Options{NonInteractive: true},
+			want:    []string{"plan", "-no-color", "-input=false"},
 		},
 		{
-			name: "destroy and non-interactive",
-			opts: Options{PlanDestroy: true, NonInteractive: true},
-			want: []string{"plan", "-no-color", "-destroy", "-input=false"},
+			name:    "apply: no flags",
+			command: CommandApply,
+			opts:    Options{},
+			want:    []string{"apply", "-no-color"},
+		},
+		{
+			name:    "apply: auto-approve",
+			command: CommandApply,
+			opts:    Options{ApplyAutoApprove: true},
+			want:    []string{"apply", "-no-color", "-auto-approve"},
+		},
+		{
+			name:    "destroy: no flags",
+			command: CommandDestroy,
+			opts:    Options{},
+			want:    []string{"destroy", "-no-color"},
+		},
+		{
+			name:    "destroy: auto-approve",
+			command: CommandDestroy,
+			opts:    Options{DestroyAutoApprove: true},
+			want:    []string{"destroy", "-no-color", "-auto-approve"},
+		},
+		{
+			name:    "dry-run: plan",
+			command: CommandPlan,
+			opts:    Options{DryRun: true},
+			want:    []string{"plan", "-no-color"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertArgs(t, tc.want, BuildArgs(CommandPlan, tc.opts))
+			got := BuildArgs(tc.command, tc.opts)
+			compareSlices(t, tc.want, got)
 		})
 	}
 }
 
-func Test_BuildArgs_apply(t *testing.T) {
+func Test_Run(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		opts Options
-		want []string
+		name        string
+		modules     []discovery.Module
+		parallelism int
+		command     string
+		validate    func(*testing.T, []Result, *fakeExecutor)
 	}{
 		{
-			name: "no flags",
-			opts: Options{},
-			want: []string{"apply", "-no-color"},
+			name: "parallel execution and order preservation",
+			modules: []discovery.Module{
+				{Path: filepath.Join("/tmp", "alpha")},
+				{Path: filepath.Join("/tmp", "beta")},
+				{Path: filepath.Join("/tmp", "gamma")},
+			},
+			parallelism: 3,
+			command:     CommandPlan,
+			validate: func(t *testing.T, results []Result, fake *fakeExecutor) {
+				if len(results) != 3 {
+					t.Fatalf("got %d results, want 3", len(results))
+				}
+				// Verify order preservation
+				paths := []string{"alpha", "beta", "gamma"}
+				for i, want := range paths {
+					if !strings.Contains(results[i].Module.Path, want) {
+						t.Errorf("results[%d].Module.Path = %q, want to contain %q", i, results[i].Module.Path, want)
+					}
+				}
+				fake.mu.Lock()
+				defer fake.mu.Unlock()
+				if len(fake.calls) != 3 {
+					t.Errorf("expected 3 executor calls, got %d", len(fake.calls))
+				}
+			},
 		},
 		{
-			name: "auto-approve",
-			opts: Options{ApplyAutoApprove: true},
-			want: []string{"apply", "-no-color", "-auto-approve"},
-		},
-		{
-			name: "auto-approve and non-interactive",
-			opts: Options{ApplyAutoApprove: true, NonInteractive: true},
-			want: []string{"apply", "-no-color", "-auto-approve", "-input=false"},
+			name: "default parallelism (0 -> 1)",
+			modules: []discovery.Module{
+				{Path: filepath.Join("/tmp", "app1")},
+			},
+			parallelism: 0,
+			command:     CommandPlan,
+			validate: func(t *testing.T, results []Result, fake *fakeExecutor) {
+				if len(results) != 1 {
+					t.Fatalf("got %d results, want 1", len(results))
+				}
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertArgs(t, tc.want, BuildArgs(CommandApply, tc.opts))
+			fake := &fakeExecutor{}
+			r := New().WithExecutor(fake)
+			opts := Options{Parallelism: tc.parallelism}
+
+			results, err := r.Run(context.Background(), tc.command, tc.modules, opts)
+			if err != nil {
+				t.Fatalf("Run() unexpected error: %v", err)
+			}
+			tc.validate(t, results, fake)
 		})
 	}
 }
 
-func Test_BuildArgs_destroy(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		opts Options
-		want []string
-	}{
-		{
-			name: "no flags",
-			opts: Options{},
-			want: []string{"destroy", "-no-color"},
-		},
-		{
-			name: "auto-approve",
-			opts: Options{DestroyAutoApprove: true},
-			want: []string{"destroy", "-no-color", "-auto-approve"},
-		},
-		{
-			name: "auto-approve and non-interactive",
-			opts: Options{DestroyAutoApprove: true, NonInteractive: true},
-			want: []string{"destroy", "-no-color", "-auto-approve", "-input=false"},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assertArgs(t, tc.want, BuildArgs(CommandDestroy, tc.opts))
-		})
-	}
-}
-
-func Test_Run_parallelExecution(t *testing.T) {
-	t.Parallel()
-
-	fake := &fakeExecutor{}
-	r := New().WithExecutor(fake)
-
-	modules := []discovery.Module{
-		{Path: filepath.Join("/tmp", "app1")},
-		{Path: filepath.Join("/tmp", "app2")},
-	}
-
-	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 2})
-	if err != nil {
-		t.Fatalf("Run() unexpected error: %v", err)
-	}
-	if len(results) != 2 {
-		t.Fatalf("Run() returned %d results, want 2", len(results))
-	}
-
-	fake.mu.Lock()
-	defer fake.mu.Unlock()
-	if len(fake.calls) != 2 {
-		t.Fatalf("expected 2 executor calls, got %d", len(fake.calls))
-	}
-}
-
-// Test_Run_resultsPreserveDiscoveryOrder verifies that Run stores each result
-// in the slot matching the module's position in the input slice, regardless of
-// the order in which goroutines complete. This guarantees that logExecutionResults
-// always prints output in a deterministic, discovery-ordered sequence.
-func Test_Run_resultsPreserveDiscoveryOrder(t *testing.T) {
-	t.Parallel()
-
-	fake := &fakeExecutor{}
-	r := New().WithExecutor(fake)
-
-	modules := []discovery.Module{
-		{Path: filepath.Join("/tmp", "alpha")},
-		{Path: filepath.Join("/tmp", "beta")},
-		{Path: filepath.Join("/tmp", "gamma")},
-	}
-
-	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 3})
-	if err != nil {
-		t.Fatalf("Run() unexpected error: %v", err)
-	}
-	if len(results) != 3 {
-		t.Fatalf("Run() returned %d results, want 3", len(results))
-	}
-
-	// Each result must carry the module that corresponds to its position in
-	// the input slice, not the order in which the goroutine happened to finish.
-	for i, mod := range modules {
-		if results[i].Module.Path != mod.Path {
-			t.Errorf("results[%d].Module.Path = %q, want %q", i, results[i].Module.Path, mod.Path)
-		}
-	}
-}
-
-func Test_Run_defaultParallelism(t *testing.T) {
-	t.Parallel()
-
-	fake := &fakeExecutor{}
-	r := New().WithExecutor(fake)
-
-	modules := []discovery.Module{
-		{Path: filepath.Join("/tmp", "app1")},
-	}
-
-	// Parallelism 0 should default to 1 without panic.
-	results, err := r.Run(context.Background(), CommandPlan, modules, Options{Parallelism: 0})
-	if err != nil {
-		t.Fatalf("Run() unexpected error: %v", err)
-	}
-	if len(results) != 1 {
-		t.Fatalf("Run() returned %d results, want 1", len(results))
-	}
-}
-
-// Test_DefaultExecutor_stderrAlwaysEmpty verifies that DefaultExecutor never
-// returns content in Stderr; all output (stdout + stderr of the subprocess) is
-// merged and returned as Stdout via CombinedOutput.
-func Test_DefaultExecutor_stderrAlwaysEmpty(t *testing.T) {
-	t.Parallel()
-
-	ex := &DefaultExecutor{}
-	_, stderr, _, _ := ex.Run(
-		context.Background(),
-		t.TempDir(),
-		"sh",
-		[]string{"-c", "echo hello >&2"},
-		nil,
-	)
-	if stderr != "" {
-		t.Errorf("Stderr must always be empty (output merged into Stdout); got %q", stderr)
-	}
-}
-
-// Test_DefaultExecutor_combinesOutputChronologically verifies that writes to
-// stdout and stderr from the subprocess appear in the combined Stdout field in
-// the order they were produced, not stdout-block-first then stderr-block-after.
-func Test_DefaultExecutor_combinesOutputChronologically(t *testing.T) {
+func Test_DefaultExecutor_Run(t *testing.T) {
 	t.Parallel()
 
 	ex := &DefaultExecutor{}
 
-	// The script writes alternating lines to stdout and stderr.
-	// CombinedOutput must preserve the write order via a single shared pipe.
-	script := "printf 'line1\\n'; printf 'line2\\n' >&2; printf 'line3\\n'; printf 'line4\\n' >&2"
-	stdout, stderr, exitCode, err := ex.Run(
-		context.Background(),
-		t.TempDir(),
-		"sh",
-		[]string{"-c", script},
-		nil,
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if exitCode != 0 {
-		t.Fatalf("expected exit code 0, got %d", exitCode)
-	}
-	if stderr != "" {
-		t.Errorf("Stderr must always be empty; got %q", stderr)
+	tests := []struct {
+		name     string
+		script   string
+		validate func(*testing.T, string, string, int, error)
+	}{
+		{
+			name:   "stderr is merged into stdout",
+			script: "echo hello >&2",
+			validate: func(t *testing.T, stdout, stderr string, exitCode int, err error) {
+				if stderr != "" {
+					t.Errorf("stderr should be empty, got %q", stderr)
+				}
+				if !strings.Contains(stdout, "hello") {
+					t.Errorf("stdout should contain 'hello', got %q", stdout)
+				}
+			},
+		},
+		{
+			name:   "output is combined chronologically",
+			script: "printf 'line1\\n'; sleep 0.1; printf 'line2\\n' >&2; sleep 0.1; printf 'line3\\n'",
+			validate: func(t *testing.T, stdout, stderr string, exitCode int, err error) {
+				lines := []string{"line1", "line2", "line3"}
+				prev := -1
+				for _, line := range lines {
+					pos := strings.Index(stdout, line)
+					if pos == -1 {
+						t.Errorf("output missing %q", line)
+						continue
+					}
+					if pos < prev {
+						t.Errorf("%q appeared before previous line", line)
+					}
+					prev = pos
+				}
+			},
+		},
+		{
+			name:   "non-zero exit code",
+			script: "exit 1",
+			validate: func(t *testing.T, stdout, stderr string, exitCode int, err error) {
+				if exitCode != 1 {
+					t.Errorf("expected exit code 1, got %d", exitCode)
+				}
+			},
+		},
 	}
 
-	lines := []string{"line1", "line2", "line3", "line4"}
-	for _, line := range lines {
-		if !strings.Contains(stdout, line) {
-			t.Errorf("combined output missing %q, got %q", line, stdout)
-		}
-	}
-
-	// Verify that lines appear in the order they were written.
-	prev := 0
-	for _, line := range lines {
-		pos := strings.Index(stdout, line)
-		if pos < prev {
-			t.Errorf("output not in chronological order: %q appears at %d, before previous line at %d; full output: %q",
-				line, pos, prev, stdout)
-		}
-		prev = pos
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			stdout, stderr, exitCode, err := ex.Run(
+				context.Background(),
+				t.TempDir(),
+				"sh",
+				[]string{"-c", tc.script},
+				nil,
+			)
+			tc.validate(t, stdout, stderr, exitCode, err)
+		})
 	}
 }
 
-func assertArgs(t *testing.T, expected, actual []string) {
+func compareSlices(t *testing.T, want, got []string) {
 	t.Helper()
-	if len(expected) != len(actual) {
-		t.Fatalf("expected %d args %v, got %d args %v", len(expected), expected, len(actual), actual)
+	if len(want) != len(got) {
+		t.Fatalf("slice length mismatch: want %d (%v), got %d (%v)", len(want), want, len(got), got)
 	}
-	for i, want := range expected {
-		if actual[i] != want {
-			t.Fatalf("arg[%d]: want %q, got %q", i, want, actual[i])
+	for i := range want {
+		if want[i] != got[i] {
+			t.Errorf("slice element mismatch at index %d: want %q, got %q", i, want[i], got[i])
 		}
 	}
 }

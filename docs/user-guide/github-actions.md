@@ -83,6 +83,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for Magic Mode (git diff)
 
       - name: Install tools
         shell: bash
@@ -116,6 +118,11 @@ jobs:
             --parallelism "$CULTIVATOR_PARALLELISM"
             --non-interactive=true
           )
+
+          # Enable Magic Mode on Pull Requests to target only changed modules
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            args+=(--changed-only --base "${{ github.base_ref }}")
+          fi
 
           if [[ -n "$CULTIVATOR_ENV" ]]; then
             args+=(--env "$CULTIVATOR_ENV")
@@ -168,6 +175,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0 # Required for accurate change mapping and DAG resolution
 
       - name: Install tools
         shell: bash
@@ -208,6 +216,7 @@ jobs:
           fi
 
           # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
+          # Execution order is automatically determined by the built-in DAG engine.
           cultivator apply "${args[@]}" 2>&1 | tee apply_output.txt
 
       - name: Upload apply output

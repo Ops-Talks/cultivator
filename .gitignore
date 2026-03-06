@@ -97,4 +97,3 @@ thumbs.db
 .env.local
 *.log
 helpers/
-NEXT_STEPS.md
