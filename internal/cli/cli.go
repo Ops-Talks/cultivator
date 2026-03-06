@@ -200,17 +200,20 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 		return state, 2
 	}
 
-	// Capture positional argument (module path) if provided.
-	// This supports usage like: cultivator plan cloudwatch/log-group/example [flags]
-	// The path is normalized and treated as an include filter.
-	if len(fs.Args()) > 0 {
-		modulePath := fs.Args()[0]
-		state.module = normalizePath(modulePath)
-	}
-
 	state.configPath = *configPath
 	state.root = *root
 	state.env = *env
+
+	populateFlagState(&state, fs, include, exclude, tags, parallelism, nonInteractive, dryRun, changedOnly, baseRef, planDestroy, applyAutoApprove, destroyAutoApprove, command)
+
+	return state, 0
+}
+
+func populateFlagState(state *terragruntFlagState, fs *flag.FlagSet, include, exclude, tags *stringSliceFlag, parallelism *intFlag, nonInteractive, dryRun, changedOnly *boolFlag, baseRef *string, planDestroy, applyAutoApprove, destroyAutoApprove *boolFlag, command string) {
+	// Capture positional argument (module path) if provided.
+	if len(fs.Args()) > 0 {
+		state.module = normalizePath(fs.Args()[0])
+	}
 
 	// Process include/exclude/tags filters first
 	if include.set {
@@ -274,8 +277,6 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 			state.destroyAutoApproveSet = true
 		}
 	}
-
-	return state, 0
 }
 
 func buildTerragruntConfig(state terragruntFlagState) (config.Config, error) {

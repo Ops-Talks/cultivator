@@ -117,8 +117,8 @@ func TestDiscover(t *testing.T) {
 			wantCount: 1, // prod/app2
 		},
 		{
-			name:    "extract dependencies",
-			options: Options{Include: []string{"prod/app2"}},
+			name:      "extract dependencies",
+			options:   Options{Include: []string{"prod/app2"}},
 			wantCount: 1,
 			validate: func(t *testing.T, modules []Module) {
 				m := modules[0]

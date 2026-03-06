@@ -59,7 +59,7 @@ func TestGraph_TopologicalSort(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "no dependencies",
+			name:  "no dependencies",
 			edges: [][2]string{},
 			want:  nil, // Graph is empty
 		},
@@ -86,7 +86,7 @@ func TestGraph_TopologicalSort(t *testing.T) {
 				t.Errorf("TopologicalSort() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if tt.wantErr {
 				if !strings.Contains(err.Error(), "cycle detected") {
 					t.Errorf("expected cycle error, got %v", err)
@@ -106,7 +106,7 @@ func TestGraph_AddNode(t *testing.T) {
 	g := New()
 	g.AddNode("A")
 	g.AddNode("B")
-	
+
 	nodes := g.GetNodes()
 	want := []string{"A", "B"}
 	if !reflect.DeepEqual(nodes, want) {
@@ -119,7 +119,7 @@ func TestGraph_GetDependencies(t *testing.T) {
 	g := New()
 	g.AddEdge("App", "DB")
 	g.AddEdge("App", "VPC")
-	
+
 	deps := g.GetDependencies("App")
 	want := []string{"DB", "VPC"}
 	if !reflect.DeepEqual(deps, want) {

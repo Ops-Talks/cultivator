@@ -62,7 +62,7 @@ func (g *Graph) TopologicalSort() ([]string, error) {
 		}
 
 		onStack[n] = true
-		
+
 		// Sort dependencies for deterministic output
 		var deps []string
 		for dep := range g.dependencies[n] {

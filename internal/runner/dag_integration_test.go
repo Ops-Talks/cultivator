@@ -54,13 +54,13 @@ func Test_Run_RespectsDependencies(t *testing.T) {
 
 	// DB should start after VPC finishes
 	if executor.starts["/db"].Before(executor.finishes["/vpc"]) {
-		t.Errorf("DB started before VPC finished: VPC finish at %v, DB start at %v", 
+		t.Errorf("DB started before VPC finished: VPC finish at %v, DB start at %v",
 			executor.finishes["/vpc"], executor.starts["/db"])
 	}
 
 	// App should start after DB finishes
 	if executor.starts["/app"].Before(executor.finishes["/db"]) {
-		t.Errorf("App started before DB finished: DB finish at %v, App start at %v", 
+		t.Errorf("App started before DB finished: DB finish at %v, App start at %v",
 			executor.finishes["/db"], executor.starts["/app"])
 	}
 }

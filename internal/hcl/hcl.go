@@ -32,20 +32,20 @@ func ExtractDependencies(hclPath string) ([]Dependency, error) {
 
 	hclDir := filepath.Dir(hclPath)
 	matches := dependencyRegex.FindAllStringSubmatchIndex(string(content), -1)
-	
+
 	var deps []Dependency
 	for _, match := range matches {
 		name := string(content[match[2]:match[3]])
-		
+
 		// Look for config_path within the block (until the next closing brace)
 		// This is a simplified approach for the lightweight parser.
 		blockContent := string(content[match[1]:])
 		pathMatch := configPathRegex.FindStringSubmatch(blockContent)
-		
+
 		if len(pathMatch) > 1 {
 			relPath := pathMatch[1]
 			absPath := filepath.Clean(filepath.Join(hclDir, relPath))
-			
+
 			deps = append(deps, Dependency{
 				Name: name,
 				Path: absPath,

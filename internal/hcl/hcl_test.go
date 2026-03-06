@@ -11,7 +11,7 @@ func TestExtractDependencies(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	
+
 	// Create some dummy dependency directories
 	vpcPath := filepath.Join(tmpDir, "vpc")
 	dbPath := filepath.Join(tmpDir, "db")
@@ -79,7 +79,7 @@ terraform {
 			hclDir := filepath.Join(tmpDir, tt.name)
 			_ = os.Mkdir(hclDir, 0o755)
 			hclPath := filepath.Join(hclDir, "terragrunt.hcl")
-			
+
 			if err := os.WriteFile(hclPath, []byte(tt.content), 0o644); err != nil {
 				t.Fatalf("failed to write test file: %v", err)
 			}
@@ -89,7 +89,7 @@ terraform {
 				t.Errorf("ExtractDependencies() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if !reflect.DeepEqual(got, tt.wantDeps) {
 				t.Errorf("ExtractDependencies() got = %v, want %v", got, tt.wantDeps)
 			}
