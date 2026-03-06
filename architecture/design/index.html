@@ -826,18 +826,27 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-dependency-graph" class="md-nav__link">
+  <a href="#4-git-integration-magic-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Dependency Graph
+      4. Git Integration (Magic Mode)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-executor" class="md-nav__link">
+  <a href="#5-dependency-graph-dag" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Executor
+      5. Dependency Graph (DAG)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-executor" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Executor
     </span>
   </a>
   
@@ -1226,18 +1235,27 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-dependency-graph" class="md-nav__link">
+  <a href="#4-git-integration-magic-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Dependency Graph
+      4. Git Integration (Magic Mode)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-executor" class="md-nav__link">
+  <a href="#5-dependency-graph-dag" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Executor
+      5. Dependency Graph (DAG)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-executor" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Executor
     </span>
   </a>
   
@@ -1428,13 +1446,20 @@
 <li>Filters stacks by <code>--include</code> / <code>--exclude</code> (path patterns)</li>
 <li>Filters stacks by <code>--tags</code> (tag comments in <code>terragrunt.hcl</code>)</li>
 </ul>
-<h3 id="4-dependency-graph">4. Dependency Graph<a class="headerlink" href="#4-dependency-graph" title="Permanent link">&para;</a></h3>
+<h3 id="4-git-integration-magic-mode">4. Git Integration (Magic Mode)<a class="headerlink" href="#4-git-integration-magic-mode" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Parses <code>terragrunt.hcl</code> files</li>
-<li>Builds dependency graph from <code>dependency</code> blocks</li>
-<li>Determines correct execution order</li>
+<li>Queries Git for changed files using <code>git diff</code></li>
+<li>Maps file changes to specific Terragrunt modules</li>
+<li>Filters execution scope to only affected modules when <code>--changed-only</code> is active</li>
 </ul>
-<h3 id="5-executor">5. Executor<a class="headerlink" href="#5-executor" title="Permanent link">&para;</a></h3>
+<h3 id="5-dependency-graph-dag">5. Dependency Graph (DAG)<a class="headerlink" href="#5-dependency-graph-dag" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Parses <code>terragrunt.hcl</code> files to extract <code>dependency</code> blocks</li>
+<li>Builds a Directed Acyclic Graph (DAG) representing module relationships</li>
+<li>Performs topological sorting to determine the correct execution order</li>
+<li>Detects and prevents circular dependencies</li>
+</ul>
+<h3 id="6-executor">6. Executor<a class="headerlink" href="#6-executor" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Runs Terragrunt commands (<code>plan</code>, <code>apply</code>, <code>destroy</code>)</li>
 <li>Manages parallel execution via worker pool</li>
@@ -1453,15 +1478,17 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    |
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Stack Discovery -&gt; Find all terragrunt.hcl files
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    |
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Scope Filter -&gt; Apply --env, --include, --exclude, --tags
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Git Integration -&gt; Filter by changed files (if --changed-only)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Dependency Graph -&gt; Build execution order
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Scope Filter -&gt; Apply --env, --include, --exclude, --tags
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Executor (parallel worker pool) -&gt; Run Terragrunt commands
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Dependency Graph -&gt; Build execution order (DAG)
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    |
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Output Formatter -&gt; Display results
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Executor (parallel worker pool) -&gt; Run Terragrunt commands
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    |
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Output Formatter -&gt; Display results
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    |
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
 </span></code></pre></div>
 <h2 id="key-design-principles">Key Design Principles<a class="headerlink" href="#key-design-principles" title="Permanent link">&para;</a></h2>
 <h3 id="1-stateless-operation">1. Stateless Operation<a class="headerlink" href="#1-stateless-operation" title="Permanent link">&para;</a></h3>

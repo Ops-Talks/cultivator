@@ -766,6 +766,57 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#magic-mode-plan-only-changed-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Magic Mode: Plan only changed modules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Doctor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli-arguments-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLI Arguments &amp; Flags
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CLI Arguments & Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#positional-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Positional Arguments
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1216,6 +1267,57 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#magic-mode-plan-only-changed-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Magic Mode: Plan only changed modules
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Doctor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli-arguments-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLI Arguments &amp; Flags
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CLI Arguments & Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#positional-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Positional Arguments
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1295,6 +1397,9 @@
 <ul>
 <li><code>--destroy</code> - run <code>terragrunt plan -destroy</code></li>
 <li><code>--non-interactive</code> - add <code>-input=false</code></li>
+<li><code>--dry-run</code> - don't execute terragrunt commands</li>
+<li><code>--changed-only</code> - only execute modules with changed files</li>
+<li><code>--base</code> - git base reference for <code>--changed-only</code> (default: <code>HEAD</code>)</li>
 </ul>
 <h3 id="apply">Apply<a class="headerlink" href="#apply" title="Permanent link">&para;</a></h3>
 <p>Run <code>terragrunt apply</code> on matching stacks.</p>
@@ -1304,6 +1409,9 @@
 <ul>
 <li><code>--auto-approve</code> - add <code>-auto-approve</code></li>
 <li><code>--non-interactive</code> - add <code>-input=false</code></li>
+<li><code>--dry-run</code> - don't execute terragrunt commands</li>
+<li><code>--changed-only</code> - only execute modules with changed files</li>
+<li><code>--base</code> - git base reference for <code>--changed-only</code> (default: <code>HEAD</code>)</li>
 </ul>
 <h3 id="destroy">Destroy<a class="headerlink" href="#destroy" title="Permanent link">&para;</a></h3>
 <p>Run <code>terragrunt destroy</code> on matching stacks.</p>
@@ -1313,6 +1421,9 @@
 <ul>
 <li><code>--auto-approve</code> - add <code>-auto-approve</code></li>
 <li><code>--non-interactive</code> - add <code>-input=false</code></li>
+<li><code>--dry-run</code> - don't execute terragrunt commands</li>
+<li><code>--changed-only</code> - only execute modules with changed files</li>
+<li><code>--base</code> - git base reference for <code>--changed-only</code> (default: <code>HEAD</code>)</li>
 </ul>
 <h2 id="cli-examples">CLI Examples<a class="headerlink" href="#cli-examples" title="Permanent link">&para;</a></h2>
 <h3 id="plan-specific-environment">Plan specific environment<a class="headerlink" href="#plan-specific-environment" title="Permanent link">&para;</a></h3>
@@ -1330,6 +1441,24 @@
 <h3 id="plan-with-custom-parallelism">Plan with custom parallelism<a class="headerlink" href="#plan-with-custom-parallelism" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--parallelism<span class="o">=</span><span class="m">8</span><span class="w"> </span>--non-interactive
 </span></code></pre></div>
+<h3 id="magic-mode-plan-only-changed-modules">Magic Mode: Plan only changed modules<a class="headerlink" href="#magic-mode-plan-only-changed-modules" title="Permanent link">&para;</a></h3>
+<p>Compare current branch against <code>main</code> and only run <code>plan</code> on modules that have file changes.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--changed-only<span class="w"> </span>--base<span class="o">=</span>main
+</span></code></pre></div>
+<h3 id="doctor">Doctor<a class="headerlink" href="#doctor" title="Permanent link">&para;</a></h3>
+<p>Verify your environment and configuration.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>cultivator<span class="w"> </span>doctor<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--config<span class="o">=</span>cultivator.yml
+</span></code></pre></div>
+<h3 id="version">Version<a class="headerlink" href="#version" title="Permanent link">&para;</a></h3>
+<p>Print version information.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cultivator<span class="w"> </span>version
+</span></code></pre></div>
+<h2 id="cli-arguments-flags">CLI Arguments &amp; Flags<a class="headerlink" href="#cli-arguments-flags" title="Permanent link">&para;</a></h2>
+<h3 id="positional-arguments">Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permanent link">&para;</a></h3>
+<p>Cultivator supports a positional argument for the module path. This is a shorthand for filtering to a specific module.</p>
+<p><div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>cloudwatch/log-group/example
+</span></code></pre></div>
+<em>Note: The path is automatically normalized (e.g., removing leading <code>./</code> or trailing <code>/terragrunt.hcl</code>).</em></p>
 <h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1345,22 +1474,82 @@
 <td><code>CULTIVATOR_LOG_LEVEL</code></td>
 <td><code>debug</code>, <code>info</code>, <code>warning</code>, <code>error</code></td>
 <td><code>info</code></td>
-<td>Minimum log level emitted by Cultivator. Terragrunt output is always printed regardless of this setting.</td>
+<td>Minimum log level.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_ROOT</code></td>
+<td>path</td>
+<td><code>.</code></td>
+<td>Root directory for discovery.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_ENV</code></td>
+<td>string</td>
+<td></td>
+<td>Environment filter.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_INCLUDE</code></td>
+<td>comma-separated paths</td>
+<td></td>
+<td>Paths to include.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_EXCLUDE</code></td>
+<td>comma-separated paths</td>
+<td></td>
+<td>Paths to exclude.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_TAGS</code></td>
+<td>comma-separated tags</td>
+<td></td>
+<td>Tag filters.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_PARALLELISM</code></td>
+<td>integer</td>
+<td>CPU count</td>
+<td>Max parallel executions.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_NON_INTERACTIVE</code></td>
+<td><code>true</code>, <code>false</code></td>
+<td><code>false</code></td>
+<td>Force non-interactive mode.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_DRY_RUN</code></td>
+<td><code>true</code>, <code>false</code></td>
+<td><code>false</code></td>
+<td>Enable dry-run mode.</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_CHANGED_ONLY</code></td>
+<td><code>true</code>, <code>false</code></td>
+<td><code>false</code></td>
+<td>Enable Magic Mode (Git changes).</td>
+</tr>
+<tr>
+<td><code>CULTIVATOR_BASE_REF</code></td>
+<td>string</td>
+<td><code>HEAD</code></td>
+<td>Git base reference for Magic Mode.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Example — enable debug logging:</strong></p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+<p><strong>Example — enable Magic Mode in CI:</strong></p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">CULTIVATOR_CHANGED_ONLY</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="nv">CULTIVATOR_BASE_REF</span><span class="o">=</span>main<span class="w"> </span>cultivator<span class="w"> </span>plan
 </span></code></pre></div>
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
 <p>Cultivator produces human-readable text output by default, organized by module with clear section headers:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>=== plan: live/prod/vpc ===
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Running terragrunt plan in /path/to/live/prod/vpc...
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>[output from terragrunt]
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>=== plan: live/prod/app ===
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>Running terragrunt plan in /path/to/live/prod/app...
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>[output from terragrunt]
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>=== plan: live/prod/vpc ===
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Running terragrunt plan in /path/to/live/prod/vpc...
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>[output from terragrunt]
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>=== plan: live/prod/app ===
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>Running terragrunt plan in /path/to/live/prod/app...
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>[output from terragrunt]
 </span></code></pre></div>
 <p>Each stack shows:
 - Module path
@@ -1368,11 +1557,11 @@
 - Clear demarcation for easy scanning</p>
 <h2 id="binary-invocation">Binary Invocation<a class="headerlink" href="#binary-invocation" title="Permanent link">&para;</a></h2>
 <p>Local development (after building):
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>cultivator<span class="w"> </span>./cmd/cultivator
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>cultivator<span class="w"> </span>./cmd/cultivator
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div></p>
 <p>CI/CD environments (pre-compiled/downloaded binaries in PATH):
-<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
 </span></code></pre></div></p>
 <p>Both forms are equivalent. The difference:
 - <code>./cultivator</code> - Runs binary in current directory (local builds)
@@ -1388,7 +1577,7 @@
 <ol>
 <li><strong>PR triggers plan:</strong></li>
 </ol>
-<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
+<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive
 </span></code></pre></div>
 <ol>
 <li>
@@ -1401,7 +1590,7 @@
 <p><strong>Main branch triggers apply:</strong></p>
 </li>
 </ol>
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>cultivator<span class="w"> </span>apply<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev<span class="w"> </span>--non-interactive<span class="w"> </span>--auto-approve
 </span></code></pre></div>
 <hr />
 <p>See <a href="../features/">Features</a> for more about what Cultivator can do.</p>
