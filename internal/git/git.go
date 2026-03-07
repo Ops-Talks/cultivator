@@ -43,8 +43,8 @@ func GetChangedFiles(ctx context.Context, workingDir string, baseRef string) ([]
 }
 
 // IsGitRepo checks if the given directory is part of a git repository.
-func IsGitRepo(workingDir string) bool {
-	cmd := exec.Command("git", "rev-parse", "--is-inside-work-tree")
+func IsGitRepo(ctx context.Context, workingDir string) bool {
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--is-inside-work-tree")
 	cmd.Dir = workingDir
 	err := cmd.Run()
 	return err == nil

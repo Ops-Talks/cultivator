@@ -22,6 +22,25 @@ var (
 	configPathRegex = regexp.MustCompile(`config_path\s+=\s+"([^"]+)"`)
 )
 
+// findBlockEnd returns the byte index of the closing '}' that balances the
+// implicit opening '{' at the start position (depth begins at 1). Returns -1
+// if no matching closing brace is found before the end of content.
+func findBlockEnd(content []byte, start int) int {
+	depth := 1
+	for i := start; i < len(content); i++ {
+		switch content[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return i
+			}
+		}
+	}
+	return -1
+}
+
 // ExtractDependencies reads a terragrunt.hcl file and extracts all dependency paths.
 // It returns a list of absolute paths to the dependency directories.
 func ExtractDependencies(hclPath string) ([]Dependency, error) {
@@ -37,10 +56,13 @@ func ExtractDependencies(hclPath string) ([]Dependency, error) {
 	for _, match := range matches {
 		name := string(content[match[2]:match[3]])
 
-		// Look for config_path within the block (until the next closing brace)
-		// This is a simplified approach for the lightweight parser.
-		blockContent := string(content[match[1]:])
-		pathMatch := configPathRegex.FindStringSubmatch(blockContent)
+		// Restrict config_path search to the current block only, preventing
+		// a block without config_path from inheriting a path from a later block.
+		blockEnd := findBlockEnd(content, match[1])
+		if blockEnd < 0 {
+			continue
+		}
+		pathMatch := configPathRegex.FindStringSubmatch(string(content[match[1]:blockEnd]))
 
 		if len(pathMatch) > 1 {
 			relPath := pathMatch[1]

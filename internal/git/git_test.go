@@ -81,12 +81,12 @@ func TestIsGitRepo(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	if IsGitRepo(tmpDir) {
+	if IsGitRepo(context.Background(), tmpDir) {
 		t.Errorf("expected %s NOT to be a git repo", tmpDir)
 	}
 
 	runCmd(t, tmpDir, "git", "init")
-	if !IsGitRepo(tmpDir) {
+	if !IsGitRepo(context.Background(), tmpDir) {
 		t.Errorf("expected %s to be a git repo", tmpDir)
 	}
 }

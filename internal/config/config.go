@@ -1,3 +1,5 @@
+// Package config provides YAML config loading, environment variable overrides,
+// and CLI flag merging for cultivator.
 package config
 
 import (
@@ -11,42 +13,60 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// PlanConfig holds plan-specific Terragrunt options.
+type PlanConfig struct {
+	Destroy bool `yaml:"destroy"`
+}
+
+// ApplyConfig holds apply-specific Terragrunt options.
+type ApplyConfig struct {
+	AutoApprove bool `yaml:"auto_approve"`
+}
+
+// DestroyConfig holds destroy-specific Terragrunt options.
+type DestroyConfig struct {
+	AutoApprove bool `yaml:"auto_approve"`
+}
+
+// DoctorConfig holds doctor-specific options.
+type DoctorConfig struct{}
+
 type Config struct {
-	Root           string                 `yaml:"root"`
-	Env            string                 `yaml:"env"`
-	Include        []string               `yaml:"include"`
-	Exclude        []string               `yaml:"exclude"`
-	Tags           []string               `yaml:"tags"`
-	Parallelism    int                    `yaml:"parallelism"`
-	NonInteractive bool                   `yaml:"non_interactive"`
-	DryRun         bool                   `yaml:"dry_run"`
-	ShowGraph      bool                   `yaml:"show_graph"`
-	ChangedOnly    bool                   `yaml:"changed_only"`
-	BaseRef        string                 `yaml:"base_ref"`
-	Plan           map[string]interface{} `yaml:"plan"`
-	Apply          map[string]interface{} `yaml:"apply"`
-	Destroy        map[string]interface{} `yaml:"destroy"`
-	Doctor         map[string]interface{} `yaml:"doctor"`
+	Root           string        `yaml:"root"`
+	Env            string        `yaml:"env"`
+	Include        []string      `yaml:"include"`
+	Exclude        []string      `yaml:"exclude"`
+	Tags           []string      `yaml:"tags"`
+	Parallelism    int           `yaml:"parallelism"`
+	NonInteractive bool          `yaml:"non_interactive"`
+	DryRun         bool          `yaml:"dry_run"`
+	ShowGraph      bool          `yaml:"show_graph"`
+	ChangedOnly    bool          `yaml:"changed_only"`
+	BaseRef        string        `yaml:"base_ref"`
+	Plan           PlanConfig    `yaml:"plan"`
+	Apply          ApplyConfig   `yaml:"apply"`
+	Destroy        DestroyConfig `yaml:"destroy"`
+	Doctor         DoctorConfig  `yaml:"doctor"`
 }
 
 type Overrides struct {
-	Root           *string
-	Env            *string
-	Include        []string
-	IncludeSet     bool
-	Exclude        []string
-	ExcludeSet     bool
-	Tags           []string
-	TagsSet        bool
-	Parallelism    *int
-	NonInteractive *bool
-	DryRun         *bool
-	ShowGraph      *bool
-	ChangedOnly    *bool
-	BaseRef        *string
-	PlanDestroy    *bool
-	ApplyAutoAppr  *bool
-	DestroyAutoApr *bool
+	Root               *string
+	Env                *string
+	Include            []string
+	IncludeSet         bool
+	Exclude            []string
+	ExcludeSet         bool
+	Tags               []string
+	TagsSet            bool
+	Parallelism        *int
+	NonInteractive     *bool
+	DryRun             *bool
+	ShowGraph          *bool
+	ChangedOnly        *bool
+	BaseRef            *string
+	PlanDestroy        *bool
+	ApplyAutoApprove   *bool
+	DestroyAutoApprove *bool
 }
 
 func DefaultConfig() Config {
@@ -58,10 +78,6 @@ func DefaultConfig() Config {
 	return Config{
 		Root:        ".",
 		Parallelism: parallelism,
-		Plan:        map[string]interface{}{},
-		Apply:       map[string]interface{}{},
-		Destroy:     map[string]interface{}{},
-		Doctor:      map[string]interface{}{},
 	}
 }
 
@@ -152,13 +168,13 @@ func LoadEnv(prefix string) Config {
 		cfg.BaseRef = baseRef
 	}
 	if planDestroy := os.Getenv(prefix + "_PLAN_DESTROY"); planDestroy != "" {
-		cfg.Plan["destroy"] = parseBool(planDestroy)
+		cfg.Plan.Destroy = parseBool(planDestroy)
 	}
 	if applyAutoApprove := os.Getenv(prefix + "_APPLY_AUTO_APPROVE"); applyAutoApprove != "" {
-		cfg.Apply["auto_approve"] = parseBool(applyAutoApprove)
+		cfg.Apply.AutoApprove = parseBool(applyAutoApprove)
 	}
 	if destroyAutoApprove := os.Getenv(prefix + "_DESTROY_AUTO_APPROVE"); destroyAutoApprove != "" {
-		cfg.Destroy["auto_approve"] = parseBool(destroyAutoApprove)
+		cfg.Destroy.AutoApprove = parseBool(destroyAutoApprove)
 	}
 
 	return cfg
@@ -182,7 +198,7 @@ func MergeConfig(base, override Config) Config {
 	if len(override.Tags) > 0 {
 		result.Tags = override.Tags
 	}
-	if override.Parallelism > 0 && override.Parallelism != base.Parallelism {
+	if override.Parallelism > 0 {
 		result.Parallelism = override.Parallelism
 	}
 	if override.NonInteractive {
@@ -200,25 +216,14 @@ func MergeConfig(base, override Config) Config {
 	if override.BaseRef != "" {
 		result.BaseRef = override.BaseRef
 	}
-	if len(override.Plan) > 0 {
-		for key, value := range override.Plan {
-			result.Plan[key] = value
-		}
+	if override.Plan.Destroy {
+		result.Plan.Destroy = true
 	}
-	if len(override.Apply) > 0 {
-		for key, value := range override.Apply {
-			result.Apply[key] = value
-		}
+	if override.Apply.AutoApprove {
+		result.Apply.AutoApprove = true
 	}
-	if len(override.Destroy) > 0 {
-		for key, value := range override.Destroy {
-			result.Destroy[key] = value
-		}
-	}
-	if len(override.Doctor) > 0 {
-		for key, value := range override.Doctor {
-			result.Doctor[key] = value
-		}
+	if override.Destroy.AutoApprove {
+		result.Destroy.AutoApprove = true
 	}
 
 	return result
@@ -259,22 +264,13 @@ func ApplyOverrides(cfg Config, ovr Overrides) Config {
 		cfg.BaseRef = *ovr.BaseRef
 	}
 	if ovr.PlanDestroy != nil && *ovr.PlanDestroy {
-		if cfg.Plan == nil {
-			cfg.Plan = make(map[string]interface{})
-		}
-		cfg.Plan["destroy"] = true
+		cfg.Plan.Destroy = true
 	}
-	if ovr.ApplyAutoAppr != nil && *ovr.ApplyAutoAppr {
-		if cfg.Apply == nil {
-			cfg.Apply = make(map[string]interface{})
-		}
-		cfg.Apply["auto_approve"] = true
+	if ovr.ApplyAutoApprove != nil && *ovr.ApplyAutoApprove {
+		cfg.Apply.AutoApprove = true
 	}
-	if ovr.DestroyAutoApr != nil && *ovr.DestroyAutoApr {
-		if cfg.Destroy == nil {
-			cfg.Destroy = make(map[string]interface{})
-		}
-		cfg.Destroy["auto_approve"] = true
+	if ovr.DestroyAutoApprove != nil && *ovr.DestroyAutoApprove {
+		cfg.Destroy.AutoApprove = true
 	}
 
 	return cfg

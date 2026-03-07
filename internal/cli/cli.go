@@ -62,7 +62,7 @@ func Run(args []string, version VersionInfo) int {
 	}
 }
 
-func runTerragruntCommand(args []string, command string, r *runner.Runner) int {
+func runTerragruntCommand(args []string, command string, r runner.RunnerIface) int {
 	state, code := parseTerragruntFlags(args, command)
 	if code != 0 {
 		return code
@@ -91,7 +91,7 @@ func runTerragruntCommand(args []string, command string, r *runner.Runner) int {
 	}
 
 	if cfg.ChangedOnly {
-		if !git.IsGitRepo(cfg.Root) {
+		if !git.IsGitRepo(ctx, cfg.Root) {
 			logger.Error("not a git repository, --changed-only is not supported", logging.Fields{"root": cfg.Root})
 			return 1
 		}
@@ -260,28 +260,62 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	state.root = *root
 	state.env = *env
 
-	populateFlagState(&state, fs, include, exclude, tags, parallelism, nonInteractive, dryRun, showGraph, changedOnly, baseRef, planDestroy, applyAutoApprove, destroyAutoApprove, command)
+	populateFlagState(&state, flagInputs{
+		fs:                 fs,
+		include:            include,
+		exclude:            exclude,
+		tags:               tags,
+		parallelism:        parallelism,
+		nonInteractive:     nonInteractive,
+		dryRun:             dryRun,
+		showGraph:          showGraph,
+		changedOnly:        changedOnly,
+		baseRef:            baseRef,
+		planDestroy:        planDestroy,
+		applyAutoApprove:   applyAutoApprove,
+		destroyAutoApprove: destroyAutoApprove,
+		command:            command,
+	})
 
 	return state, 0
 }
 
-func populateFlagState(state *terragruntFlagState, fs *flag.FlagSet, include, exclude, tags *stringSliceFlag, parallelism *intFlag, nonInteractive, dryRun, showGraph, changedOnly *boolFlag, baseRef *string, planDestroy, applyAutoApprove, destroyAutoApprove *boolFlag, command string) {
+// flagInputs bundles the typed flag objects produced by parseTerragruntFlags
+// so they can be forwarded to populateFlagState without a 13-parameter signature.
+type flagInputs struct {
+	fs                 *flag.FlagSet
+	include            *stringSliceFlag
+	exclude            *stringSliceFlag
+	tags               *stringSliceFlag
+	parallelism        *intFlag
+	nonInteractive     *boolFlag
+	dryRun             *boolFlag
+	showGraph          *boolFlag
+	changedOnly        *boolFlag
+	baseRef            *string
+	planDestroy        *boolFlag
+	applyAutoApprove   *boolFlag
+	destroyAutoApprove *boolFlag
+	command            string
+}
+
+func populateFlagState(state *terragruntFlagState, in flagInputs) {
 	// Capture positional argument (module path) if provided.
-	if len(fs.Args()) > 0 {
-		state.module = normalizePath(fs.Args()[0])
+	if len(in.fs.Args()) > 0 {
+		state.module = normalizePath(in.fs.Args()[0])
 	}
 
 	// Process include/exclude/tags filters first
-	if include.set {
-		state.includeValues = include.values
+	if in.include.set {
+		state.includeValues = in.include.values
 		state.includeSet = true
 	}
-	if exclude.set {
-		state.excludeValues = exclude.values
+	if in.exclude.set {
+		state.excludeValues = in.exclude.values
 		state.excludeSet = true
 	}
-	if tags.set {
-		state.tagsValues = tags.values
+	if in.tags.set {
+		state.tagsValues = in.tags.values
 		state.tagsSet = true
 	}
 
@@ -295,45 +329,45 @@ func populateFlagState(state *terragruntFlagState, fs *flag.FlagSet, include, ex
 		}
 	}
 
-	if parallelism.set {
-		state.parallelismValue = parallelism.value
+	if in.parallelism.set {
+		state.parallelismValue = in.parallelism.value
 		state.parallelismSet = true
 	}
-	if nonInteractive.set {
-		state.nonInteractiveValue = nonInteractive.value
+	if in.nonInteractive.set {
+		state.nonInteractiveValue = in.nonInteractive.value
 		state.nonInteractiveSet = true
 	}
-	if dryRun.set {
-		state.dryRunValue = dryRun.value
+	if in.dryRun.set {
+		state.dryRunValue = in.dryRun.value
 		state.dryRunSet = true
 	}
-	if showGraph.set {
-		state.showGraphValue = showGraph.value
+	if in.showGraph.set {
+		state.showGraphValue = in.showGraph.value
 		state.showGraphSet = true
 	}
-	if changedOnly.set {
-		state.changedOnlyValue = changedOnly.value
+	if in.changedOnly.set {
+		state.changedOnlyValue = in.changedOnly.value
 		state.changedOnlySet = true
 	}
-	if baseRef != nil && *baseRef != "" {
-		state.baseRefValue = *baseRef
+	if in.baseRef != nil && *in.baseRef != "" {
+		state.baseRefValue = *in.baseRef
 		state.baseRefSet = true
 	}
 
-	switch command {
+	switch in.command {
 	case cmdPlan:
-		if planDestroy != nil && planDestroy.set {
-			state.planDestroyValue = planDestroy.value
+		if in.planDestroy != nil && in.planDestroy.set {
+			state.planDestroyValue = in.planDestroy.value
 			state.planDestroySet = true
 		}
 	case cmdApply:
-		if applyAutoApprove != nil && applyAutoApprove.set {
-			state.applyAutoApproveValue = applyAutoApprove.value
+		if in.applyAutoApprove != nil && in.applyAutoApprove.set {
+			state.applyAutoApproveValue = in.applyAutoApprove.value
 			state.applyAutoApproveSet = true
 		}
 	case cmdDestroy:
-		if destroyAutoApprove != nil && destroyAutoApprove.set {
-			state.destroyAutoApproveValue = destroyAutoApprove.value
+		if in.destroyAutoApprove != nil && in.destroyAutoApprove.set {
+			state.destroyAutoApproveValue = in.destroyAutoApprove.value
 			state.destroyAutoApproveSet = true
 		}
 	}
@@ -418,64 +452,46 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 	}
 	if state.applyAutoApproveSet {
 		value := state.applyAutoApproveValue
-		flagOverrides.ApplyAutoAppr = &value
+		flagOverrides.ApplyAutoApprove = &value
 	}
 	if state.destroyAutoApproveSet {
 		value := state.destroyAutoApproveValue
-		flagOverrides.DestroyAutoApr = &value
+		flagOverrides.DestroyAutoApprove = &value
 	}
 
 	return flagOverrides
 }
 
-func runTerragruntModules(ctx context.Context, logger *logging.Logger, r *runner.Runner, command string, cfg config.Config, modules []discovery.Module) ([]runner.Result, error) {
+func runTerragruntModules(ctx context.Context, logger *logging.Logger, r runner.RunnerIface, command string, cfg config.Config, modules []discovery.Module) ([]runner.Result, error) {
 	switch command {
 	case cmdPlan:
-		planDestroy := false
-		if val, ok := cfg.Plan["destroy"]; ok {
-			if b, ok := val.(bool); ok {
-				planDestroy = b
-			}
-		}
 		results, err := r.Run(ctx, runner.CommandPlan, modules, runner.Options{
 			Parallelism:    cfg.Parallelism,
 			NonInteractive: cfg.NonInteractive,
 			DryRun:         cfg.DryRun,
-			PlanDestroy:    planDestroy,
+			PlanDestroy:    cfg.Plan.Destroy,
 		})
 		if err != nil {
 			return nil, err
 		}
 		return results, logExecutionResults(logger, results)
 	case cmdApply:
-		applyAutoApprove := false
-		if val, ok := cfg.Apply["auto_approve"]; ok {
-			if b, ok := val.(bool); ok {
-				applyAutoApprove = b
-			}
-		}
 		results, err := r.Run(ctx, runner.CommandApply, modules, runner.Options{
 			Parallelism:      cfg.Parallelism,
 			NonInteractive:   cfg.NonInteractive,
 			DryRun:           cfg.DryRun,
-			ApplyAutoApprove: applyAutoApprove,
+			ApplyAutoApprove: cfg.Apply.AutoApprove,
 		})
 		if err != nil {
 			return nil, err
 		}
 		return results, logExecutionResults(logger, results)
 	case cmdDestroy:
-		destroyAutoApprove := false
-		if val, ok := cfg.Destroy["auto_approve"]; ok {
-			if b, ok := val.(bool); ok {
-				destroyAutoApprove = b
-			}
-		}
 		results, err := r.Run(ctx, runner.CommandDestroy, modules, runner.Options{
 			Parallelism:        cfg.Parallelism,
 			NonInteractive:     cfg.NonInteractive,
 			DryRun:             cfg.DryRun,
-			DestroyAutoApprove: destroyAutoApprove,
+			DestroyAutoApprove: cfg.Destroy.AutoApprove,
 		})
 		if err != nil {
 			return nil, err
@@ -535,31 +551,15 @@ func runDoctor(args []string) int {
 		return 2
 	}
 
-	cfg := config.DefaultConfig()
-	fileCfg, _, found, err := config.LoadFile(*configPath)
+	state := terragruntFlagState{configPath: *configPath}
+	if *root != "" {
+		state.root = *root
+	}
+
+	cfg, err := buildTerragruntConfig(state)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return 1
-	}
-	if found {
-		cfg = config.MergeConfig(cfg, fileCfg)
-	}
-	configFilePath := ""
-	if found {
-		configFilePath = *configPath
-	}
-
-	if root != nil && *root != "" {
-		cfg.Root = *root
-	}
-
-	if !filepath.IsAbs(cfg.Root) {
-		wd, err := os.Getwd()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to get working directory: %v\n", err)
-			return 1
-		}
-		cfg.Root = filepath.Join(wd, cfg.Root)
 	}
 
 	logger := logging.New(logLevelFromEnv(), os.Stdout, os.Stderr)
@@ -572,15 +572,14 @@ func runDoctor(args []string) int {
 
 	logger.Info("terragrunt found", logging.Fields{"path": terragruntPath})
 
-	if configFilePath != "" {
-		logger.Info("config file loaded", logging.Fields{"path": configFilePath})
+	if *configPath != "" {
+		if _, statErr := os.Stat(*configPath); statErr == nil {
+			logger.Info("config file loaded", logging.Fields{"path": *configPath})
+		} else {
+			logger.Info("config file not found", logging.Fields{"path": *configPath})
+		}
 	} else {
 		logger.Info("config file not found", logging.Fields{"path": "(default)"})
-	}
-
-	if cfg.Root == "" {
-		logger.Error("root directory not set", logging.Fields{})
-		return 1
 	}
 
 	absRoot, err := filepath.Abs(cfg.Root)
@@ -697,12 +696,6 @@ func (i *intFlag) Set(value string) error {
 	return nil
 }
 
-// normalizePath normalizes a module path by removing leading ./ and trailing /terragrunt.hcl.
-// It handles both Unix-style (/) and platform-specific separators.
-// Examples: "cloudwatch/log-group/example/terragrunt.hcl" → "cloudwatch/log-group/example"
-//
-//	"./cloudwatch/log-group/example" → "cloudwatch/log-group/example"
-//
 // logLevelFromEnv reads the CULTIVATOR_LOG_LEVEL environment variable and returns
 // the corresponding logging.Level. Defaults to LevelInfo if the variable is unset
 // or contains an unrecognized value.
@@ -721,6 +714,11 @@ func logLevelFromEnv() logging.Level {
 	return level
 }
 
+// normalizePath normalizes a module path by removing leading ./ and trailing /terragrunt.hcl.
+// It handles both Unix-style (/) and platform-specific separators.
+// Examples: "cloudwatch/log-group/example/terragrunt.hcl" -> "cloudwatch/log-group/example"
+//
+//	"./cloudwatch/log-group/example" -> "cloudwatch/log-group/example"
 func normalizePath(path string) string {
 	path = strings.TrimSpace(path)
 	if path == "" {

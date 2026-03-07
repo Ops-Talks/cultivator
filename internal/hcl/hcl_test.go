@@ -72,6 +72,38 @@ terraform {
 `,
 			wantDeps: nil,
 		},
+		{
+			// Regression: a block without config_path must be skipped entirely;
+			// it must not inherit config_path from the next block.
+			name: "dependency block without config_path is skipped",
+			content: `
+dependency "no_path" {
+}
+
+dependency "vpc" {
+  config_path = "../vpc"
+}
+`,
+			wantDeps: []Dependency{
+				{Name: "vpc", Path: vpcPath},
+			},
+		},
+		{
+			// Regression: two consecutive blocks where only the second has
+			// config_path; the first must not capture the second's path.
+			name: "first block missing config_path does not steal second block path",
+			content: `
+dependency "ghost" {
+}
+
+dependency "db" {
+  config_path = "../db"
+}
+`,
+			wantDeps: []Dependency{
+				{Name: "db", Path: dbPath},
+			},
+		},
 	}
 
 	for _, tt := range tests {

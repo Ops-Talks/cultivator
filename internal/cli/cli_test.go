@@ -511,6 +511,52 @@ func Test_runTerragruntCommand_Flow(t *testing.T) {
 	})
 }
 
+// Test_runTerragruntCommand_FakeRunner verifies that each command is dispatched
+// through the RunnerIface, allowing full mock injection without a real executor.
+func Test_runTerragruntCommand_FakeRunner(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	moduleDir := filepath.Join(tmpDir, "env", "app")
+	_ = os.MkdirAll(moduleDir, 0o755)
+	_ = os.WriteFile(filepath.Join(moduleDir, "terragrunt.hcl"), []byte(""), 0o644)
+
+	tests := []struct {
+		name    string
+		command string
+	}{
+		{"plan dispatched", cmdPlan},
+		{"apply dispatched", cmdApply},
+		{"destroy dispatched", cmdDestroy},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			fr := &fakeRunnerIface{}
+			code := runTerragruntCommand([]string{"-root", tmpDir}, tc.command, fr)
+			if code != 0 {
+				t.Errorf("runTerragruntCommand() = %d, want 0", code)
+			}
+			if len(fr.commands) != 1 || fr.commands[0] != tc.command {
+				t.Errorf("expected command %q dispatched, got %v", tc.command, fr.commands)
+			}
+		})
+	}
+}
+
+type fakeRunnerIface struct {
+	mu       sync.Mutex
+	commands []string
+}
+
+func (f *fakeRunnerIface) Run(_ context.Context, command string, _ []discovery.Module, _ runner.Options) ([]runner.Result, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.commands = append(f.commands, command)
+	return nil, nil
+}
+
 type cliErrorExecutor struct{}
 
 func (e *cliErrorExecutor) Run(_ context.Context, _, _ string, _, _ []string) (string, string, int, error) {

@@ -10,9 +10,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-// SummaryResult interface avoids circular dependency if we ever need it,
-// but for now we'll use a concrete type or simple fields to keep it clean.
-// Actually, let's define what we need for the table.
+// SummaryRow holds a single row of execution metadata for display in the summary table.
 type SummaryRow struct {
 	Module   string
 	Command  string
@@ -36,14 +34,6 @@ func (l *Logger) LogSummaryTable(rows []SummaryRow, totalDuration string) {
 	table.SetAutoFormatHeaders(true)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.SetBorder(false)
-	table.SetTablePadding("\t") // Using tabs for better spacing
-
-	// We'll use a more standard table style for CI logs
 	table.SetHeaderLine(true)
 	table.SetBorder(true)
 	table.SetCenterSeparator("|")

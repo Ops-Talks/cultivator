@@ -73,6 +73,12 @@ func (de *DefaultExecutor) Run(ctx context.Context, workDir string, command stri
 	return string(combined), "", exitCode, err
 }
 
+// RunnerIface is the interface satisfied by *Runner, allowing callers to inject
+// a mock at the command-dispatch level without depending on the concrete type.
+type RunnerIface interface {
+	Run(ctx context.Context, command string, modules []discovery.Module, opts Options) ([]Result, error)
+}
+
 // Runner orchestrates parallel Terragrunt executions across multiple modules.
 type Runner struct {
 	executor Executor

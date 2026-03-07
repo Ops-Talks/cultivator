@@ -35,21 +35,21 @@ func TestApplyOverrides_Booleans(t *testing.T) {
 
 	cfg := DefaultConfig()
 	overrides := Overrides{
-		PlanDestroy:    &trueBool,
-		ApplyAutoAppr:  &trueBool,
-		DestroyAutoApr: &trueBool,
+		PlanDestroy:        &trueBool,
+		ApplyAutoApprove:   &trueBool,
+		DestroyAutoApprove: &trueBool,
 	}
 
 	cfg = ApplyOverrides(cfg, overrides)
 
-	if cfg.Plan["destroy"] != true {
-		t.Error("plan.destroy should be true")
+	if !cfg.Plan.Destroy {
+		t.Error("plan.Destroy should be true")
 	}
-	if cfg.Apply["auto_approve"] != true {
-		t.Error("apply.auto_approve should be true")
+	if !cfg.Apply.AutoApprove {
+		t.Error("apply.AutoApprove should be true")
 	}
-	if cfg.Destroy["auto_approve"] != true {
-		t.Error("destroy.auto_approve should be true")
+	if !cfg.Destroy.AutoApprove {
+		t.Error("destroy.AutoApprove should be true")
 	}
 }
 
@@ -61,9 +61,6 @@ func TestDefaultConfig_Values(t *testing.T) {
 
 	if cfg.Root == "" {
 		t.Error("root should have default value")
-	}
-	if cfg.Plan == nil || cfg.Apply == nil || cfg.Destroy == nil {
-		t.Error("plan, apply, and destroy should not be nil")
 	}
 	if cfg.Parallelism < 1 {
 		t.Errorf("parallelism should be at least 1, got %d", cfg.Parallelism)
@@ -410,10 +407,9 @@ func TestMergeConfig_AllFields(t *testing.T) {
 	base.Tags = []string{"old-tag"}
 	base.Parallelism = 2
 	base.NonInteractive = false
-	base.Plan["destroy"] = false
-	base.Apply["auto_approve"] = false
-	base.Destroy["auto_approve"] = false
-	base.Doctor["level"] = "basic"
+	base.Plan.Destroy = false
+	base.Apply.AutoApprove = false
+	base.Destroy.AutoApprove = false
 
 	override := Config{
 		Root:           "/override",
@@ -423,10 +419,9 @@ func TestMergeConfig_AllFields(t *testing.T) {
 		Tags:           []string{"new-tag"},
 		Parallelism:    8,
 		NonInteractive: true,
-		Plan:           map[string]interface{}{"destroy": true},
-		Apply:          map[string]interface{}{"auto_approve": true},
-		Destroy:        map[string]interface{}{"auto_approve": true},
-		Doctor:         map[string]interface{}{"level": "deep"},
+		Plan:           PlanConfig{Destroy: true},
+		Apply:          ApplyConfig{AutoApprove: true},
+		Destroy:        DestroyConfig{AutoApprove: true},
 	}
 
 	result := MergeConfig(base, override)
@@ -446,34 +441,31 @@ func TestMergeConfig_AllFields(t *testing.T) {
 	if result.Parallelism != 8 || !result.NonInteractive {
 		t.Fatalf("expected parallelism/nonInteractive overridden, got %d/%v", result.Parallelism, result.NonInteractive)
 	}
-	if result.Plan["destroy"] != true || result.Apply["auto_approve"] != true || result.Destroy["auto_approve"] != true {
-		t.Fatal("expected plan/apply/destroy maps merged with true values")
-	}
-	if result.Doctor["level"] != "deep" {
-		t.Fatalf("expected doctor map merged, got %#v", result.Doctor["level"])
+	if !result.Plan.Destroy || !result.Apply.AutoApprove || !result.Destroy.AutoApprove {
+		t.Fatal("expected plan/apply/destroy fields merged with true values")
 	}
 }
 
-func TestApplyOverrides_InitializesNilMaps(t *testing.T) {
+func TestApplyOverrides_SetsSubConfigFields(t *testing.T) {
 	t.Parallel()
 
 	trueVal := true
 	cfg := Config{}
 	override := Overrides{
-		PlanDestroy:    &trueVal,
-		ApplyAutoAppr:  &trueVal,
-		DestroyAutoApr: &trueVal,
+		PlanDestroy:        &trueVal,
+		ApplyAutoApprove:   &trueVal,
+		DestroyAutoApprove: &trueVal,
 	}
 
 	result := ApplyOverrides(cfg, override)
 
-	if result.Plan == nil || result.Plan["destroy"] != true {
-		t.Fatal("expected plan map initialized with destroy=true")
+	if !result.Plan.Destroy {
+		t.Fatal("expected plan.Destroy to be true")
 	}
-	if result.Apply == nil || result.Apply["auto_approve"] != true {
-		t.Fatal("expected apply map initialized with auto_approve=true")
+	if !result.Apply.AutoApprove {
+		t.Fatal("expected apply.AutoApprove to be true")
 	}
-	if result.Destroy == nil || result.Destroy["auto_approve"] != true {
-		t.Fatal("expected destroy map initialized with auto_approve=true")
+	if !result.Destroy.AutoApprove {
+		t.Fatal("expected destroy.AutoApprove to be true")
 	}
 }

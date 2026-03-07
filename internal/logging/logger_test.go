@@ -90,12 +90,10 @@ func Test_write_concurrent(t *testing.T) {
 
 	const goroutines = 20
 	var wg sync.WaitGroup
-	wg.Add(goroutines)
 	for range goroutines {
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			l.Info("concurrent", Fields{"n": "v"})
-		}()
+		})
 	}
 	wg.Wait()
 

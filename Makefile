@@ -1,5 +1,7 @@
 .PHONY: build test clean install lint fmt docker-build pre-commit-install pre-commit-uninstall pre-commit-run pre-commit-update
 
+.DEFAULT_GOAL := help
+
 # Variables
 BINARY_NAME=cultivator
 GO=go

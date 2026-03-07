@@ -35,8 +35,8 @@ func TestLoadFile(t *testing.T) {
 				if !cfg.NonInteractive {
 					t.Error("expected non-interactive true")
 				}
-				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
-					t.Errorf("expected plan.destroy=true, got %v", cfg.Plan)
+				if !cfg.Plan.Destroy {
+					t.Errorf("expected plan.Destroy=true, got %v", cfg.Plan)
 				}
 			},
 		},
@@ -126,14 +126,14 @@ func TestApplyOverrides(t *testing.T) {
 		{
 			name: "override command flags",
 			overrides: Overrides{
-				PlanDestroy:    b(true),
-				ApplyAutoAppr:  b(true),
-				DestroyAutoApr: b(true),
+				PlanDestroy:        b(true),
+				ApplyAutoApprove:   b(true),
+				DestroyAutoApprove: b(true),
 			},
 			want: Config{
-				Plan:    map[string]any{"destroy": true},
-				Apply:   map[string]any{"auto_approve": true},
-				Destroy: map[string]any{"auto_approve": true},
+				Plan:    PlanConfig{Destroy: true},
+				Apply:   ApplyConfig{AutoApprove: true},
+				Destroy: DestroyConfig{AutoApprove: true},
 			},
 		},
 	}
@@ -163,8 +163,8 @@ func TestApplyOverrides(t *testing.T) {
 				t.Errorf("Tags = %v, want %v", cfg.Tags, tc.want.Tags)
 			}
 			if tc.overrides.PlanDestroy != nil {
-				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
-					t.Errorf("Plan[destroy] = %v, want true", v)
+				if !cfg.Plan.Destroy {
+					t.Errorf("Plan.Destroy = false, want true")
 				}
 			}
 		})
@@ -274,14 +274,14 @@ func TestLoadEnv(t *testing.T) {
 				prefix + "_DESTROY_AUTO_APPROVE": "true",
 			},
 			want: func(t *testing.T, cfg Config) {
-				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
-					t.Errorf("Plan[destroy] = %v, want true", v)
+				if !cfg.Plan.Destroy {
+					t.Error("Plan.Destroy = false, want true")
 				}
-				if v, ok := cfg.Apply["auto_approve"]; !ok || v != true {
-					t.Errorf("Apply[auto_approve] = %v, want true", v)
+				if !cfg.Apply.AutoApprove {
+					t.Error("Apply.AutoApprove = false, want true")
 				}
-				if v, ok := cfg.Destroy["auto_approve"]; !ok || v != true {
-					t.Errorf("Destroy[auto_approve] = %v, want true", v)
+				if !cfg.Destroy.AutoApprove {
+					t.Error("Destroy.AutoApprove = false, want true")
 				}
 			},
 		},
@@ -312,15 +312,15 @@ func TestMergeConfig(t *testing.T) {
 			name: "merge command flags",
 			base: DefaultConfig(),
 			override: Config{
-				Plan:  map[string]any{"destroy": true},
-				Apply: map[string]any{"auto_approve": true},
+				Plan:  PlanConfig{Destroy: true},
+				Apply: ApplyConfig{AutoApprove: true},
 			},
 			validate: func(t *testing.T, cfg Config) {
-				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
-					t.Errorf("Plan[destroy] = %v, want true", v)
+				if !cfg.Plan.Destroy {
+					t.Error("Plan.Destroy = false, want true")
 				}
-				if v, ok := cfg.Apply["auto_approve"]; !ok || v != true {
-					t.Errorf("Apply[auto_approve] = %v, want true", v)
+				if !cfg.Apply.AutoApprove {
+					t.Error("Apply.AutoApprove = false, want true")
 				}
 			},
 		},
@@ -337,6 +337,23 @@ func TestMergeConfig(t *testing.T) {
 				}
 				if cfg.Env != "prod" {
 					t.Errorf("Env = %q, want prod", cfg.Env)
+				}
+			},
+		},
+		{
+			// Regression: override must apply even when the value equals the base,
+			// because the user explicitly set it in an env-level config file.
+			name: "parallelism override equals base value",
+			base: Config{
+				Root:        ".",
+				Parallelism: 4,
+			},
+			override: Config{
+				Parallelism: 4,
+			},
+			validate: func(t *testing.T, cfg Config) {
+				if cfg.Parallelism != 4 {
+					t.Errorf("Parallelism = %d, want 4", cfg.Parallelism)
 				}
 			},
 		},
