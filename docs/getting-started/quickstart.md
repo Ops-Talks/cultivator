@@ -30,7 +30,13 @@ If your Terragrunt root is the current directory, you can also run:
 
 ## Step 3 (optional): Create a config file
 
-Cultivator automatically looks for `cultivator.yml` in the current directory. You can use it to set project-wide defaults:
+To use a config file, pass it explicitly with `--config`:
+
+```bash
+./cultivator plan --config=cultivator.yml
+```
+
+Example `cultivator.yml`:
 
 ```yaml
 root: live
@@ -43,12 +49,6 @@ apply:
   auto_approve: false
 destroy:
   auto_approve: false
-```
-
-You can also specify a custom configuration file path using the `--config` flag:
-
-```bash
-./cultivator plan --config=custom-config.yml
 ```
 
 ## Step 4: Add a CI job

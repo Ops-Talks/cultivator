@@ -91,8 +91,13 @@ func LoadFile(path string) (Config, map[string]interface{}, bool, error) {
 		return cfg, extra, false, fmt.Errorf("decode config: %w", err)
 	}
 
+	knownKeys := map[string]struct{}{
+		"root": {}, "env": {}, "include": {}, "exclude": {}, "tags": {},
+		"parallelism": {}, "non_interactive": {}, "dry_run": {}, "show_graph": {},
+		"changed_only": {}, "base_ref": {}, "plan": {}, "apply": {}, "destroy": {}, "doctor": {},
+	}
 	for key := range raw {
-		if key == "root" || key == "env" || key == "include" || key == "exclude" || key == "tags" || key == "parallelism" || key == "non_interactive" || key == "plan" || key == "apply" || key == "destroy" || key == "doctor" {
+		if _, ok := knownKeys[key]; ok {
 			continue
 		}
 		extra[key] = raw[key]
@@ -145,6 +150,15 @@ func LoadEnv(prefix string) Config {
 	}
 	if baseRef := os.Getenv(prefix + "_BASE_REF"); baseRef != "" {
 		cfg.BaseRef = baseRef
+	}
+	if planDestroy := os.Getenv(prefix + "_PLAN_DESTROY"); planDestroy != "" {
+		cfg.Plan["destroy"] = parseBool(planDestroy)
+	}
+	if applyAutoApprove := os.Getenv(prefix + "_APPLY_AUTO_APPROVE"); applyAutoApprove != "" {
+		cfg.Apply["auto_approve"] = parseBool(applyAutoApprove)
+	}
+	if destroyAutoApprove := os.Getenv(prefix + "_DESTROY_AUTO_APPROVE"); destroyAutoApprove != "" {
+		cfg.Destroy["auto_approve"] = parseBool(destroyAutoApprove)
 	}
 
 	return cfg

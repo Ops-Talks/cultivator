@@ -255,90 +255,11 @@ jobs:
 
 ---
 
-## Using the composite action
+## Workflow example
 
-If you prefer shorter workflows, you can call the composite action defined in this repository at `examples/action.yml`.
+A complete reference workflow is available in [`examples/github-actions.yml`](../../examples/github-actions.yml). It demonstrates the full plan → apply lifecycle with `doctor`, PR comments, and artifact uploads.
 
-```yaml
-name: Cultivator (Composite Action)
 
-on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, closed]
-
-permissions:
-  contents: read
-  pull-requests: write
-
-jobs:
-  doctor:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Doctor with composite action
-        uses: ./examples
-        with:
-          command: doctor
-          root: providers
-
-  plan:
-    runs-on: ubuntu-latest
-    needs: doctor
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Plan with composite action
-        uses: ./examples
-        with:
-          command: plan
-          root: providers
-          env: dev
-          parallelism: '4'
-          non-interactive: 'true'
-
-  apply:
-    runs-on: ubuntu-latest
-    needs: doctor
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Apply with composite action
-        uses: ./examples
-        with:
-          command: apply
-          root: providers
-          env: prod
-          parallelism: '4'
-          non-interactive: 'true'
-          auto-approve: 'true'
-
-      - name: Comment apply on PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: 'Cultivator apply finished. See job logs and artifacts for details.'
-            });
-```
-
-Notes:
-
-- `uses: ./examples` works because `examples/action.yml` defines a local action.
-- You can move this action to `.github/actions/cultivator/action.yml` and then use `uses: ./.github/actions/cultivator`.
-- To use a config file, pass `config-file: cultivator.yml` (or any path).
-- In this example, `apply` runs only after a PR is merged (`pull_request` `closed` with `merged == true`).
-- A PR that is only closed (without merge) has `merged == false`, so `apply` does not run.
-- For strict "approved + merged" enforcement, configure branch protection with required approvals before merge.
 
 ---
 

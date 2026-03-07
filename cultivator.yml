@@ -1,59 +1,41 @@
-version: 1
+# cultivator.yml — example Cultivator configuration file
+# Pass this file explicitly: cultivator plan --config=cultivator.yml
 
-# Define projects/directories to manage
-projects:
-  - name: production
-    dir: environments/production
-    terragrunt_version: 0.99.1
-    terraform_version: 1.7.0
-    apply_requirements:
-      - approved
-      - mergeable
-    auto_plan: true
+# Root directory to scan for terragrunt.hcl files
+root: live
 
-  - name: staging
-    dir: environments/staging
-    terragrunt_version: 0.99.1
-    terraform_version: 1.7.0
-    apply_requirements:
-      - approved
-    auto_plan: true
+# Environment filter (matches first directory component under root)
+env: dev
 
-  - name: development
-    dir: environments/dev
-    terragrunt_version: 0.99.1
-    terraform_version: 1.7.0
-    auto_plan: true
+# Maximum number of stacks to run in parallel (default: number of CPUs)
+parallelism: 4
 
-# Global settings
-settings:
-  # Automatically run plan when PR is opened/updated
-  auto_plan: true
+# Add -input=false to every Terragrunt invocation
+non_interactive: true
 
-  # Timeout for acquiring locks
-  lock_timeout: 10m
+# Only print commands without executing them
+dry_run: false
 
-  # Run plans in parallel when possible
-  parallel_plan: true
+# Print a Mermaid.js dependency graph before execution
+show_graph: false
 
-  # Maximum number of parallel operations
-  max_parallel: 5
+# Run only modules affected by Git changes
+changed_only: false
 
-# Hooks - run custom commands at different stages
-hooks:
-  # Run before plan
-  pre_plan:
-    - echo "Running pre-plan checks..."
-    - terragrunt validate-all
+# Git ref to compare against when changed_only is true
+base_ref: main
 
-  # Run after plan
-  post_plan:
-    - echo "Plan completed"
+# Path filters (relative to root)
+include: []
+exclude: []
 
-  # Run before apply
-  pre_apply:
-    - echo "Starting apply..."
+# Tag filters (matches # cultivator:tags=... comments in terragrunt.hcl)
+tags: []
 
-  # Run after apply
-  post_apply:
-    - echo "Apply completed successfully"
+# Subcommand defaults
+plan:
+  destroy: false
+apply:
+  auto_approve: false
+destroy:
+  auto_approve: false

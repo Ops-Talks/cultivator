@@ -79,9 +79,9 @@ Exit Code (0 = success, 1 = failure, 2 = usage error)
 
 ### 1. Stateless Operation
 
-- Cultivator does not manage state, backends, or locks beyond stack-level coordination
+- Cultivator does not manage state, backends, or locks
 - All state is owned by Terraform/OpenTofu
-- Locks are per-stack filesystem locks to prevent concurrent writes
+- Concurrency is controlled via a bounded channel semaphore and dependency signaling between goroutines; there are no filesystem locks
 
 ### 2. Explicit Control
 

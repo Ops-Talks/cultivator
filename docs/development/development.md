@@ -33,7 +33,7 @@ Dependency Graph (parse dependencies, build execution order)
 Executor (parallel worker pool)
     |-- Run Terragrunt command per stack
     |-- Capture output on per-stack basis
-    |-- Handle locks for concurrent operations
+    |-- Respect dependency order via DAG signals
     |
 Output Formatter (format text)
     |
@@ -51,26 +51,41 @@ cultivator/
 ├── internal/
 │   ├── cli/
 │   │   ├── cli.go               # CLI command routing and flag parsing
-│   │   └── cli_test.go          # CLI tests
+│   │   ├── cli_test.go          # CLI unit tests
+│   │   └── e2e_test.go          # End-to-end integration tests
 │   ├── config/
 │   │   ├── config.go            # Configuration loading and merging
 │   │   ├── config_test.go       # Unit tests
 │   │   ├── benchmark_test.go    # Performance benchmarks
 │   │   ├── coverage_test.go     # Additional coverage tests
 │   │   ├── fuzz_test.go         # Fuzz testing for robustness
-│   │   └── integration_test.go  # End-to-end tests
+│   │   ├── integration_test.go  # End-to-end tests
+│   │   └── testconst_test.go    # Shared test constants
+│   ├── dag/
+│   │   ├── dag.go               # Directed acyclic graph, topological sort, cycle detection
+│   │   └── dag_test.go          # DAG unit tests
 │   ├── discovery/
 │   │   ├── discovery.go         # Stack discovery and filtering
 │   │   ├── discovery_test.go    # Unit tests
 │   │   ├── benchmark_test.go    # Performance benchmarks
 │   │   ├── coverage_test.go     # Additional coverage tests
-│   │   └── fuzz_test.go         # Fuzz testing for robustness
+│   │   ├── fuzz_test.go         # Fuzz testing for robustness
+│   │   └── testconst_test.go    # Shared test constants
+│   ├── git/
+│   │   ├── git.go               # Git diff integration for changed-file detection
+│   │   └── git_test.go          # Git integration tests
+│   ├── hcl/
+│   │   ├── hcl.go               # Lightweight HCL parser for dependency config_path extraction
+│   │   ├── hcl_test.go          # HCL parser tests
+│   │   └── fuzz_test.go         # Fuzz testing
 │   ├── logging/
 │   │   ├── logger.go            # Structured logging
 │   │   └── logger_test.go       # Logger tests
 │   └── runner/
 │       ├── runner.go            # Terragrunt command execution
-│       └── runner_test.go       # Runner tests
+│       ├── runner_test.go       # Runner tests
+│       ├── dag_integration_test.go # DAG-aware execution order tests
+│       └── dryrun_test.go       # Dry-run mode tests
 ├── testdata/
 │   ├── terragrunt-large/        # Large-scale test fixtures
 │   └── terragrunt-structure/    # Simple test fixtures
@@ -141,6 +156,37 @@ cultivator/
 - Capture stdout and stderr in a single stream
 - Report execution results
 - Manage concurrent execution with worker pool
+
+### 6. DAG Package (internal/dag/)
+
+**Purpose**: Model and resolve inter-module dependencies.
+
+**Responsibilities**:
+
+- Build a Directed Acyclic Graph (DAG) of module relationships
+- Perform topological sorting to determine correct execution order
+- Detect and report circular dependencies (DFS-based cycle detection)
+- Optionally render the dependency graph in Mermaid format
+
+### 7. HCL Package (internal/hcl/)
+
+**Purpose**: Extract dependency information from `terragrunt.hcl` files.
+
+**Responsibilities**:
+
+- Parse `dependency` blocks using regex-based extraction (no full HCL parser required)
+- Resolve `config_path` values to absolute paths
+- Provide dependency edges to the DAG builder
+
+### 8. Git Package (internal/git/)
+
+**Purpose**: Detect changed files for Magic Mode (`--changed-only`).
+
+**Responsibilities**:
+
+- Run `git diff --name-only` against a configurable base ref
+- Return the set of changed file paths
+- Map changed files to affected Terragrunt modules
 
 ## Testing
 

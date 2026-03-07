@@ -266,6 +266,25 @@ func TestLoadEnv(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "subcommand env vars",
+			envs: map[string]string{
+				prefix + "_PLAN_DESTROY":         "true",
+				prefix + "_APPLY_AUTO_APPROVE":   "true",
+				prefix + "_DESTROY_AUTO_APPROVE": "true",
+			},
+			want: func(t *testing.T, cfg Config) {
+				if v, ok := cfg.Plan["destroy"]; !ok || v != true {
+					t.Errorf("Plan[destroy] = %v, want true", v)
+				}
+				if v, ok := cfg.Apply["auto_approve"]; !ok || v != true {
+					t.Errorf("Apply[auto_approve] = %v, want true", v)
+				}
+				if v, ok := cfg.Destroy["auto_approve"]; !ok || v != true {
+					t.Errorf("Destroy[auto_approve] = %v, want true", v)
+				}
+			},
+		},
 	}
 
 	for _, tc := range tests {
