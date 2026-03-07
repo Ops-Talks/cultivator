@@ -853,9 +853,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#6-output-formatter" class="md-nav__link">
+  <a href="#7-output-formatter" class="md-nav__link">
     <span class="md-ellipsis">
-      6. Output Formatter
+      7. Output Formatter
     </span>
   </a>
   
@@ -1262,9 +1262,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#6-output-formatter" class="md-nav__link">
+  <a href="#7-output-formatter" class="md-nav__link">
     <span class="md-ellipsis">
-      6. Output Formatter
+      7. Output Formatter
     </span>
   </a>
   
@@ -1432,7 +1432,7 @@
 <ul>
 <li>Loads built-in defaults, optional config file (<code>--config</code>), environment variables, and CLI flags</li>
 <li>Merges configuration with CLI flags and environment variables</li>
-<li>Validates configuration against schema</li>
+<li>Validates required configuration fields (root path exists, parallelism is positive)</li>
 </ul>
 <h3 id="2-stack-discovery">2. Stack Discovery<a class="headerlink" href="#2-stack-discovery" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1466,7 +1466,7 @@
 <li>Captures stdout and stderr in a single chronologically-ordered stream using <code>cmd.CombinedOutput()</code></li>
 <li>Captures output on per-stack, per-command basis</li>
 </ul>
-<h3 id="6-output-formatter">6. Output Formatter<a class="headerlink" href="#6-output-formatter" title="Permanent link">&para;</a></h3>
+<h3 id="7-output-formatter">7. Output Formatter<a class="headerlink" href="#7-output-formatter" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Formats and displays results in human-readable text</li>
 <li>Reports exit codes and errors per module</li>
@@ -1476,26 +1476,24 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    |
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Config Loader -&gt; Parse defaults + optional --config file + env vars + flags
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    |
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Stack Discovery -&gt; Find all terragrunt.hcl files
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Stack Discovery + Scope Filter -&gt; Find all terragrunt.hcl files, apply --env, --include, --exclude, --tags
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    |
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Git Integration -&gt; Filter by changed files (if --changed-only)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Scope Filter -&gt; Apply --env, --include, --exclude, --tags
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Dependency Graph -&gt; Build execution order (DAG)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Dependency Graph -&gt; Build execution order (DAG)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Executor (parallel worker pool) -&gt; Run Terragrunt commands
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    |
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Executor (parallel worker pool) -&gt; Run Terragrunt commands
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Output Formatter -&gt; Display results
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    |
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Output Formatter -&gt; Display results
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    |
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
 </span></code></pre></div>
 <h2 id="key-design-principles">Key Design Principles<a class="headerlink" href="#key-design-principles" title="Permanent link">&para;</a></h2>
 <h3 id="1-stateless-operation">1. Stateless Operation<a class="headerlink" href="#1-stateless-operation" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Cultivator does not manage state, backends, or locks beyond stack-level coordination</li>
+<li>Cultivator does not manage state, backends, or locks</li>
 <li>All state is owned by Terraform/OpenTofu</li>
-<li>Locks are per-stack filesystem locks to prevent concurrent writes</li>
+<li>Concurrency is controlled via a bounded channel semaphore and dependency signaling between goroutines; there are no filesystem locks</li>
 </ul>
 <h3 id="2-explicit-control">2. Explicit Control<a class="headerlink" href="#2-explicit-control" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1517,7 +1515,7 @@
 </ul>
 <h3 id="5-parallel-by-default">5. Parallel by Default<a class="headerlink" href="#5-parallel-by-default" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Configurable worker pool (default: 4 workers)</li>
+<li>Configurable worker pool (default: number of CPUs)</li>
 <li>Runs independent stacks concurrently</li>
 <li>Respects dependency graph for safe parallelism</li>
 </ul>
@@ -1529,7 +1527,7 @@
 <h2 id="configuration-reference">Configuration Reference<a class="headerlink" href="#configuration-reference" title="Permanent link">&para;</a></h2>
 <p>Cultivator reads from <code>cultivator.yml</code> in the repository root:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">live</span><span class="w">                    </span><span class="c1"># Root directory to scan for stacks</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">               </span><span class="c1"># Worker pool size</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">parallelism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">               </span><span class="c1"># Worker pool size (default: number of CPUs)</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">non_interactive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">       </span><span class="c1"># Equivalent to -input=false</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">plan</span><span class="p">:</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">destroy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">             </span><span class="c1"># Defaults for &#39;plan&#39; subcommand</span>

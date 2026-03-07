@@ -971,6 +971,33 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#6-dag-package-internaldag" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. DAG Package (internal/dag/)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-hcl-package-internalhcl" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. HCL Package (internal/hcl/)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-git-package-internalgit" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Git Package (internal/git/)
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1363,6 +1390,33 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#6-dag-package-internaldag" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. DAG Package (internal/dag/)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-hcl-package-internalhcl" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. HCL Package (internal/hcl/)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-git-package-internalgit" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Git Package (internal/git/)
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1613,7 +1667,7 @@
 <p><strong>Status</strong>: Actively maintained
 <strong>Language</strong>: Go 1.25+
 <strong>Module</strong>: <code>github.com/Ops-Talks/cultivator</code>
-<strong>External Dependency</strong>: <code>gopkg.in/yaml.v3</code> v3.0.1</p>
+<strong>External Dependencies</strong>: <code>gopkg.in/yaml.v3</code> v3.0.1, <code>github.com/olekukonko/tablewriter</code> v0.0.5</p>
 <p><strong>Core Functionality</strong>:</p>
 <ul>
 <li>Stack discovery (recursive walk for terragrunt.hcl)</li>
@@ -1638,7 +1692,7 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Executor (parallel worker pool)
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    |-- Run Terragrunt command per stack
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    |-- Capture output on per-stack basis
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    |-- Handle locks for concurrent operations
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    |-- Respect dependency order via DAG signals
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    |
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>Output Formatter (format text)
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    |
@@ -1653,34 +1707,49 @@
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├── internal/
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│   ├── cli/
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│   │   ├── cli.go               # CLI command routing and flag parsing
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│   │   └── cli_test.go          # CLI tests
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│   ├── config/
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│   │   ├── config.go            # Configuration loading and merging
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│   │   ├── config_test.go       # Unit tests
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│   │   ├── benchmark_test.go    # Performance benchmarks
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│   │   ├── coverage_test.go     # Additional coverage tests
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│   │   ├── fuzz_test.go         # Fuzz testing for robustness
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│   │   └── integration_test.go  # End-to-end tests
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│   ├── discovery/
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│   │   ├── discovery.go         # Stack discovery and filtering
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>│   │   ├── discovery_test.go    # Unit tests
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>│   │   ├── benchmark_test.go    # Performance benchmarks
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>│   │   ├── coverage_test.go     # Additional coverage tests
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>│   │   └── fuzz_test.go         # Fuzz testing for robustness
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>│   ├── logging/
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>│   │   ├── logger.go            # Structured logging
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>│   │   └── logger_test.go       # Logger tests
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>│   └── runner/
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>│       ├── runner.go            # Terragrunt command execution
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>│       └── runner_test.go       # Runner tests
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>├── testdata/
-</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>│   ├── terragrunt-large/        # Large-scale test fixtures
-</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>│   └── terragrunt-structure/    # Simple test fixtures
-</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>├── docs/                        # MkDocs documentation
-</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>├── go.mod                       # Module definition
-</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>├── go.sum                       # Dependency checksums
-</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>├── Makefile                     # Build, test, lint targets
-</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>└── Dockerfile                   # Multi-stage Docker image
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│   │   ├── cli_test.go          # CLI unit tests
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│   │   └── e2e_test.go          # End-to-end integration tests
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│   ├── config/
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│   │   ├── config.go            # Configuration loading and merging
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│   │   ├── config_test.go       # Unit tests
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│   │   ├── benchmark_test.go    # Performance benchmarks
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│   │   ├── coverage_test.go     # Additional coverage tests
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│   │   ├── fuzz_test.go         # Fuzz testing for robustness
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>│   │   ├── integration_test.go  # End-to-end tests
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>│   │   └── testconst_test.go    # Shared test constants
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>│   ├── dag/
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>│   │   ├── dag.go               # Directed acyclic graph, topological sort, cycle detection
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>│   │   └── dag_test.go          # DAG unit tests
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>│   ├── discovery/
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>│   │   ├── discovery.go         # Stack discovery and filtering
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>│   │   ├── discovery_test.go    # Unit tests
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>│   │   ├── benchmark_test.go    # Performance benchmarks
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>│   │   ├── coverage_test.go     # Additional coverage tests
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>│   │   ├── fuzz_test.go         # Fuzz testing for robustness
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>│   │   └── testconst_test.go    # Shared test constants
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>│   ├── git/
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>│   │   ├── git.go               # Git diff integration for changed-file detection
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>│   │   └── git_test.go          # Git integration tests
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>│   ├── hcl/
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>│   │   ├── hcl.go               # Lightweight HCL parser for dependency config_path extraction
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>│   │   ├── hcl_test.go          # HCL parser tests
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>│   │   └── fuzz_test.go         # Fuzz testing
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>│   ├── logging/
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>│   │   ├── logger.go            # Structured logging
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>│   │   └── logger_test.go       # Logger tests
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>│   └── runner/
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>│       ├── runner.go            # Terragrunt command execution
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>│       ├── runner_test.go       # Runner tests
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>│       ├── dag_integration_test.go # DAG-aware execution order tests
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>│       └── dryrun_test.go       # Dry-run mode tests
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>├── testdata/
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>│   ├── terragrunt-large/        # Large-scale test fixtures
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>│   └── terragrunt-structure/    # Simple test fixtures
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>├── docs/                        # MkDocs documentation
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>├── go.mod                       # Module definition
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>├── go.sum                       # Dependency checksums
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>├── Makefile                     # Build, test, lint targets
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>└── Dockerfile                   # Multi-stage Docker image
 </span></code></pre></div>
 <h2 id="key-packages">Key Packages<a class="headerlink" href="#key-packages" title="Permanent link">&para;</a></h2>
 <h3 id="1-config-package-internalconfig">1. Config Package (internal/config/)<a class="headerlink" href="#1-config-package-internalconfig" title="Permanent link">&para;</a></h3>
@@ -1690,7 +1759,7 @@
 <li>Read configuration from filesystem</li>
 <li>Merge with environment variables (CULTIVATOR_* prefix)</li>
 <li>Merge with CLI flags (highest precedence)</li>
-<li>Validate configuration schema</li>
+<li>Validates required configuration fields (root path exists, parallelism is positive)</li>
 <li>Provide typed access to settings</li>
 </ul>
 <h3 id="2-discovery-package-internaldiscovery">2. Discovery Package (internal/discovery/)<a class="headerlink" href="#2-discovery-package-internaldiscovery" title="Permanent link">&para;</a></h3>
@@ -1720,7 +1789,8 @@
 <li>Create and manage loggers</li>
 <li>Format log messages</li>
 <li>Support multiple output levels</li>
-<li>Redact sensitive information</li>
+<li>Write summary tables at end of execution</li>
+<li>Cultivator relies on CI platform secret masking (e.g., GitHub Actions masked secrets) for sensitive data redaction</li>
 </ul>
 <h3 id="5-runner-package-internalrunner">5. Runner Package (internal/runner/)<a class="headerlink" href="#5-runner-package-internalrunner" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Execute Terragrunt commands and capture results.</p>
@@ -1731,6 +1801,31 @@
 <li>Capture stdout and stderr in a single stream</li>
 <li>Report execution results</li>
 <li>Manage concurrent execution with worker pool</li>
+</ul>
+<h3 id="6-dag-package-internaldag">6. DAG Package (internal/dag/)<a class="headerlink" href="#6-dag-package-internaldag" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Model and resolve inter-module dependencies.</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Build a Directed Acyclic Graph (DAG) of module relationships</li>
+<li>Perform topological sorting to determine correct execution order</li>
+<li>Detect and report circular dependencies (DFS-based cycle detection)</li>
+<li>Optionally render the dependency graph in Mermaid format</li>
+</ul>
+<h3 id="7-hcl-package-internalhcl">7. HCL Package (internal/hcl/)<a class="headerlink" href="#7-hcl-package-internalhcl" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Extract dependency information from <code>terragrunt.hcl</code> files.</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Parse <code>dependency</code> blocks using regex-based extraction (no full HCL parser required)</li>
+<li>Resolve <code>config_path</code> values to absolute paths</li>
+<li>Provide dependency edges to the DAG builder</li>
+</ul>
+<h3 id="8-git-package-internalgit">8. Git Package (internal/git/)<a class="headerlink" href="#8-git-package-internalgit" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Detect changed files for Magic Mode (<code>--changed-only</code>).</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Run <code>git diff --name-only</code> against a configurable base ref</li>
+<li>Return the set of changed file paths</li>
+<li>Map changed files to affected Terragrunt modules</li>
 </ul>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
 <p>For comprehensive information on testing strategy, test types, and guidelines, see the <a href="../TESTING/">Testing Guide</a>.</p>

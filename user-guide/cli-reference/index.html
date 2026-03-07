@@ -1628,6 +1628,9 @@
 - Module path
 - Terragrunt output and any errors
 - Clear demarcation for easy scanning</p>
+<blockquote>
+<p><strong>Implementation note</strong>: Cultivator automatically appends <code>-no-color</code> to every Terragrunt invocation to produce clean, parseable output in CI environments.</p>
+</blockquote>
 <h2 id="binary-invocation">Binary Invocation<a class="headerlink" href="#binary-invocation" title="Permanent link">&para;</a></h2>
 <p>Local development (after building):
 <div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>cultivator<span class="w"> </span>./cmd/cultivator
