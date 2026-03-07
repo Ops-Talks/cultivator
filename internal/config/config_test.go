@@ -80,94 +80,76 @@ func TestLoadFile(t *testing.T) {
 	}
 }
 
-func TestApplyOverrides(t *testing.T) {
+func TestApplyOverrides_BasicFields(t *testing.T) {
 	t.Parallel()
 
-	s := func(v string) *string { return &v }
-	i := func(v int) *int { return &v }
-	b := func(v bool) *bool { return &v }
+	sp := func(v string) *string { return &v }
+	ip := func(v int) *int { return &v }
+	bp := func(v bool) *bool { return &v }
 
-	tests := []struct {
-		name      string
-		overrides Overrides
-		want      Config
-	}{
-		{
-			name: "override all basic fields",
-			overrides: Overrides{
-				Root:           s("envs"),
-				Parallelism:    i(5),
-				NonInteractive: b(true),
-				DryRun:         b(true),
-			},
-			want: Config{
-				Root:           "envs",
-				Parallelism:    5,
-				NonInteractive: true,
-				DryRun:         true,
-			},
-		},
-		{
-			name: "override filters",
-			overrides: Overrides{
-				Include:    []string{"prod"},
-				IncludeSet: true,
-				Exclude:    []string{"test"},
-				ExcludeSet: true,
-				Tags:       []string{"db"},
-				TagsSet:    true,
-			},
-			want: Config{
-				Include: []string{"prod"},
-				Exclude: []string{"test"},
-				Tags:    []string{"db"},
-			},
-		},
-		{
-			name: "override command flags",
-			overrides: Overrides{
-				PlanDestroy:        b(true),
-				ApplyAutoApprove:   b(true),
-				DestroyAutoApprove: b(true),
-			},
-			want: Config{
-				Plan:    PlanConfig{Destroy: true},
-				Apply:   ApplyConfig{AutoApprove: true},
-				Destroy: DestroyConfig{AutoApprove: true},
-			},
-		},
+	cfg := ApplyOverrides(DefaultConfig(), Overrides{
+		Root:           sp("envs"),
+		Parallelism:    ip(5),
+		NonInteractive: bp(true),
+		DryRun:         bp(true),
+	})
+
+	if cfg.Root != "envs" {
+		t.Errorf("Root = %q, want %q", cfg.Root, "envs")
 	}
+	if cfg.Parallelism != 5 {
+		t.Errorf("Parallelism = %d, want 5", cfg.Parallelism)
+	}
+	if !cfg.NonInteractive {
+		t.Error("NonInteractive = false, want true")
+	}
+	if !cfg.DryRun {
+		t.Error("DryRun = false, want true")
+	}
+}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			cfg := ApplyOverrides(DefaultConfig(), tc.overrides)
-			if cfg.Root != "" && tc.want.Root != "" && cfg.Root != tc.want.Root {
-				t.Errorf("Root = %q, want %q", cfg.Root, tc.want.Root)
-			}
-			if tc.want.Parallelism != 0 && cfg.Parallelism != tc.want.Parallelism {
-				t.Errorf("Parallelism = %d, want %d", cfg.Parallelism, tc.want.Parallelism)
-			}
-			if tc.overrides.NonInteractive != nil && cfg.NonInteractive != *tc.overrides.NonInteractive {
-				t.Errorf("NonInteractive = %v, want %v", cfg.NonInteractive, *tc.overrides.NonInteractive)
-			}
-			if tc.overrides.DryRun != nil && cfg.DryRun != *tc.overrides.DryRun {
-				t.Errorf("DryRun = %v, want %v", cfg.DryRun, *tc.overrides.DryRun)
-			}
-			if tc.overrides.IncludeSet && !reflect.DeepEqual(cfg.Include, tc.want.Include) {
-				t.Errorf("Include = %v, want %v", cfg.Include, tc.want.Include)
-			}
-			if tc.overrides.ExcludeSet && !reflect.DeepEqual(cfg.Exclude, tc.want.Exclude) {
-				t.Errorf("Exclude = %v, want %v", cfg.Exclude, tc.want.Exclude)
-			}
-			if tc.overrides.TagsSet && !reflect.DeepEqual(cfg.Tags, tc.want.Tags) {
-				t.Errorf("Tags = %v, want %v", cfg.Tags, tc.want.Tags)
-			}
-			if tc.overrides.PlanDestroy != nil {
-				if !cfg.Plan.Destroy {
-					t.Errorf("Plan.Destroy = false, want true")
-				}
-			}
-		})
+func TestApplyOverrides_Filters(t *testing.T) {
+	t.Parallel()
+
+	cfg := ApplyOverrides(DefaultConfig(), Overrides{
+		Include:    []string{"prod"},
+		IncludeSet: true,
+		Exclude:    []string{"test"},
+		ExcludeSet: true,
+		Tags:       []string{"db"},
+		TagsSet:    true,
+	})
+
+	if !reflect.DeepEqual(cfg.Include, []string{"prod"}) {
+		t.Errorf("Include = %v, want [prod]", cfg.Include)
+	}
+	if !reflect.DeepEqual(cfg.Exclude, []string{"test"}) {
+		t.Errorf("Exclude = %v, want [test]", cfg.Exclude)
+	}
+	if !reflect.DeepEqual(cfg.Tags, []string{"db"}) {
+		t.Errorf("Tags = %v, want [db]", cfg.Tags)
+	}
+}
+
+func TestApplyOverrides_CommandFlags(t *testing.T) {
+	t.Parallel()
+
+	bp := func(v bool) *bool { return &v }
+
+	cfg := ApplyOverrides(DefaultConfig(), Overrides{
+		PlanDestroy:        bp(true),
+		ApplyAutoApprove:   bp(true),
+		DestroyAutoApprove: bp(true),
+	})
+
+	if !cfg.Plan.Destroy {
+		t.Error("Plan.Destroy = false, want true")
+	}
+	if !cfg.Apply.AutoApprove {
+		t.Error("Apply.AutoApprove = false, want true")
+	}
+	if !cfg.Destroy.AutoApprove {
+		t.Error("Destroy.AutoApprove = false, want true")
 	}
 }
 

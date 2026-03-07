@@ -125,117 +125,91 @@ func LoadFile(path string) (Config, map[string]interface{}, bool, error) {
 func LoadEnv(prefix string) Config {
 	cfg := DefaultConfig()
 
-	if root := os.Getenv(prefix + "_ROOT"); root != "" {
-		cfg.Root = root
+	// envLoader pairs an environment variable suffix with the mutation it applies
+	// to Config. All setter closures are branch-free so complexity stays in the
+	// named helpers (splitEnvList, applyEnvParallelism, parseBool).
+	type envLoader struct {
+		suffix string
+		apply  func(c *Config, val string)
 	}
-	if env := os.Getenv(prefix + "_ENV"); env != "" {
-		cfg.Env = env
+
+	loaders := []envLoader{
+		{"_ROOT", func(c *Config, v string) { c.Root = v }},
+		{"_ENV", func(c *Config, v string) { c.Env = v }},
+		{"_BASE_REF", func(c *Config, v string) { c.BaseRef = v }},
+		{"_INCLUDE", func(c *Config, v string) { c.Include = splitEnvList(v) }},
+		{"_EXCLUDE", func(c *Config, v string) { c.Exclude = splitEnvList(v) }},
+		{"_TAGS", func(c *Config, v string) { c.Tags = splitEnvList(v) }},
+		{"_PARALLELISM", func(c *Config, v string) { applyEnvParallelism(c, v) }},
+		{"_NON_INTERACTIVE", func(c *Config, v string) { c.NonInteractive = parseBool(v) }},
+		{"_DRY_RUN", func(c *Config, v string) { c.DryRun = parseBool(v) }},
+		{"_SHOW_GRAPH", func(c *Config, v string) { c.ShowGraph = parseBool(v) }},
+		{"_CHANGED_ONLY", func(c *Config, v string) { c.ChangedOnly = parseBool(v) }},
+		{"_PLAN_DESTROY", func(c *Config, v string) { c.Plan.Destroy = parseBool(v) }},
+		{"_APPLY_AUTO_APPROVE", func(c *Config, v string) { c.Apply.AutoApprove = parseBool(v) }},
+		{"_DESTROY_AUTO_APPROVE", func(c *Config, v string) { c.Destroy.AutoApprove = parseBool(v) }},
 	}
-	if include := os.Getenv(prefix + "_INCLUDE"); include != "" {
-		cfg.Include = strings.FieldsFunc(include, func(r rune) bool {
-			return r == ',' || r == ';'
-		})
-	}
-	if exclude := os.Getenv(prefix + "_EXCLUDE"); exclude != "" {
-		cfg.Exclude = strings.FieldsFunc(exclude, func(r rune) bool {
-			return r == ',' || r == ';'
-		})
-	}
-	if tags := os.Getenv(prefix + "_TAGS"); tags != "" {
-		cfg.Tags = strings.FieldsFunc(tags, func(r rune) bool {
-			return r == ',' || r == ';'
-		})
-	}
-	if par := os.Getenv(prefix + "_PARALLELISM"); par != "" {
-		val, err := strconv.Atoi(par)
-		if err == nil && val > 0 {
-			cfg.Parallelism = val
+
+	for _, l := range loaders {
+		if val := os.Getenv(prefix + l.suffix); val != "" {
+			l.apply(&cfg, val)
 		}
-	}
-	if nonInt := os.Getenv(prefix + "_NON_INTERACTIVE"); nonInt != "" {
-		cfg.NonInteractive = parseBool(nonInt)
-	}
-	if dryRun := os.Getenv(prefix + "_DRY_RUN"); dryRun != "" {
-		cfg.DryRun = parseBool(dryRun)
-	}
-	if showGraph := os.Getenv(prefix + "_SHOW_GRAPH"); showGraph != "" {
-		cfg.ShowGraph = parseBool(showGraph)
-	}
-	if changedOnly := os.Getenv(prefix + "_CHANGED_ONLY"); changedOnly != "" {
-		cfg.ChangedOnly = parseBool(changedOnly)
-	}
-	if baseRef := os.Getenv(prefix + "_BASE_REF"); baseRef != "" {
-		cfg.BaseRef = baseRef
-	}
-	if planDestroy := os.Getenv(prefix + "_PLAN_DESTROY"); planDestroy != "" {
-		cfg.Plan.Destroy = parseBool(planDestroy)
-	}
-	if applyAutoApprove := os.Getenv(prefix + "_APPLY_AUTO_APPROVE"); applyAutoApprove != "" {
-		cfg.Apply.AutoApprove = parseBool(applyAutoApprove)
-	}
-	if destroyAutoApprove := os.Getenv(prefix + "_DESTROY_AUTO_APPROVE"); destroyAutoApprove != "" {
-		cfg.Destroy.AutoApprove = parseBool(destroyAutoApprove)
 	}
 
 	return cfg
 }
 
+// splitEnvList splits a comma- or semicolon-separated environment variable
+// value into individual non-empty items.
+func splitEnvList(v string) []string {
+	return strings.FieldsFunc(v, func(r rune) bool {
+		return r == ',' || r == ';'
+	})
+}
+
+// applyEnvParallelism parses val as a positive integer and writes it to
+// cfg.Parallelism; invalid or non-positive values are silently ignored.
+func applyEnvParallelism(cfg *Config, val string) {
+	n, err := strconv.Atoi(val)
+	if err != nil || n < 1 {
+		return
+	}
+	cfg.Parallelism = n
+}
+
 func MergeConfig(base, override Config) Config {
 	result := base
 
+	// Root uses a special guard: the zero value "." is treated as unset.
 	if override.Root != "" && override.Root != "." {
 		result.Root = override.Root
 	}
-	if override.Env != "" {
-		result.Env = override.Env
-	}
-	if len(override.Include) > 0 {
-		result.Include = override.Include
-	}
-	if len(override.Exclude) > 0 {
-		result.Exclude = override.Exclude
-	}
-	if len(override.Tags) > 0 {
-		result.Tags = override.Tags
-	}
-	if override.Parallelism > 0 {
-		result.Parallelism = override.Parallelism
-	}
-	if override.NonInteractive {
-		result.NonInteractive = override.NonInteractive
-	}
-	if override.DryRun {
-		result.DryRun = override.DryRun
-	}
-	if override.ShowGraph {
-		result.ShowGraph = override.ShowGraph
-	}
-	if override.ChangedOnly {
-		result.ChangedOnly = override.ChangedOnly
-	}
-	if override.BaseRef != "" {
-		result.BaseRef = override.BaseRef
-	}
-	if override.Plan.Destroy {
-		result.Plan.Destroy = true
-	}
-	if override.Apply.AutoApprove {
-		result.Apply.AutoApprove = true
-	}
-	if override.Destroy.AutoApprove {
-		result.Destroy.AutoApprove = true
-	}
+	mergeString(&result.Env, override.Env)
+	mergeString(&result.BaseRef, override.BaseRef)
+	mergeSlice(&result.Include, override.Include)
+	mergeSlice(&result.Exclude, override.Exclude)
+	mergeSlice(&result.Tags, override.Tags)
+	mergePositiveInt(&result.Parallelism, override.Parallelism)
+	mergeBoolTrue(&result.NonInteractive, override.NonInteractive)
+	mergeBoolTrue(&result.DryRun, override.DryRun)
+	mergeBoolTrue(&result.ShowGraph, override.ShowGraph)
+	mergeBoolTrue(&result.ChangedOnly, override.ChangedOnly)
+	mergeBoolTrue(&result.Plan.Destroy, override.Plan.Destroy)
+	mergeBoolTrue(&result.Apply.AutoApprove, override.Apply.AutoApprove)
+	mergeBoolTrue(&result.Destroy.AutoApprove, override.Destroy.AutoApprove)
 
 	return result
 }
 
 func ApplyOverrides(cfg Config, ovr Overrides) Config {
-	if ovr.Root != nil {
-		cfg.Root = *ovr.Root
-	}
-	if ovr.Env != nil {
-		cfg.Env = *ovr.Env
-	}
+	applyPtr(&cfg.Root, ovr.Root)
+	applyPtr(&cfg.Env, ovr.Env)
+	applyPtr(&cfg.BaseRef, ovr.BaseRef)
+	applyPositiveInt(&cfg.Parallelism, ovr.Parallelism)
+	applyPtr(&cfg.NonInteractive, ovr.NonInteractive)
+	applyPtr(&cfg.DryRun, ovr.DryRun)
+	applyPtr(&cfg.ShowGraph, ovr.ShowGraph)
+	applyPtr(&cfg.ChangedOnly, ovr.ChangedOnly)
 	if ovr.IncludeSet {
 		cfg.Include = ovr.Include
 	}
@@ -245,33 +219,9 @@ func ApplyOverrides(cfg Config, ovr Overrides) Config {
 	if ovr.TagsSet {
 		cfg.Tags = ovr.Tags
 	}
-	if ovr.Parallelism != nil && *ovr.Parallelism > 0 {
-		cfg.Parallelism = *ovr.Parallelism
-	}
-	if ovr.NonInteractive != nil {
-		cfg.NonInteractive = *ovr.NonInteractive
-	}
-	if ovr.DryRun != nil {
-		cfg.DryRun = *ovr.DryRun
-	}
-	if ovr.ShowGraph != nil {
-		cfg.ShowGraph = *ovr.ShowGraph
-	}
-	if ovr.ChangedOnly != nil {
-		cfg.ChangedOnly = *ovr.ChangedOnly
-	}
-	if ovr.BaseRef != nil {
-		cfg.BaseRef = *ovr.BaseRef
-	}
-	if ovr.PlanDestroy != nil && *ovr.PlanDestroy {
-		cfg.Plan.Destroy = true
-	}
-	if ovr.ApplyAutoApprove != nil && *ovr.ApplyAutoApprove {
-		cfg.Apply.AutoApprove = true
-	}
-	if ovr.DestroyAutoApprove != nil && *ovr.DestroyAutoApprove {
-		cfg.Destroy.AutoApprove = true
-	}
+	applyBoolFlag(&cfg.Plan.Destroy, ovr.PlanDestroy)
+	applyBoolFlag(&cfg.Apply.AutoApprove, ovr.ApplyAutoApprove)
+	applyBoolFlag(&cfg.Destroy.AutoApprove, ovr.DestroyAutoApprove)
 
 	return cfg
 }
@@ -309,4 +259,55 @@ func ParseInt(value string) (int, error) {
 		return 0, fmt.Errorf("invalid integer: %s", value)
 	}
 	return val, nil
+}
+
+// applyPtr copies *src into *dst when src is non-nil.
+func applyPtr[T any](dst *T, src *T) {
+	if src != nil {
+		*dst = *src
+	}
+}
+
+// applyBoolFlag sets *dst to true only when src is non-nil and true.
+// Used for one-way command flags (plan --destroy, apply --auto-approve) that
+// should only ever be enabled, never cleared, by an override.
+func applyBoolFlag(dst *bool, src *bool) {
+	if src != nil && *src {
+		*dst = true
+	}
+}
+
+// applyPositiveInt writes *src to *dst only when src is non-nil and positive.
+func applyPositiveInt(dst *int, src *int) {
+	if src != nil && *src > 0 {
+		*dst = *src
+	}
+}
+
+// mergeString writes src to *dst when src is non-empty.
+func mergeString(dst *string, src string) {
+	if src != "" {
+		*dst = src
+	}
+}
+
+// mergeSlice writes src to *dst when src is non-empty.
+func mergeSlice(dst *[]string, src []string) {
+	if len(src) > 0 {
+		*dst = src
+	}
+}
+
+// mergePositiveInt writes src to *dst when src is positive.
+func mergePositiveInt(dst *int, src int) {
+	if src > 0 {
+		*dst = src
+	}
+}
+
+// mergeBoolTrue sets *dst to true when src is true; it never clears a true value.
+func mergeBoolTrue(dst *bool, src bool) {
+	if src {
+		*dst = true
+	}
 }

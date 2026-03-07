@@ -91,35 +91,10 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 	}
 
 	if cfg.ChangedOnly {
-		if !git.IsGitRepo(ctx, cfg.Root) {
-			logger.Error("not a git repository, --changed-only is not supported", logging.Fields{"root": cfg.Root})
-			return 1
+		modules, code = filterChangedModules(ctx, cfg, modules, logger)
+		if code != 0 {
+			return code
 		}
-
-		changedFiles, err := git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef)
-		if err != nil {
-			logger.Error("failed to get changed files", logging.Fields{"error": err.Error(), "base": cfg.BaseRef})
-			return 1
-		}
-
-		var filtered []discovery.Module
-		for _, mod := range modules {
-			hasChanges := false
-			for _, changedFile := range changedFiles {
-				// Normalize both for comparison
-				modPath := filepath.Clean(mod.Path)
-				changePath := filepath.Clean(changedFile)
-
-				if strings.HasPrefix(changePath, modPath) {
-					hasChanges = true
-					break
-				}
-			}
-			if hasChanges {
-				filtered = append(filtered, mod)
-			}
-		}
-		modules = filtered
 	}
 
 	if len(modules) == 0 {
@@ -130,49 +105,15 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 	logger.Info("modules discovered", logging.Fields{"count": len(modules), "root": cfg.Root})
 
 	if cfg.ShowGraph {
-		g := dag.New()
-		pathMap := make(map[string]bool)
-		for _, mod := range modules {
-			pathMap[mod.Path] = true
-			g.AddNode(mod.Path)
-		}
-		for _, mod := range modules {
-			for _, dep := range mod.Dependencies {
-				if pathMap[dep] {
-					g.AddEdge(mod.Path, dep)
-				}
-			}
-		}
-		logger.Output("\nDependency Graph (Mermaid):\n```mermaid\n" + g.ToMermaid() + "```\n")
+		logModuleGraph(modules, logger)
 	}
 
 	startTime := time.Now()
 	results, runErr := runTerragruntModules(ctx, logger, r, command, cfg, modules)
 	duration := time.Since(startTime)
 
-	// Log summary table at the end
 	if len(results) > 0 {
-		var rows []logging.SummaryRow
-		for _, res := range results {
-			status := "SUCCESS"
-			notes := ""
-			if res.Error != nil || res.ExitCode != 0 {
-				status = "FAILURE"
-				if res.Error != nil {
-					notes = res.Error.Error()
-				} else {
-					notes = fmt.Sprintf("exit code %d", res.ExitCode)
-				}
-			}
-			rows = append(rows, logging.SummaryRow{
-				Module:   res.Module.Path,
-				Command:  res.Command,
-				Status:   status,
-				Duration: res.Duration.String(),
-				Notes:    notes,
-			})
-		}
-		logger.LogSummaryTable(rows, duration.String())
+		logger.LogSummaryTable(buildSummaryRows(results), duration.String())
 	}
 
 	if runErr != nil {
@@ -188,6 +129,87 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 		"duration": duration.String(),
 	})
 	return 0
+}
+
+// filterChangedModules keeps only modules that contain at least one file
+// changed relative to cfg.BaseRef. Returns (nil, non-zero) on error.
+func filterChangedModules(ctx context.Context, cfg config.Config, modules []discovery.Module, logger *logging.Logger) ([]discovery.Module, int) {
+	if !git.IsGitRepo(ctx, cfg.Root) {
+		logger.Error("not a git repository, --changed-only is not supported", logging.Fields{"root": cfg.Root})
+		return nil, 1
+	}
+
+	changedFiles, err := git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef)
+	if err != nil {
+		logger.Error("failed to get changed files", logging.Fields{"error": err.Error(), "base": cfg.BaseRef})
+		return nil, 1
+	}
+
+	var filtered []discovery.Module
+	for _, mod := range modules {
+		if moduleHasChanges(mod.Path, changedFiles) {
+			filtered = append(filtered, mod)
+		}
+	}
+	return filtered, 0
+}
+
+// moduleHasChanges reports whether any changed file path falls within modPath.
+func moduleHasChanges(modPath string, changedFiles []string) bool {
+	modPath = filepath.Clean(modPath)
+	for _, f := range changedFiles {
+		if strings.HasPrefix(filepath.Clean(f), modPath) {
+			return true
+		}
+	}
+	return false
+}
+
+// logModuleGraph emits a Mermaid dependency graph to logger output.
+func logModuleGraph(modules []discovery.Module, logger *logging.Logger) {
+	g := dag.New()
+	pathMap := make(map[string]bool)
+	for _, mod := range modules {
+		pathMap[mod.Path] = true
+		g.AddNode(mod.Path)
+	}
+	for _, mod := range modules {
+		for _, dep := range mod.Dependencies {
+			if pathMap[dep] {
+				g.AddEdge(mod.Path, dep)
+			}
+		}
+	}
+	logger.Output("\nDependency Graph (Mermaid):\n```mermaid\n" + g.ToMermaid() + "```\n")
+}
+
+// buildSummaryRows converts runner results into display rows for the summary table.
+func buildSummaryRows(results []runner.Result) []logging.SummaryRow {
+	rows := make([]logging.SummaryRow, 0, len(results))
+	for _, res := range results {
+		rows = append(rows, summaryRowFromResult(res))
+	}
+	return rows
+}
+
+// summaryRowFromResult derives the status and notes for a single result row.
+func summaryRowFromResult(res runner.Result) logging.SummaryRow {
+	status, notes := "SUCCESS", ""
+	if res.Error != nil || res.ExitCode != 0 {
+		status = "FAILURE"
+		if res.Error != nil {
+			notes = res.Error.Error()
+		} else {
+			notes = fmt.Sprintf("exit code %d", res.ExitCode)
+		}
+	}
+	return logging.SummaryRow{
+		Module:   res.Module.Path,
+		Command:  res.Command,
+		Status:   status,
+		Duration: res.Duration.String(),
+		Notes:    notes,
+	}
 }
 
 type terragruntFlagState struct {
@@ -354,6 +376,12 @@ func populateFlagState(state *terragruntFlagState, in flagInputs) {
 		state.baseRefSet = true
 	}
 
+	applyCommandSpecificFlags(state, in)
+}
+
+// applyCommandSpecificFlags sets the command-specific flag fields on state
+// based on which subcommand was parsed (plan/apply/destroy).
+func applyCommandSpecificFlags(state *terragruntFlagState, in flagInputs) {
 	switch in.command {
 	case cmdPlan:
 		if in.planDestroy != nil && in.planDestroy.set {
@@ -403,63 +431,71 @@ func buildTerragruntConfig(state terragruntFlagState) (config.Config, error) {
 }
 
 func buildOverrides(state terragruntFlagState) config.Overrides {
-	flagOverrides := config.Overrides{}
-	if state.root != "" {
-		flagOverrides.Root = &state.root
-	}
-	if state.env != "" {
-		flagOverrides.Env = &state.env
+	ovr := config.Overrides{
+		Root: ptrIfSet(state.root, ""),
+		Env:  ptrIfSet(state.env, ""),
 	}
 	if state.includeSet {
-		flagOverrides.Include = state.includeValues
-		flagOverrides.IncludeSet = true
+		ovr.Include = state.includeValues
+		ovr.IncludeSet = true
 	}
 	if state.excludeSet {
-		flagOverrides.Exclude = state.excludeValues
-		flagOverrides.ExcludeSet = true
+		ovr.Exclude = state.excludeValues
+		ovr.ExcludeSet = true
 	}
 	if state.tagsSet {
-		flagOverrides.Tags = state.tagsValues
-		flagOverrides.TagsSet = true
+		ovr.Tags = state.tagsValues
+		ovr.TagsSet = true
 	}
 	if state.parallelismSet {
 		value := state.parallelismValue
-		flagOverrides.Parallelism = &value
+		ovr.Parallelism = &value
 	}
 	if state.nonInteractiveSet {
 		value := state.nonInteractiveValue
-		flagOverrides.NonInteractive = &value
+		ovr.NonInteractive = &value
 	}
 	if state.dryRunSet {
 		value := state.dryRunValue
-		flagOverrides.DryRun = &value
+		ovr.DryRun = &value
 	}
 	if state.showGraphSet {
 		value := state.showGraphValue
-		flagOverrides.ShowGraph = &value
+		ovr.ShowGraph = &value
 	}
 	if state.changedOnlySet {
 		value := state.changedOnlyValue
-		flagOverrides.ChangedOnly = &value
+		ovr.ChangedOnly = &value
 	}
 	if state.baseRefSet {
 		value := state.baseRefValue
-		flagOverrides.BaseRef = &value
+		ovr.BaseRef = &value
 	}
 	if state.planDestroySet {
 		value := state.planDestroyValue
-		flagOverrides.PlanDestroy = &value
+		ovr.PlanDestroy = &value
 	}
 	if state.applyAutoApproveSet {
 		value := state.applyAutoApproveValue
-		flagOverrides.ApplyAutoApprove = &value
+		ovr.ApplyAutoApprove = &value
 	}
 	if state.destroyAutoApproveSet {
 		value := state.destroyAutoApproveValue
-		flagOverrides.DestroyAutoApprove = &value
+		ovr.DestroyAutoApprove = &value
 	}
 
-	return flagOverrides
+	return ovr
+}
+
+// ptrIfSet returns a pointer to a copy of val when val differs from zero;
+// otherwise it returns nil. Used to build Overrides from flag state without
+// an explicit if/else per string field.
+func ptrIfSet[T comparable](val T, zero T) *T {
+	if val == zero {
+		return nil
+	}
+	v := val
+	return &v
 }
 
 func runTerragruntModules(ctx context.Context, logger *logging.Logger, r runner.RunnerIface, command string, cfg config.Config, modules []discovery.Module) ([]runner.Result, error) {

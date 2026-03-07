@@ -44,108 +44,105 @@ func Discover(root string, options Options) ([]Module, error) {
 	}
 
 	root = filepath.Clean(root)
-	var modules []Module
-
-	include := normalizePaths(root, options.Include)
-	exclude := normalizePaths(root, options.Exclude)
+	scanner := &moduleScanner{
+		root:    root,
+		include: normalizePaths(root, options.Include),
+		exclude: normalizePaths(root, options.Exclude),
+		options: options,
+	}
 
 	if options.Logger != nil {
 		options.Logger.Debug("starting discovery", logging.Fields{
 			"root":    root,
 			"env":     options.Env,
 			"tags":    options.Tags,
-			"include": include,
-			"exclude": exclude,
+			"include": scanner.include,
+			"exclude": scanner.exclude,
 		})
 	}
 
-	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-
-		if entry.IsDir() {
-			if shouldSkipDir(entry.Name()) {
-				if options.Logger != nil {
-					options.Logger.Debug("skipping directory", logging.Fields{"path": path})
-				}
-				return filepath.SkipDir
-			}
-			return nil
-		}
-
-		if entry.Name() != "terragrunt.hcl" {
-			return nil
-		}
-
-		if options.Logger != nil {
-			options.Logger.Debug("found terragrunt.hcl", logging.Fields{"path": path})
-		}
-
-		moduleDir := filepath.Dir(path)
-		if !matchesIncludeExclude(moduleDir, include, exclude) {
-			if options.Logger != nil {
-				options.Logger.Debug("skipping module: path filter mismatch", logging.Fields{"path": moduleDir})
-			}
-			return nil
-		}
-
-		env := envFromPath(root, moduleDir)
-		if options.Env != "" && options.Env != env {
-			if options.Logger != nil {
-				options.Logger.Debug("skipping module: environment mismatch", logging.Fields{
-					"path":     moduleDir,
-					"expected": options.Env,
-					"actual":   env,
-				})
-			}
-			return nil
-		}
-
-		module := Module{
-			Path: moduleDir,
-			Env:  env,
-			Tags: parseTags(path),
-		}
-
-		if !matchesTags(module.Tags, options.Tags) {
-			if options.Logger != nil {
-				options.Logger.Debug("skipping module: tag mismatch", logging.Fields{
-					"path":     moduleDir,
-					"required": options.Tags,
-					"actual":   module.Tags,
-				})
-			}
-			return nil
-		}
-
-		// Extract dependencies
-		deps, err := hcl.ExtractDependencies(path)
-		if err != nil {
-			return fmt.Errorf("extract dependencies from %s: %w", path, err)
-		}
-		for _, dep := range deps {
-			module.Dependencies = append(module.Dependencies, dep.Path)
-		}
-
-		if options.Logger != nil {
-			options.Logger.Debug("module discovered", logging.Fields{
-				"path":         module.Path,
-				"env":          module.Env,
-				"tags":         module.Tags,
-				"dependencies": module.Dependencies,
-			})
-		}
-
-		modules = append(modules, module)
-		return nil
-	})
-
-	if err != nil {
+	if err := filepath.WalkDir(root, scanner.walk); err != nil {
 		return nil, fmt.Errorf("discover modules: %w", err)
 	}
 
-	return modules, nil
+	return scanner.modules, nil
+}
+
+// moduleScanner holds the accumulated state for a single Discover walk.
+type moduleScanner struct {
+	root    string
+	include []string
+	exclude []string
+	options Options
+	modules []Module
+}
+
+// debugLog emits a debug message when a logger is configured.
+func (s *moduleScanner) debugLog(msg string, fields logging.Fields) {
+	if s.options.Logger != nil {
+		s.options.Logger.Debug(msg, fields)
+	}
+}
+
+// walk is the filepath.WalkDir callback.
+func (s *moduleScanner) walk(path string, entry os.DirEntry, walkErr error) error {
+	if walkErr != nil {
+		return walkErr
+	}
+	if entry.IsDir() {
+		if shouldSkipDir(entry.Name()) {
+			s.debugLog("skipping directory", logging.Fields{"path": path})
+			return filepath.SkipDir
+		}
+		return nil
+	}
+	if entry.Name() != "terragrunt.hcl" {
+		return nil
+	}
+	s.debugLog("found terragrunt.hcl", logging.Fields{"path": path})
+	return s.visitModule(path)
+}
+
+// visitModule processes a single terragrunt.hcl file, applying all filters and
+// appending a Module to s.modules if all pass.
+func (s *moduleScanner) visitModule(hclPath string) error {
+	moduleDir := filepath.Dir(hclPath)
+
+	if !matchesIncludeExclude(moduleDir, s.include, s.exclude) {
+		s.debugLog("skipping module: path filter mismatch", logging.Fields{"path": moduleDir})
+		return nil
+	}
+
+	env := envFromPath(s.root, moduleDir)
+	if s.options.Env != "" && s.options.Env != env {
+		s.debugLog("skipping module: environment mismatch", logging.Fields{
+			"path": moduleDir, "expected": s.options.Env, "actual": env,
+		})
+		return nil
+	}
+
+	module := Module{Path: moduleDir, Env: env, Tags: parseTags(hclPath)}
+	if !matchesTags(module.Tags, s.options.Tags) {
+		s.debugLog("skipping module: tag mismatch", logging.Fields{
+			"path": moduleDir, "required": s.options.Tags, "actual": module.Tags,
+		})
+		return nil
+	}
+
+	deps, err := hcl.ExtractDependencies(hclPath)
+	if err != nil {
+		return fmt.Errorf("extract dependencies from %s: %w", hclPath, err)
+	}
+	for _, dep := range deps {
+		module.Dependencies = append(module.Dependencies, dep.Path)
+	}
+
+	s.debugLog("module discovered", logging.Fields{
+		"path": module.Path, "env": module.Env,
+		"tags": module.Tags, "dependencies": module.Dependencies,
+	})
+	s.modules = append(s.modules, module)
+	return nil
 }
 
 func normalizePaths(root string, paths []string) []string {
