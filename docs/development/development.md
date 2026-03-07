@@ -5,7 +5,7 @@
 **Status**: Actively maintained
 **Language**: Go 1.25+
 **Module**: `github.com/Ops-Talks/cultivator`
-**External Dependency**: `gopkg.in/yaml.v3` v3.0.1
+**External Dependencies**: `gopkg.in/yaml.v3` v3.0.1, `github.com/olekukonko/tablewriter` v0.0.5
 
 **Core Functionality**:
 
@@ -107,7 +107,7 @@ cultivator/
 - Read configuration from filesystem
 - Merge with environment variables (CULTIVATOR_* prefix)
 - Merge with CLI flags (highest precedence)
-- Validate configuration schema
+- Validates required configuration fields (root path exists, parallelism is positive)
 - Provide typed access to settings
 
 ### 2. Discovery Package (internal/discovery/)
@@ -143,7 +143,8 @@ cultivator/
 - Create and manage loggers
 - Format log messages
 - Support multiple output levels
-- Redact sensitive information
+- Write summary tables at end of execution
+- Cultivator relies on CI platform secret masking (e.g., GitHub Actions masked secrets) for sensitive data redaction
 
 ### 5. Runner Package (internal/runner/)
 

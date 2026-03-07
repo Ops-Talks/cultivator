@@ -14,7 +14,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 
 - Loads built-in defaults, optional config file (`--config`), environment variables, and CLI flags
 - Merges configuration with CLI flags and environment variables
-- Validates configuration against schema
+- Validates required configuration fields (root path exists, parallelism is positive)
 
 ### 2. Stack Discovery
 
@@ -48,7 +48,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 - Captures stdout and stderr in a single chronologically-ordered stream using `cmd.CombinedOutput()`
 - Captures output on per-stack, per-command basis
 
-### 6. Output Formatter
+### 7. Output Formatter
 
 - Formats and displays results in human-readable text
 - Reports exit codes and errors per module
@@ -60,11 +60,9 @@ CLI Invocation (plan/apply/destroy)
     |
 Config Loader -> Parse defaults + optional --config file + env vars + flags
     |
-Stack Discovery -> Find all terragrunt.hcl files
+Stack Discovery + Scope Filter -> Find all terragrunt.hcl files, apply --env, --include, --exclude, --tags
     |
 Git Integration -> Filter by changed files (if --changed-only)
-    |
-Scope Filter -> Apply --env, --include, --exclude, --tags
     |
 Dependency Graph -> Build execution order (DAG)
     |
@@ -103,7 +101,7 @@ Exit Code (0 = success, 1 = failure, 2 = usage error)
 
 ### 5. Parallel by Default
 
-- Configurable worker pool (default: 4 workers)
+- Configurable worker pool (default: number of CPUs)
 - Runs independent stacks concurrently
 - Respects dependency graph for safe parallelism
 
@@ -118,7 +116,7 @@ Cultivator reads from `cultivator.yml` in the repository root:
 
 ```yaml
 root: live                    # Root directory to scan for stacks
-parallelism: 4               # Worker pool size
+parallelism: 4               # Worker pool size (default: number of CPUs)
 non_interactive: false       # Equivalent to -input=false
 plan:
   destroy: false             # Defaults for 'plan' subcommand

@@ -180,6 +180,8 @@ Each stack shows:
 - Terragrunt output and any errors
 - Clear demarcation for easy scanning
 
+> **Implementation note**: Cultivator automatically appends `-no-color` to every Terragrunt invocation to produce clean, parseable output in CI environments.
+
 ## Binary Invocation
 
 Local development (after building):

@@ -80,7 +80,7 @@ Cultivator parses `dependency` blocks in Terragrunt configs and runs stacks in t
 
 ### Parallelism
 
-Run independent stacks concurrently. Default: 4 workers. Override with `--parallelism=N`.
+Run independent stacks concurrently. Default: number of CPUs. Override with `--parallelism=N`.
 
 ## Integration Paths
 

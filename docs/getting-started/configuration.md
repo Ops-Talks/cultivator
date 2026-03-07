@@ -16,7 +16,7 @@ When using a file, pass it explicitly via `--config`:
 cultivator plan --config=cultivator.yml
 ```
 
-Supported filenames include `cultivator.yml`, `.cultivator.yaml`, etc.
+Pass any YAML file path via `--config`. Common conventions: `cultivator.yml` or `.cultivator.yaml`.
 
 ## Minimal config example
 

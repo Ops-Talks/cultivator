@@ -8,6 +8,8 @@ Cultivator uses a comprehensive testing strategy combining unit tests, integrati
 
 ### Current Coverage
 
+> **Note**: Coverage numbers below are approximate and may vary between runs. For current values, run `go test -cover ./...` or check the [Codecov dashboard](https://codecov.io/gh/Ops-Talks/cultivator).
+
 | Package    | Coverage | Status      |
 |------------|----------|-------------|
 | config     | 92.4%    | Excellent   |
@@ -153,7 +155,7 @@ func FuzzParseBool(f *testing.F) {
     }
 
     f.Fuzz(func(t *testing.T, input string) {
-        _, _ = ParseBool(input)
+        _ = ParseBool(input)
     })
 }
 ```
