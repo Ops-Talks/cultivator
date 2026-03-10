@@ -5,67 +5,46 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 func TestGetChangedFiles(t *testing.T) {
-	// This test depends on git being installed and the project being a git repo.
-	// In a real CI environment, we might want to mock the git command or create a dummy repo.
+	t.Parallel()
 
-	tmpDir := t.TempDir()
+	t.Run("uses local base ref", func(t *testing.T) {
+		t.Parallel()
+		repoDir, baseBranch := setupRepoWithFeatureChange(t)
+		got, err := GetChangedFiles(context.Background(), repoDir, baseBranch, nil)
+		if err != nil {
+			t.Fatalf("GetChangedFiles() error = %v", err)
+		}
+		assertContainsBaseName(t, got, "file2.txt")
+	})
 
-	// Create a dummy git repo
-	runCmd(t, tmpDir, "git", "init")
-	runCmd(t, tmpDir, "git", "config", "user.email", "test@example.com")
-	runCmd(t, tmpDir, "git", "config", "user.name", "test")
+	t.Run("falls back to origin base ref when local branch is missing", func(t *testing.T) {
+		t.Parallel()
+		repoDir, baseBranch := setupRepoWithFeatureChange(t)
+		runCmd(t, repoDir, "git", "branch", "-D", baseBranch)
 
-	file1 := filepath.Join(tmpDir, "file1.txt")
-	_ = os.WriteFile(file1, []byte("hello"), 0o644)
-	runCmd(t, tmpDir, "git", "add", "file1.txt")
-	runCmd(t, tmpDir, "git", "commit", "-m", "initial commit")
+		got, err := GetChangedFiles(context.Background(), repoDir, baseBranch, nil)
+		if err != nil {
+			t.Fatalf("GetChangedFiles() error = %v", err)
+		}
+		assertContainsBaseName(t, got, "file2.txt")
+	})
 
-	// Create a branch and change another file
-	runCmd(t, tmpDir, "git", "checkout", "-b", "feature")
-	file2 := filepath.Join(tmpDir, "file2.txt")
-	_ = os.WriteFile(file2, []byte("world"), 0o644)
-	runCmd(t, tmpDir, "git", "add", "file2.txt")
-	// file2 is staged but not committed, 'git diff' will see it if we compare against master
-
-	tests := []struct {
-		name     string
-		baseRef  string
-		wantFile string
-	}{
-		{
-			name:     "compare feature against master",
-			baseRef:  "master",
-			wantFile: "file2.txt",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetChangedFiles(context.Background(), tmpDir, tt.baseRef, nil)
-			if err != nil {
-				// git might use 'main' instead of 'master'
-				got, err = GetChangedFiles(context.Background(), tmpDir, "main", nil)
-				if err != nil {
-					t.Fatalf("GetChangedFiles() error = %v", err)
-				}
-			}
-
-			found := false
-			for _, f := range got {
-				if filepath.Base(f) == tt.wantFile {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Errorf("GetChangedFiles() did not find %q in %v", tt.wantFile, got)
-			}
-		})
-	}
+	t.Run("returns error for unknown base ref", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		_, err := GetChangedFiles(context.Background(), repoDir, "definitely-not-a-real-ref", nil)
+		if err == nil {
+			t.Fatal("GetChangedFiles() error = nil, want non-nil")
+		}
+		if !strings.Contains(err.Error(), "git diff failed for base refs") {
+			t.Fatalf("GetChangedFiles() error = %q, want base refs context", err.Error())
+		}
+	})
 }
 
 func runCmd(t *testing.T, dir string, name string, args ...string) {
@@ -74,6 +53,107 @@ func runCmd(t *testing.T, dir string, name string, args ...string) {
 	cmd.Dir = dir
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("command %s %v failed: %v", name, args, err)
+	}
+}
+
+func runCmdOutput(t *testing.T, dir string, name string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	output, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("command %s %v failed: %v", name, args, err)
+	}
+	return strings.TrimSpace(string(output))
+}
+
+func setupRepoWithFeatureChange(t *testing.T) (string, string) {
+	t.Helper()
+	tmpDir := t.TempDir()
+	remoteDir := filepath.Join(tmpDir, "remote.git")
+	runCmd(t, tmpDir, "git", "init", "--bare", remoteDir)
+
+	repoDir := filepath.Join(tmpDir, "work")
+	runCmd(t, tmpDir, "git", "clone", remoteDir, repoDir)
+	runCmd(t, repoDir, "git", "config", "user.email", "test@example.com")
+	runCmd(t, repoDir, "git", "config", "user.name", "test")
+
+	file1 := filepath.Join(repoDir, "file1.txt")
+	if err := os.WriteFile(file1, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write file1: %v", err)
+	}
+	runCmd(t, repoDir, "git", "add", "file1.txt")
+	runCmd(t, repoDir, "git", "commit", "-m", "initial commit")
+
+	baseBranch := runCmdOutput(t, repoDir, "git", "branch", "--show-current")
+	if baseBranch == "" {
+		t.Fatal("base branch is empty")
+	}
+	runCmd(t, repoDir, "git", "push", "-u", "origin", baseBranch)
+
+	runCmd(t, repoDir, "git", "checkout", "-b", "feature")
+	file2 := filepath.Join(repoDir, "file2.txt")
+	if err := os.WriteFile(file2, []byte("world"), 0o644); err != nil {
+		t.Fatalf("write file2: %v", err)
+	}
+	runCmd(t, repoDir, "git", "add", "file2.txt")
+
+	return repoDir, baseBranch
+}
+
+func assertContainsBaseName(t *testing.T, files []string, want string) {
+	t.Helper()
+	for _, f := range files {
+		if filepath.Base(f) == want {
+			return
+		}
+	}
+	t.Fatalf("changed files %v do not contain %q", files, want)
+}
+
+func Test_buildBaseRefCandidates(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		baseRef string
+		want    []string
+	}{
+		{
+			name:    "head only",
+			baseRef: "HEAD",
+			want:    []string{"HEAD"},
+		},
+		{
+			name:    "branch adds origin fallbacks",
+			baseRef: "main",
+			want:    []string{"main", "origin/main", "refs/remotes/origin/main"},
+		},
+		{
+			name:    "origin ref unchanged",
+			baseRef: "origin/main",
+			want:    []string{"origin/main"},
+		},
+		{
+			name:    "refs namespace unchanged",
+			baseRef: "refs/heads/main",
+			want:    []string{"refs/heads/main"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := buildBaseRefCandidates(tt.baseRef)
+			if len(got) != len(tt.want) {
+				t.Fatalf("got len %d (%v), want %d (%v)", len(got), got, len(tt.want), tt.want)
+			}
+			for i := range tt.want {
+				if got[i] != tt.want[i] {
+					t.Fatalf("got[%d]=%q, want %q", i, got[i], tt.want[i])
+				}
+			}
+		})
 	}
 }
 
