@@ -156,7 +156,16 @@ func filterChangedModules(ctx context.Context, cfg config.Config, modules []disc
 func moduleHasChanges(modPath string, changedFiles []string) bool {
 	modPath = filepath.Clean(modPath)
 	for _, f := range changedFiles {
-		if strings.HasPrefix(filepath.Clean(f), modPath) {
+		changedPath := filepath.Clean(f)
+		if strings.HasPrefix(changedPath, modPath) {
+			return true
+		}
+
+		// A change in parent config files (for example root.hcl/environment.hcl)
+		// can affect all descendant modules.
+		changedDir := filepath.Dir(changedPath)
+		rel, err := filepath.Rel(changedDir, modPath)
+		if err == nil && rel != "." && !strings.HasPrefix(rel, "..") {
 			return true
 		}
 	}

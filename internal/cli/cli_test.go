@@ -263,6 +263,48 @@ func Test_ParseTerragruntFlags(t *testing.T) {
 	}
 }
 
+func Test_ModuleHasChanges(t *testing.T) {
+	t.Parallel()
+
+	modulePath := "/repo/providers/aws/avalon/dev/sqs/opstalks-test"
+
+	tests := []struct {
+		name         string
+		changedFiles []string
+		want         bool
+	}{
+		{
+			name:         "file changed inside module",
+			changedFiles: []string{"/repo/providers/aws/avalon/dev/sqs/opstalks-test/terragrunt.hcl"},
+			want:         true,
+		},
+		{
+			name:         "parent root config changed",
+			changedFiles: []string{"/repo/providers/aws/root.hcl"},
+			want:         true,
+		},
+		{
+			name:         "parent environment config changed",
+			changedFiles: []string{"/repo/providers/aws/avalon/dev/environment.hcl"},
+			want:         true,
+		},
+		{
+			name:         "unrelated path changed",
+			changedFiles: []string{"/repo/.github/workflows/cultivator.yaml"},
+			want:         false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := moduleHasChanges(modulePath, tc.changedFiles)
+			if got != tc.want {
+				t.Errorf("moduleHasChanges() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func Test_Run(t *testing.T) {
 	t.Parallel()
 
