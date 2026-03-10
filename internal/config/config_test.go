@@ -80,6 +80,93 @@ func TestLoadFile(t *testing.T) {
 	}
 }
 
+func TestLoadFile_LegacyDoctorBlockIgnored(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "legacy-doctor.yml")
+	content := []byte("root: /tmp\nparallelism: 2\ndoctor:\n  enabled: true\n")
+	if err := os.WriteFile(configPath, content, 0o600); err != nil {
+		t.Fatalf("write config file: %v", err)
+	}
+
+	cfg, extra, found, err := LoadFile(configPath)
+	if err != nil {
+		t.Fatalf("LoadFile() error = %v", err)
+	}
+	if !found {
+		t.Fatal("expected found=true")
+	}
+	if cfg.Root != "/tmp" {
+		t.Fatalf("expected root=/tmp, got %q", cfg.Root)
+	}
+	if _, ok := extra["doctor"]; ok {
+		t.Fatalf("legacy doctor key should be tolerated, got extras: %v", extra)
+	}
+}
+
+func TestParseBoolStrict(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   string
+		want    bool
+		wantErr bool
+	}{
+		{name: "true literal", input: "true", want: true},
+		{name: "yes literal", input: "yes", want: true},
+		{name: "on literal", input: "on", want: true},
+		{name: "false literal", input: "false", want: false},
+		{name: "off literal", input: "off", want: false},
+		{name: "invalid literal", input: "maybe", wantErr: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := ParseBoolStrict(tc.input)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("ParseBoolStrict() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			if tc.wantErr {
+				return
+			}
+			if got != tc.want {
+				t.Fatalf("ParseBoolStrict() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestPrecedence_DefaultFileEnvCLI(t *testing.T) {
+	t.Parallel()
+
+	defaultCfg := DefaultConfig()
+	defaultCfg.Root = "/from-default"
+	defaultCfg.Parallelism = 1
+
+	fileCfg := Config{Root: "/from-file", Parallelism: 2}
+	envCfg := Config{Root: "/from-env", Parallelism: 4}
+	cliParallelism := 8
+	cliRoot := "/from-cli"
+
+	merged := MergeConfig(defaultCfg, fileCfg)
+	merged = MergeConfig(merged, envCfg)
+	merged = ApplyOverrides(merged, Overrides{
+		Root:        &cliRoot,
+		Parallelism: &cliParallelism,
+	})
+
+	if merged.Root != "/from-cli" {
+		t.Fatalf("Root = %q, want /from-cli", merged.Root)
+	}
+	if merged.Parallelism != 8 {
+		t.Fatalf("Parallelism = %d, want 8", merged.Parallelism)
+	}
+}
+
 func TestApplyOverrides_BasicFields(t *testing.T) {
 	t.Parallel()
 

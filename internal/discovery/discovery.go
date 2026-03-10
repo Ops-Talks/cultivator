@@ -4,7 +4,6 @@ package discovery
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,9 +31,10 @@ type Options struct {
 }
 
 var (
-	tagCommentPattern = regexp.MustCompile(`(?i)cultivator:tags\s*=\s*([a-z0-9,_-]+)`)
-	tagListPattern    = regexp.MustCompile(`(?i)cultivator_tags\s*=\s*\[(.*?)\]`)
-	tagItemPattern    = regexp.MustCompile(`"([a-zA-Z0-9_-]+)"`)
+	tagCommentPattern = regexp.MustCompile(`(?im)^\s*(?:#|//)\s*cultivator:tags\s*=\s*(.+?)\s*$`)
+	tagListPattern    = regexp.MustCompile(`(?is)cultivator_tags\s*=\s*\[(.*?)\]`)
+	tagItemPattern    = regexp.MustCompile(`"([^"]+)"`)
+	tagValuePattern   = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
 )
 
 // Discover walks root recursively and returns all Terragrunt modules that match options.
@@ -46,8 +46,8 @@ func Discover(root string, options Options) ([]Module, error) {
 	root = filepath.Clean(root)
 	scanner := &moduleScanner{
 		root:    root,
-		include: normalizePaths(root, options.Include),
-		exclude: normalizePaths(root, options.Exclude),
+		include: normalizeFilterPaths(root, options.Include),
+		exclude: normalizeFilterPaths(root, options.Exclude),
 		options: options,
 	}
 
@@ -145,7 +145,9 @@ func (s *moduleScanner) visitModule(hclPath string) error {
 	return nil
 }
 
-func normalizePaths(root string, paths []string) []string {
+// normalizeFilterPaths canonicalizes include/exclude filter values relative to
+// root while preserving their path-segment semantics.
+func normalizeFilterPaths(root string, paths []string) []string {
 	items := make([]string, 0, len(paths))
 	for _, item := range paths {
 		if item == "" {
@@ -237,43 +239,42 @@ func matchesTags(moduleTags []string, required []string) bool {
 }
 
 func parseTags(path string) []string {
-	// #nosec G304 G703 -- module paths are discovered from the validated root directory
-	file, err := os.Open(path)
-	if err != nil {
-		return nil
-	}
-	// Close error is intentionally ignored on read-only open; the file
-	// descriptor will be released by the OS when the function returns.
-	defer func() { _ = file.Close() }()
-
-	content, err := io.ReadAll(file)
+	// #nosec G304 -- module paths are discovered from the validated root directory
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil
 	}
 
-	input := string(content)
-	matches := tagCommentPattern.FindStringSubmatch(input)
-	if len(matches) == 2 {
-		return splitTags(matches[1])
-	}
+	return parseTagsFromContent(string(content))
+}
 
-	listMatch := tagListPattern.FindStringSubmatch(input)
-	if len(listMatch) == 2 {
-		items := tagItemPattern.FindAllStringSubmatch(listMatch[1], -1)
-		if len(items) == 0 {
-			return nil
+func parseTagsFromContent(content string) []string {
+	var tags []string
+	for _, match := range tagCommentPattern.FindAllStringSubmatch(content, -1) {
+		if len(match) != 2 {
+			continue
 		}
-		result := make([]string, 0, len(items))
-		for _, item := range items {
+		tags = append(tags, splitTags(match[1])...)
+	}
+
+	for _, match := range tagListPattern.FindAllStringSubmatch(content, -1) {
+		if len(match) != 2 {
+			continue
+		}
+		for _, item := range tagItemPattern.FindAllStringSubmatch(match[1], -1) {
 			if len(item) < 2 {
 				continue
 			}
-			result = append(result, item[1])
+			tags = append(tags, item[1])
 		}
-		return result
 	}
 
-	return nil
+	tags = normalizeTags(tags)
+	if len(tags) == 0 {
+		return nil
+	}
+
+	return tags
 }
 
 func splitTags(value string) []string {
@@ -287,6 +288,25 @@ func splitTags(value string) []string {
 		if clean == "" {
 			continue
 		}
+		result = append(result, clean)
+	}
+
+	return result
+}
+
+func normalizeTags(values []string) []string {
+	result := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+
+	for _, value := range values {
+		clean := strings.ToLower(strings.TrimSpace(value))
+		if clean == "" || !tagValuePattern.MatchString(clean) {
+			continue
+		}
+		if _, ok := seen[clean]; ok {
+			continue
+		}
+		seen[clean] = struct{}{}
 		result = append(result, clean)
 	}
 

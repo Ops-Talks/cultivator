@@ -72,7 +72,7 @@ Use multiple filters to narrow execution:
 - `--env=dev` - by environment variable
 - `--include=envs/prod/* --include=envs/staging/*` - by path pattern
 - `--exclude=experimental` - exclude paths
-- `--tags=critical,prod` - by inline tags (e.g., `# cultivator:tags=critical,prod`)
+- `--tags=critical,prod` - by inline tags (recommended: `# cultivator:tags = critical,prod`)
 
 ### Dependency Ordering
 

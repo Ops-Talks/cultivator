@@ -45,10 +45,10 @@ func TestGetChangedFiles(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetChangedFiles(context.Background(), tmpDir, tt.baseRef)
+			got, err := GetChangedFiles(context.Background(), tmpDir, tt.baseRef, nil)
 			if err != nil {
 				// git might use 'main' instead of 'master'
-				got, err = GetChangedFiles(context.Background(), tmpDir, "main")
+				got, err = GetChangedFiles(context.Background(), tmpDir, "main", nil)
 				if err != nil {
 					t.Fatalf("GetChangedFiles() error = %v", err)
 				}
@@ -81,12 +81,12 @@ func TestIsGitRepo(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	if IsGitRepo(context.Background(), tmpDir) {
+	if IsGitRepo(context.Background(), tmpDir, nil) {
 		t.Errorf("expected %s NOT to be a git repo", tmpDir)
 	}
 
 	runCmd(t, tmpDir, "git", "init")
-	if !IsGitRepo(context.Background(), tmpDir) {
+	if !IsGitRepo(context.Background(), tmpDir, nil) {
 		t.Errorf("expected %s to be a git repo", tmpDir)
 	}
 }

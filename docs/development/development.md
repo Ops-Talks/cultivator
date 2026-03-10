@@ -146,6 +146,12 @@ cultivator/
 - Write summary tables at end of execution
 - Cultivator relies on CI platform secret masking (e.g., GitHub Actions masked secrets) for sensitive data redaction
 
+#### Logging Ownership Boundary
+
+- CLI owns user-facing lifecycle and result logs (start/failure/success and summary table).
+- Engine packages (`discovery`, `runner`, `git`) only emit optional debug logs through injected logger dependencies.
+- This keeps normal output stable while still enabling deep diagnostics with `CULTIVATOR_LOG_LEVEL=debug`.
+
 ### 5. Runner Package (internal/runner/)
 
 **Purpose**: Execute Terragrunt commands and capture results.

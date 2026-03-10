@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -180,5 +181,85 @@ func TestDiscover_Verbose(t *testing.T) {
 		if !strings.Contains(output, s) {
 			t.Errorf("expected output to contain %q, but it didn't. Output:\n%s", s, output)
 		}
+	}
+}
+
+func TestParseTags_CompatibilityFormats(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		content string
+		want    []string
+	}{
+		{
+			name:    "comment style with mixed separators and case",
+			content: "# cultivator:tags = Prod,critical; API\n",
+			want:    []string{"prod", "critical", "api"},
+		},
+		{
+			name: "list style with duplicates and whitespace",
+			content: `locals {
+  cultivator_tags = ["Prod", "api", "api"]
+}`,
+			want: []string{"prod", "api"},
+		},
+		{
+			name: "both styles merged and deduplicated",
+			content: `# cultivator:tags = app
+locals {
+  cultivator_tags = ["APP", "db"]
+}`,
+			want: []string{"app", "db"},
+		},
+		{
+			name: "malformed tags are ignored",
+			content: `// cultivator:tags = valid, bad tag, ???,other
+locals {
+  cultivator_tags = ["still_good", "bad tag"]
+}`,
+			want: []string{"valid", "other", "still_good"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			filePath := filepath.Join(tmpDir, "terragrunt.hcl")
+			if err := os.WriteFile(filePath, []byte(tc.content), 0o600); err != nil {
+				t.Fatalf("write file: %v", err)
+			}
+
+			got := parseTags(filePath)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Fatalf("parseTags() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestMatchesIncludeExclude_PrefixCollision(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	target := filepath.Join(root, "prod", "app")
+	sibling := filepath.Join(root, "prod", "app2")
+
+	include := normalizeFilterPaths(root, []string{"prod/app"})
+	if !matchesIncludeExclude(target, include, nil) {
+		t.Fatal("expected include path to match exact module subtree")
+	}
+	if matchesIncludeExclude(sibling, include, nil) {
+		t.Fatal("prefix collision should not include sibling module")
+	}
+
+	exclude := normalizeFilterPaths(root, []string{"prod/app"})
+	if matchesIncludeExclude(target, nil, exclude) {
+		t.Fatal("expected exclude path to filter exact module subtree")
+	}
+	if !matchesIncludeExclude(sibling, nil, exclude) {
+		t.Fatal("prefix collision should not exclude sibling module")
 	}
 }

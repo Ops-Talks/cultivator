@@ -78,7 +78,7 @@ Highest to lowest:
 
 - **Type**: String list
 - **Default**: empty
-- **Description**: Optional tags filter parsed from `terragrunt.hcl` comments (example: `# cultivator:tags=app,db`)
+- **Description**: Optional tags filter parsed from `terragrunt.hcl` tag metadata. Recommended source format is `# cultivator:tags = app,db`; legacy `cultivator_tags = ["app", "db"]` remains supported.
 
 ### parallelism
 

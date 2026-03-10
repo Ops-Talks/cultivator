@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
 	"github.com/Ops-Talks/cultivator/internal/logging"
 	"github.com/Ops-Talks/cultivator/internal/runner"
@@ -36,12 +37,12 @@ func Test_Helpers(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.input, func(t *testing.T) {
-				result, err := parseBool(tt.input)
+				result, err := config.ParseBoolStrict(tt.input)
 				if (err != nil) != tt.wantErr {
-					t.Errorf("parseBool(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+					t.Errorf("ParseBoolStrict(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
 				}
 				if !tt.wantErr && result != tt.expected {
-					t.Errorf("parseBool(%q) = %v, want %v", tt.input, result, tt.expected)
+					t.Errorf("ParseBoolStrict(%q) = %v, want %v", tt.input, result, tt.expected)
 				}
 			})
 		}
@@ -61,12 +62,12 @@ func Test_Helpers(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.input, func(t *testing.T) {
-				result, err := parseInt(tt.input)
+				result, err := config.ParseInt(tt.input)
 				if (err != nil) != tt.wantErr {
-					t.Errorf("parseInt(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+					t.Errorf("ParseInt(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
 				}
 				if !tt.wantErr && result != tt.expected {
-					t.Errorf("parseInt(%q) = %d, want %d", tt.input, result, tt.expected)
+					t.Errorf("ParseInt(%q) = %d, want %d", tt.input, result, tt.expected)
 				}
 			})
 		}
@@ -104,9 +105,9 @@ func Test_Helpers(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.input, func(t *testing.T) {
-				result := normalizePath(tt.input)
+				result := normalizeModuleArgument(tt.input)
 				if result != tt.expected {
-					t.Errorf("normalizePath(%q) = %q, want %q", tt.input, result, tt.expected)
+					t.Errorf("normalizeModuleArgument(%q) = %q, want %q", tt.input, result, tt.expected)
 				}
 			})
 		}
@@ -310,6 +311,51 @@ func Test_BuildTerragruntConfig(t *testing.T) {
 		}
 		if !strings.Contains(cfg.Root, "env") && !strings.Contains(cfg.Root, ".") {
 			t.Logf("root from env: %q", cfg.Root)
+		}
+	})
+
+	t.Run("precedence default file env cli", func(t *testing.T) {
+		dir := t.TempDir()
+		fileRoot := filepath.Join(dir, "from-file")
+		envRoot := filepath.Join(dir, "from-env")
+		cliRoot := filepath.Join(dir, "from-cli")
+		for _, p := range []string{fileRoot, envRoot, cliRoot} {
+			if err := os.MkdirAll(p, 0o750); err != nil {
+				t.Fatalf("mkdir %s: %v", p, err)
+			}
+		}
+
+		cfgPath := filepath.Join(dir, "config.yml")
+		content := []byte("root: " + fileRoot + "\nparallelism: 2\nnon_interactive: true\n")
+		if err := os.WriteFile(cfgPath, content, 0o600); err != nil {
+			t.Fatalf("write config: %v", err)
+		}
+
+		t.Setenv("CULTIVATOR_ROOT", envRoot)
+		t.Setenv("CULTIVATOR_PARALLELISM", "4")
+		t.Setenv("CULTIVATOR_NON_INTERACTIVE", "true")
+
+		state := terragruntFlagState{
+			configPath:          cfgPath,
+			root:                cliRoot,
+			parallelismValue:    8,
+			parallelismSet:      true,
+			nonInteractiveValue: false,
+			nonInteractiveSet:   true,
+		}
+
+		cfg, err := buildTerragruntConfig(state)
+		if err != nil {
+			t.Fatalf("buildTerragruntConfig() error = %v", err)
+		}
+		if cfg.Root != cliRoot {
+			t.Fatalf("Root = %q, want %q", cfg.Root, cliRoot)
+		}
+		if cfg.Parallelism != 8 {
+			t.Fatalf("Parallelism = %d, want 8", cfg.Parallelism)
+		}
+		if cfg.NonInteractive {
+			t.Fatal("NonInteractive should be false from CLI override")
 		}
 	})
 }

@@ -1,4 +1,4 @@
-.PHONY: build test clean install lint fmt docker-build pre-commit-install pre-commit-uninstall pre-commit-run pre-commit-update
+.PHONY: build test clean install lint deadcode fmt docker-build pre-commit-install pre-commit-uninstall pre-commit-run pre-commit-update
 
 .DEFAULT_GOAL := help
 
@@ -40,6 +40,10 @@ fmt:
 lint:
 	golangci-lint run ./...
 
+# Check dead code explicitly (unused symbols and unreachable code patterns)
+deadcode:
+	golangci-lint run --enable-only=unused,staticcheck ./...
+
 # Vet code
 vet:
 	$(GO) vet ./...
@@ -56,7 +60,7 @@ deps:
 	$(GO) mod tidy
 
 # Run all checks
-check: fmt vet lint test coverage
+check: fmt vet lint deadcode test coverage
 
 # Build Docker image
 docker-build:
@@ -115,6 +119,7 @@ help:
 	@echo "  coverage   - Run tests and show coverage report"
 	@echo "  fmt        - Format code"
 	@echo "  lint       - Lint code"
+	@echo "  deadcode   - Run dedicated dead code lint checks"
 	@echo "  vet        - Vet code"
 	@echo "  clean      - Remove build artifacts"
 	@echo "  deps       - Download dependencies"

@@ -16,18 +16,18 @@ Limit execution to specific areas:
 
 ### Tag Filtering
 
-Use tags to logically group stacks and selectively execute them. Tags can be defined as comments or as an HCL variable in `terragrunt.hcl` files.
+Use tags to logically group stacks and selectively execute them.
 
-**Option 1: Syntax as Comment**
+Canonical format (recommended):
 
 ```hcl
-# cultivator:tags=critical,prod
+# cultivator:tags = critical,prod
 terraform {
   source = "./modules/database"
 }
 ```
 
-**Option 2: Syntax as HCL Variable**
+Compatibility format (still supported):
 
 ```hcl
 cultivator_tags = ["app", "api"]
@@ -35,6 +35,8 @@ terraform {
   source = "./modules/api"
 }
 ```
+
+Tag parsing is case-insensitive and normalized to lowercase. Invalid tokens are ignored.
 
 **Usage with CLI:**
 

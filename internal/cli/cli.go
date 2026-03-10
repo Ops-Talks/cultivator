@@ -3,14 +3,12 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -134,12 +132,12 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 // filterChangedModules keeps only modules that contain at least one file
 // changed relative to cfg.BaseRef. Returns (nil, non-zero) on error.
 func filterChangedModules(ctx context.Context, cfg config.Config, modules []discovery.Module, logger *logging.Logger) ([]discovery.Module, int) {
-	if !git.IsGitRepo(ctx, cfg.Root) {
+	if !git.IsGitRepo(ctx, cfg.Root, logger) {
 		logger.Error("not a git repository, --changed-only is not supported", logging.Fields{"root": cfg.Root})
 		return nil, 1
 	}
 
-	changedFiles, err := git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef)
+	changedFiles, err := git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef, logger)
 	if err != nil {
 		logger.Error("failed to get changed files", logging.Fields{"error": err.Error(), "base": cfg.BaseRef})
 		return nil, 1
@@ -324,22 +322,12 @@ type flagInputs struct {
 func populateFlagState(state *terragruntFlagState, in flagInputs) {
 	// Capture positional argument (module path) if provided.
 	if len(in.fs.Args()) > 0 {
-		state.module = normalizePath(in.fs.Args()[0])
+		state.module = normalizeModuleArgument(in.fs.Args()[0])
 	}
 
-	// Process include/exclude/tags filters first
-	if in.include.set {
-		state.includeValues = in.include.values
-		state.includeSet = true
-	}
-	if in.exclude.set {
-		state.excludeValues = in.exclude.values
-		state.excludeSet = true
-	}
-	if in.tags.set {
-		state.tagsValues = in.tags.values
-		state.tagsSet = true
-	}
+	applySliceFlagState(in.include, &state.includeValues, &state.includeSet)
+	applySliceFlagState(in.exclude, &state.excludeValues, &state.excludeSet)
+	applySliceFlagState(in.tags, &state.tagsValues, &state.tagsSet)
 
 	// If a specific module path is provided, add it to include filters
 	if state.module != "" {
@@ -351,32 +339,44 @@ func populateFlagState(state *terragruntFlagState, in flagInputs) {
 		}
 	}
 
-	if in.parallelism.set {
-		state.parallelismValue = in.parallelism.value
-		state.parallelismSet = true
-	}
-	if in.nonInteractive.set {
-		state.nonInteractiveValue = in.nonInteractive.value
-		state.nonInteractiveSet = true
-	}
-	if in.dryRun.set {
-		state.dryRunValue = in.dryRun.value
-		state.dryRunSet = true
-	}
-	if in.showGraph.set {
-		state.showGraphValue = in.showGraph.value
-		state.showGraphSet = true
-	}
-	if in.changedOnly.set {
-		state.changedOnlyValue = in.changedOnly.value
-		state.changedOnlySet = true
-	}
+	applyIntFlagState(in.parallelism, &state.parallelismValue, &state.parallelismSet)
+	applyBoolFlagState(in.nonInteractive, &state.nonInteractiveValue, &state.nonInteractiveSet)
+	applyBoolFlagState(in.dryRun, &state.dryRunValue, &state.dryRunSet)
+	applyBoolFlagState(in.showGraph, &state.showGraphValue, &state.showGraphSet)
+	applyBoolFlagState(in.changedOnly, &state.changedOnlyValue, &state.changedOnlySet)
 	if in.baseRef != nil && *in.baseRef != "" {
 		state.baseRefValue = *in.baseRef
 		state.baseRefSet = true
 	}
 
 	applyCommandSpecificFlags(state, in)
+}
+
+func applySliceFlagState(flagVal *stringSliceFlag, value *[]string, set *bool) {
+	if !flagVal.set {
+		return
+	}
+
+	*value = flagVal.values
+	*set = true
+}
+
+func applyIntFlagState(flagVal *intFlag, value *int, set *bool) {
+	if !flagVal.set {
+		return
+	}
+
+	*value = flagVal.value
+	*set = true
+}
+
+func applyBoolFlagState(flagVal *boolFlag, value *bool, set *bool) {
+	if !flagVal.set {
+		return
+	}
+
+	*value = flagVal.value
+	*set = true
 }
 
 // applyCommandSpecificFlags sets the command-specific flag fields on state
@@ -435,56 +435,56 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 		Root: ptrIfSet(state.root, ""),
 		Env:  ptrIfSet(state.env, ""),
 	}
-	if state.includeSet {
-		ovr.Include = state.includeValues
-		ovr.IncludeSet = true
-	}
-	if state.excludeSet {
-		ovr.Exclude = state.excludeValues
-		ovr.ExcludeSet = true
-	}
-	if state.tagsSet {
-		ovr.Tags = state.tagsValues
-		ovr.TagsSet = true
-	}
-	if state.parallelismSet {
-		value := state.parallelismValue
-		ovr.Parallelism = &value
-	}
-	if state.nonInteractiveSet {
-		value := state.nonInteractiveValue
-		ovr.NonInteractive = &value
-	}
-	if state.dryRunSet {
-		value := state.dryRunValue
-		ovr.DryRun = &value
-	}
-	if state.showGraphSet {
-		value := state.showGraphValue
-		ovr.ShowGraph = &value
-	}
-	if state.changedOnlySet {
-		value := state.changedOnlyValue
-		ovr.ChangedOnly = &value
-	}
-	if state.baseRefSet {
-		value := state.baseRefValue
-		ovr.BaseRef = &value
-	}
-	if state.planDestroySet {
-		value := state.planDestroyValue
-		ovr.PlanDestroy = &value
-	}
-	if state.applyAutoApproveSet {
-		value := state.applyAutoApproveValue
-		ovr.ApplyAutoApprove = &value
-	}
-	if state.destroyAutoApproveSet {
-		value := state.destroyAutoApproveValue
-		ovr.DestroyAutoApprove = &value
-	}
+	applySliceOverride(state.includeSet, state.includeValues, &ovr.Include, &ovr.IncludeSet)
+	applySliceOverride(state.excludeSet, state.excludeValues, &ovr.Exclude, &ovr.ExcludeSet)
+	applySliceOverride(state.tagsSet, state.tagsValues, &ovr.Tags, &ovr.TagsSet)
+	applyIntOverride(state.parallelismSet, state.parallelismValue, &ovr.Parallelism)
+	applyBoolOverride(state.nonInteractiveSet, state.nonInteractiveValue, &ovr.NonInteractive)
+	applyBoolOverride(state.dryRunSet, state.dryRunValue, &ovr.DryRun)
+	applyBoolOverride(state.showGraphSet, state.showGraphValue, &ovr.ShowGraph)
+	applyBoolOverride(state.changedOnlySet, state.changedOnlyValue, &ovr.ChangedOnly)
+	applyStringOverride(state.baseRefSet, state.baseRefValue, &ovr.BaseRef)
+	applyBoolOverride(state.planDestroySet, state.planDestroyValue, &ovr.PlanDestroy)
+	applyBoolOverride(state.applyAutoApproveSet, state.applyAutoApproveValue, &ovr.ApplyAutoApprove)
+	applyBoolOverride(state.destroyAutoApproveSet, state.destroyAutoApproveValue, &ovr.DestroyAutoApprove)
 
 	return ovr
+}
+
+func applySliceOverride(set bool, value []string, dst *[]string, dstSet *bool) {
+	if !set {
+		return
+	}
+
+	*dst = value
+	*dstSet = true
+}
+
+func applyIntOverride(set bool, value int, dst **int) {
+	if !set {
+		return
+	}
+
+	v := value
+	*dst = &v
+}
+
+func applyBoolOverride(set bool, value bool, dst **bool) {
+	if !set {
+		return
+	}
+
+	v := value
+	*dst = &v
+}
+
+func applyStringOverride(set bool, value string, dst **string) {
+	if !set {
+		return
+	}
+
+	v := value
+	*dst = &v
 }
 
 // ptrIfSet returns a pointer to a copy of val when val differs from zero;
@@ -506,6 +506,7 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r runner.
 			NonInteractive: cfg.NonInteractive,
 			DryRun:         cfg.DryRun,
 			PlanDestroy:    cfg.Plan.Destroy,
+			Logger:         logger,
 		})
 		if err != nil {
 			return nil, err
@@ -517,6 +518,7 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r runner.
 			NonInteractive:   cfg.NonInteractive,
 			DryRun:           cfg.DryRun,
 			ApplyAutoApprove: cfg.Apply.AutoApprove,
+			Logger:           logger,
 		})
 		if err != nil {
 			return nil, err
@@ -528,6 +530,7 @@ func runTerragruntModules(ctx context.Context, logger *logging.Logger, r runner.
 			NonInteractive:     cfg.NonInteractive,
 			DryRun:             cfg.DryRun,
 			DestroyAutoApprove: cfg.Destroy.AutoApprove,
+			Logger:             logger,
 		})
 		if err != nil {
 			return nil, err
@@ -698,7 +701,7 @@ func (b *boolFlag) String() string {
 }
 
 func (b *boolFlag) Set(value string) error {
-	parsed, err := parseBool(value)
+	parsed, err := config.ParseBoolStrict(value)
 	if err != nil {
 		return err
 	}
@@ -723,7 +726,7 @@ func (i *intFlag) String() string {
 }
 
 func (i *intFlag) Set(value string) error {
-	parsed, err := parseInt(value)
+	parsed, err := config.ParseInt(value)
 	if err != nil {
 		return err
 	}
@@ -750,12 +753,13 @@ func logLevelFromEnv() logging.Level {
 	return level
 }
 
-// normalizePath normalizes a module path by removing leading ./ and trailing /terragrunt.hcl.
+// normalizeModuleArgument normalizes a positional module path by removing leading
+// ./ and trailing /terragrunt.hcl.
 // It handles both Unix-style (/) and platform-specific separators.
 // Examples: "cloudwatch/log-group/example/terragrunt.hcl" -> "cloudwatch/log-group/example"
 //
 //	"./cloudwatch/log-group/example" -> "cloudwatch/log-group/example"
-func normalizePath(path string) string {
+func normalizeModuleArgument(path string) string {
 	path = strings.TrimSpace(path)
 	if path == "" {
 		return ""
@@ -791,28 +795,4 @@ func splitList(value string) []string {
 	}
 
 	return items
-}
-
-func parseBool(value string) (bool, error) {
-	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "true", "1", "t", "yes", "y":
-		return true, nil
-	case "false", "0", "f", "no", "n":
-		return false, nil
-	default:
-		return false, errors.New("invalid boolean value")
-	}
-}
-
-func parseInt(value string) (int, error) {
-	clean := strings.TrimSpace(value)
-	if clean == "" {
-		return 0, errors.New("invalid integer value")
-	}
-
-	parsed, err := strconv.Atoi(clean)
-	if err != nil {
-		return 0, errors.New("invalid integer value")
-	}
-	return parsed, nil
 }

@@ -38,7 +38,7 @@ func FuzzParseBool(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, data string) {
 		// This should not panic
-		result := parseBool(data)
+		result := parseBoolLenient(data)
 
 		// Validate result type
 		if result != true && result != false {

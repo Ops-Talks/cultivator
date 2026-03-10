@@ -12,6 +12,7 @@ import (
 
 	"github.com/Ops-Talks/cultivator/internal/dag"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
+	"github.com/Ops-Talks/cultivator/internal/logging"
 )
 
 const (
@@ -39,6 +40,7 @@ type Options struct {
 	PlanDestroy        bool
 	ApplyAutoApprove   bool
 	DestroyAutoApprove bool
+	Logger             *logging.Logger
 }
 
 // Executor runs an external command in a given working directory and returns its
@@ -105,6 +107,14 @@ func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Mo
 	if opts.Parallelism < 1 {
 		opts.Parallelism = 1
 	}
+	if opts.Logger != nil {
+		opts.Logger.Debug("runner started", logging.Fields{
+			"command":     command,
+			"modules":     len(modules),
+			"parallelism": opts.Parallelism,
+			"dry_run":     opts.DryRun,
+		})
+	}
 
 	// Build the dependency graph
 	g := dag.New()
@@ -164,6 +174,12 @@ func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Mo
 				<-semaphore
 				close(finished[mod.Path])
 			}()
+			if opts.Logger != nil {
+				opts.Logger.Debug("module execution started", logging.Fields{
+					"command": command,
+					"module":  mod.Path,
+				})
+			}
 
 			args := BuildArgs(command, opts)
 
@@ -189,6 +205,18 @@ func (r *Runner) Run(ctx context.Context, command string, modules []discovery.Mo
 				ExitCode: exitCode,
 				Error:    execErr,
 				Duration: duration,
+			}
+			if opts.Logger != nil {
+				fields := logging.Fields{
+					"command":   command,
+					"module":    mod.Path,
+					"exit_code": exitCode,
+					"duration":  duration.String(),
+				}
+				if execErr != nil {
+					fields["error"] = execErr.Error()
+				}
+				opts.Logger.Debug("module execution finished", fields)
 			}
 		})
 	}

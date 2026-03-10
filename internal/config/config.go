@@ -3,6 +3,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -28,9 +29,6 @@ type DestroyConfig struct {
 	AutoApprove bool `yaml:"auto_approve"`
 }
 
-// DoctorConfig holds doctor-specific options.
-type DoctorConfig struct{}
-
 type Config struct {
 	Root           string        `yaml:"root"`
 	Env            string        `yaml:"env"`
@@ -46,7 +44,6 @@ type Config struct {
 	Plan           PlanConfig    `yaml:"plan"`
 	Apply          ApplyConfig   `yaml:"apply"`
 	Destroy        DestroyConfig `yaml:"destroy"`
-	Doctor         DoctorConfig  `yaml:"doctor"`
 }
 
 type Overrides struct {
@@ -141,13 +138,13 @@ func LoadEnv(prefix string) Config {
 		{"_EXCLUDE", func(c *Config, v string) { c.Exclude = splitEnvList(v) }},
 		{"_TAGS", func(c *Config, v string) { c.Tags = splitEnvList(v) }},
 		{"_PARALLELISM", func(c *Config, v string) { applyEnvParallelism(c, v) }},
-		{"_NON_INTERACTIVE", func(c *Config, v string) { c.NonInteractive = parseBool(v) }},
-		{"_DRY_RUN", func(c *Config, v string) { c.DryRun = parseBool(v) }},
-		{"_SHOW_GRAPH", func(c *Config, v string) { c.ShowGraph = parseBool(v) }},
-		{"_CHANGED_ONLY", func(c *Config, v string) { c.ChangedOnly = parseBool(v) }},
-		{"_PLAN_DESTROY", func(c *Config, v string) { c.Plan.Destroy = parseBool(v) }},
-		{"_APPLY_AUTO_APPROVE", func(c *Config, v string) { c.Apply.AutoApprove = parseBool(v) }},
-		{"_DESTROY_AUTO_APPROVE", func(c *Config, v string) { c.Destroy.AutoApprove = parseBool(v) }},
+		{"_NON_INTERACTIVE", func(c *Config, v string) { c.NonInteractive = parseBoolLenient(v) }},
+		{"_DRY_RUN", func(c *Config, v string) { c.DryRun = parseBoolLenient(v) }},
+		{"_SHOW_GRAPH", func(c *Config, v string) { c.ShowGraph = parseBoolLenient(v) }},
+		{"_CHANGED_ONLY", func(c *Config, v string) { c.ChangedOnly = parseBoolLenient(v) }},
+		{"_PLAN_DESTROY", func(c *Config, v string) { c.Plan.Destroy = parseBoolLenient(v) }},
+		{"_APPLY_AUTO_APPROVE", func(c *Config, v string) { c.Apply.AutoApprove = parseBoolLenient(v) }},
+		{"_DESTROY_AUTO_APPROVE", func(c *Config, v string) { c.Destroy.AutoApprove = parseBoolLenient(v) }},
 	}
 
 	for _, l := range loaders {
@@ -170,7 +167,7 @@ func splitEnvList(v string) []string {
 // applyEnvParallelism parses val as a positive integer and writes it to
 // cfg.Parallelism; invalid or non-positive values are silently ignored.
 func applyEnvParallelism(cfg *Config, val string) {
-	n, err := strconv.Atoi(val)
+	n, err := ParseInt(val)
 	if err != nil || n < 1 {
 		return
 	}
@@ -245,18 +242,37 @@ func Validate(cfg Config) error {
 }
 
 func ParseBool(value string) bool {
-	return parseBool(value)
+	return parseBoolLenient(value)
 }
 
-func parseBool(value string) bool {
+func parseBoolLenient(value string) bool {
 	lower := strings.ToLower(strings.TrimSpace(value))
 	return lower == "true" || lower == "1" || lower == "on" || lower == "yes"
 }
 
+var errInvalidBooleanValue = errors.New("invalid boolean value")
+
+// ParseBoolStrict parses boolean values for strict channels (such as CLI flags).
+func ParseBoolStrict(value string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "true", "1", "t", "yes", "y", "on":
+		return true, nil
+	case "false", "0", "f", "no", "n", "off":
+		return false, nil
+	default:
+		return false, fmt.Errorf("%w: %s", errInvalidBooleanValue, strings.TrimSpace(value))
+	}
+}
+
 func ParseInt(value string) (int, error) {
-	val, err := strconv.Atoi(value)
+	clean := strings.TrimSpace(value)
+	if clean == "" {
+		return 0, fmt.Errorf("invalid integer value: %s", clean)
+	}
+
+	val, err := strconv.Atoi(clean)
 	if err != nil {
-		return 0, fmt.Errorf("invalid integer: %s", value)
+		return 0, fmt.Errorf("invalid integer value: %s", clean)
 	}
 	return val, nil
 }

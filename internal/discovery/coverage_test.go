@@ -222,11 +222,11 @@ func TestHashPathPrefix_NoMatch(t *testing.T) {
 	}
 }
 
-// Test normalizePaths with relative paths
-func TestNormalizePaths_Relative(t *testing.T) {
+// Test normalizeFilterPaths with relative paths
+func TestNormalizeFilterPaths_Relative(t *testing.T) {
 	t.Parallel()
 
-	paths := normalizePaths("/root", []string{"prod", "staging"})
+	paths := normalizeFilterPaths("/root", []string{"prod", "staging"})
 	if len(paths) != 2 {
 		t.Errorf("expected 2 paths, got %d", len(paths))
 	}
@@ -237,21 +237,21 @@ func TestNormalizePaths_Relative(t *testing.T) {
 	}
 }
 
-// Test normalizePaths with absolute paths
-func TestNormalizePaths_Absolute(t *testing.T) {
+// Test normalizeFilterPaths with absolute paths
+func TestNormalizeFilterPaths_Absolute(t *testing.T) {
 	t.Parallel()
 
-	paths := normalizePaths("/root", []string{"/prod", "/staging"})
+	paths := normalizeFilterPaths("/root", []string{"/prod", "/staging"})
 	if len(paths) != 2 {
 		t.Errorf("expected 2 paths, got %d", len(paths))
 	}
 }
 
-// Test normalizePaths with empty strings
-func TestNormalizePaths_Empty(t *testing.T) {
+// Test normalizeFilterPaths with empty strings
+func TestNormalizeFilterPaths_Empty(t *testing.T) {
 	t.Parallel()
 
-	paths := normalizePaths("/root", []string{"", "prod", ""})
+	paths := normalizeFilterPaths("/root", []string{"", "prod", ""})
 	if len(paths) != 1 {
 		t.Errorf("empty strings should be filtered, got %d paths", len(paths))
 	}

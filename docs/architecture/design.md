@@ -26,7 +26,7 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 
 - Filters stacks by `--env` (environment)
 - Filters stacks by `--include` / `--exclude` (path patterns)
-- Filters stacks by `--tags` (tag comments in `terragrunt.hcl`)
+- Filters stacks by `--tags` (recommended `# cultivator:tags = a,b`; legacy `cultivator_tags = [...]` supported)
 
 ### 4. Git Integration (Magic Mode)
 
@@ -52,6 +52,11 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 
 - Formats and displays results in human-readable text
 - Reports exit codes and errors per module
+
+### 8. Logging Boundary
+
+- CLI owns user-facing logs and summary output.
+- Discovery, runner, and git use injected logger instances for debug-level diagnostics only.
 
 ## Data Flow
 
