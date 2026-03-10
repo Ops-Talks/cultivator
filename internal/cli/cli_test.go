@@ -237,6 +237,22 @@ func Test_ParseTerragruntFlags(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:    "changed-only implicit true with base flag",
+			args:    []string{"-changed-only", "-base", "main"},
+			command: cmdPlan,
+			validate: func(t *testing.T, state terragruntFlagState, code int) {
+				if code != 0 {
+					t.Fatalf("expected code 0, got %d", code)
+				}
+				if !state.changedOnlyValue {
+					t.Error("changedOnlyValue should be true")
+				}
+				if state.baseRefValue != "main" {
+					t.Errorf("baseRefValue = %q, want main", state.baseRefValue)
+				}
+			},
+		},
 	}
 
 	for _, tc := range tests {

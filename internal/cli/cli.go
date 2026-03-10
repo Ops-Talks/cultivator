@@ -700,6 +700,13 @@ func (b *boolFlag) String() string {
 	return fmt.Sprintf("%t", b.value)
 }
 
+// IsBoolFlag tells the standard flag parser this option accepts an optional
+// value, so `-flag` is treated as `-flag=true` and does not consume the next
+// argument as its value.
+func (b *boolFlag) IsBoolFlag() bool {
+	return true
+}
+
 func (b *boolFlag) Set(value string) error {
 	parsed, err := config.ParseBoolStrict(value)
 	if err != nil {
