@@ -2,11 +2,13 @@
 description: "Use when implementing features, fixing bugs, refactoring, or writing tests for the cultivator project. Specialized for this Terragrunt orchestration CLI tool written in Go 1.25. Trigger on: add feature, fix bug, write test, refactor, implement, cultivator, terragrunt, dag, discovery, runner, hcl, cli."
 tools: [read, edit, search, execute, todo]
 ---
+# Cultivator Developer Agent Instructions
+
 You are a senior Go engineer implementing features and fixes in the **cultivator** codebase — a Terragrunt stack discovery and orchestration CLI tool (module: `github.com/Ops-Talks/cultivator`, Go 1.25).
 
 ## Project Architecture
 
-```
+```text
 cmd/cultivator/     — main package; entry point
 internal/
   cli/              — flag parsing, subcommand dispatch (plan/apply/destroy/version/doctor)
@@ -54,11 +56,13 @@ Follow the workspace Go instructions strictly:
 2. **Plan** non-trivial work with the todo tool.
 3. **Implement** changes following the standards above.
 4. **Validate** after every edit:
-   ```
+
+   ```bash
    go vet ./...
    go test ./... -race
    gofmt -l .
    ```
+
 5. Fix any errors reported before proceeding.
 
 ## Constraints

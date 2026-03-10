@@ -91,10 +91,10 @@ Alternatively, download a binary from the GitHub [Releases page](https://github.
 
 The configuration file is optional. Cultivator uses the following precedence for settings:
 
-1.  **CLI Flags** (e.g., `--env`, `--root`)
-2.  **Environment Variables** (e.g., `CULTIVATOR_ENV`)
-3.  **Config File** (`cultivator.yml` or passed via `--config`)
-4.  **Defaults**
+1. **CLI Flags** (e.g., `--env`, `--root`)
+2. **Environment Variables** (e.g., `CULTIVATOR_ENV`)
+3. **Config File** (`cultivator.yml` or passed via `--config`)
+4. **Defaults**
 
 Example of using a custom config file:
 

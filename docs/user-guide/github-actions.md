@@ -259,8 +259,6 @@ jobs:
 
 A complete reference workflow is available in [`examples/github-actions.yml`](../../examples/github-actions.yml). It demonstrates the full plan → apply lifecycle with `doctor`, PR comments, and artifact uploads.
 
-
-
 ---
 
 ## Optional: use a config file

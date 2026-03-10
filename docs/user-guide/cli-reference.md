@@ -120,6 +120,7 @@ Cultivator supports a positional argument for the module path. This is a shortha
 ```bash
 cultivator plan cloudwatch/log-group/example
 ```
+
 *Note: The path is automatically normalized (e.g., removing leading `./` or trailing `/terragrunt.hcl`).*
 
 ## Environment Variables
@@ -154,6 +155,7 @@ CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live
 ```
 
 Verbose mode provides detailed information about:
+
 - Starting the discovery process with normalized paths.
 - Directories being skipped (e.g., `.git`, `node_modules`).
 - Filter matching logic (include/exclude/environment/tags).
@@ -165,7 +167,7 @@ This is especially useful for troubleshooting why a specific module was or was n
 
 Cultivator produces human-readable text output by default, organized by module with clear section headers:
 
-```
+```text
 === plan: live/prod/vpc ===
 Running terragrunt plan in /path/to/live/prod/vpc...
 [output from terragrunt]
@@ -176,6 +178,7 @@ Running terragrunt plan in /path/to/live/prod/app...
 ```
 
 Each stack shows:
+
 - Module path
 - Terragrunt output and any errors
 - Clear demarcation for easy scanning
@@ -185,17 +188,20 @@ Each stack shows:
 ## Binary Invocation
 
 Local development (after building):
+
 ```bash
 go build -o cultivator ./cmd/cultivator
 ./cultivator plan --root=live --env=dev
 ```
 
 CI/CD environments (pre-compiled/downloaded binaries in PATH):
+
 ```bash
 cultivator plan --root=live --env=dev
 ```
 
 Both forms are equivalent. The difference:
+
 - `./cultivator` - Runs binary in current directory (local builds)
 - `cultivator` - Runs binary found in system PATH (CI/production installs)
 
@@ -208,6 +214,7 @@ Both forms are equivalent. The difference:
 ## Execution Metrics
 
 Cultivator automatically tracks and reports execution time:
+
 - **Per-module duration**: Displayed in the logs for each module upon completion.
 - **Total duration**: Displayed at the end of the command execution.
 
@@ -216,6 +223,7 @@ These metrics help identify infrastructure bottlenecks and optimize CI/CD runtim
 ## Summary Table
 
 At the end of each execution, Cultivator displays a summary table with the following information:
+
 - **Module**: The relative path to the module.
 - **Command**: The Terragrunt command executed.
 - **Status**: `SUCCESS` or `FAILURE`.

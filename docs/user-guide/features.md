@@ -62,7 +62,7 @@ parallelism: 4
 
 Your infrastructure might have:
 
-```
+```text
 live/
   prod/
     database/

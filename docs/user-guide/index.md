@@ -14,11 +14,11 @@ Learn how to use Cultivator to automate Terragrunt workflows in CI and locally.
 
 Cultivator is a lightweight CLI that discovers Terragrunt stacks and orchestrates execution:
 
-1.  Call cultivator
-2.  Discovers stacks
-3.  Applies filters
-4.  Executes Terragrunt
-5.  Shows results
+1. Call cultivator
+2. Discovers stacks
+3. Applies filters
+4. Executes Terragrunt
+5. Shows results
 
 ## Use Cases
 
