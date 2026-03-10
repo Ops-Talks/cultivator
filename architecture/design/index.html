@@ -861,6 +861,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#8-logging-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Logging Boundary
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1270,6 +1279,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#8-logging-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Logging Boundary
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1444,7 +1462,7 @@
 <ul>
 <li>Filters stacks by <code>--env</code> (environment)</li>
 <li>Filters stacks by <code>--include</code> / <code>--exclude</code> (path patterns)</li>
-<li>Filters stacks by <code>--tags</code> (tag comments in <code>terragrunt.hcl</code>)</li>
+<li>Filters stacks by <code>--tags</code> (recommended <code># cultivator:tags = a,b</code>; legacy <code>cultivator_tags = [...]</code> supported)</li>
 </ul>
 <h3 id="4-git-integration-magic-mode">4. Git Integration (Magic Mode)<a class="headerlink" href="#4-git-integration-magic-mode" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1470,6 +1488,11 @@
 <ul>
 <li>Formats and displays results in human-readable text</li>
 <li>Reports exit codes and errors per module</li>
+</ul>
+<h3 id="8-logging-boundary">8. Logging Boundary<a class="headerlink" href="#8-logging-boundary" title="Permanent link">&para;</a></h3>
+<ul>
+<li>CLI owns user-facing logs and summary output.</li>
+<li>Discovery, runner, and git use injected logger instances for debug-level diagnostics only.</li>
 </ul>
 <h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CLI Invocation (plan/apply/destroy)

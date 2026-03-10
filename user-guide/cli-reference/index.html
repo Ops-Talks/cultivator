@@ -1513,9 +1513,9 @@
 <h2 id="cli-arguments-flags">CLI Arguments &amp; Flags<a class="headerlink" href="#cli-arguments-flags" title="Permanent link">&para;</a></h2>
 <h3 id="positional-arguments">Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permanent link">&para;</a></h3>
 <p>Cultivator supports a positional argument for the module path. This is a shorthand for filtering to a specific module.</p>
-<p><div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>cloudwatch/log-group/example
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>cloudwatch/log-group/example
 </span></code></pre></div>
-<em>Note: The path is automatically normalized (e.g., removing leading <code>./</code> or trailing <code>/terragrunt.hcl</code>).</em></p>
+<p><em>Note: The path is automatically normalized (e.g., removing leading <code>./</code> or trailing <code>/terragrunt.hcl</code>).</em></p>
 <h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1608,11 +1608,13 @@
 <p>If you are experiencing issues with module discovery or filtering, you can enable verbose logging by setting the <code>CULTIVATOR_LOG_LEVEL</code> environment variable to <code>debug</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nv">CULTIVATOR_LOG_LEVEL</span><span class="o">=</span>debug<span class="w"> </span>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live
 </span></code></pre></div>
-<p>Verbose mode provides detailed information about:
-- Starting the discovery process with normalized paths.
-- Directories being skipped (e.g., <code>.git</code>, <code>node_modules</code>).
-- Filter matching logic (include/exclude/environment/tags).
-- Dependency extraction for each module.</p>
+<p>Verbose mode provides detailed information about:</p>
+<ul>
+<li>Starting the discovery process with normalized paths.</li>
+<li>Directories being skipped (e.g., <code>.git</code>, <code>node_modules</code>).</li>
+<li>Filter matching logic (include/exclude/environment/tags).</li>
+<li>Dependency extraction for each module.</li>
+</ul>
 <p>This is especially useful for troubleshooting why a specific module was or was not included in the execution set.</p>
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
 <p>Cultivator produces human-readable text output by default, organized by module with clear section headers:</p>
@@ -1624,24 +1626,28 @@
 </span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>Running terragrunt plan in /path/to/live/prod/app...
 </span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>[output from terragrunt]
 </span></code></pre></div>
-<p>Each stack shows:
-- Module path
-- Terragrunt output and any errors
-- Clear demarcation for easy scanning</p>
+<p>Each stack shows:</p>
+<ul>
+<li>Module path</li>
+<li>Terragrunt output and any errors</li>
+<li>Clear demarcation for easy scanning</li>
+</ul>
 <blockquote>
 <p><strong>Implementation note</strong>: Cultivator automatically appends <code>-no-color</code> to every Terragrunt invocation to produce clean, parseable output in CI environments.</p>
 </blockquote>
 <h2 id="binary-invocation">Binary Invocation<a class="headerlink" href="#binary-invocation" title="Permanent link">&para;</a></h2>
-<p>Local development (after building):
+<p>Local development (after building):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>cultivator<span class="w"> </span>./cmd/cultivator
 </span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>./cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
-</span></code></pre></div></p>
-<p>CI/CD environments (pre-compiled/downloaded binaries in PATH):
+</span></code></pre></div>
+<p>CI/CD environments (pre-compiled/downloaded binaries in PATH):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--root<span class="o">=</span>live<span class="w"> </span>--env<span class="o">=</span>dev
-</span></code></pre></div></p>
-<p>Both forms are equivalent. The difference:
-- <code>./cultivator</code> - Runs binary in current directory (local builds)
-- <code>cultivator</code> - Runs binary found in system PATH (CI/production installs)</p>
+</span></code></pre></div>
+<p>Both forms are equivalent. The difference:</p>
+<ul>
+<li><code>./cultivator</code> - Runs binary in current directory (local builds)</li>
+<li><code>cultivator</code> - Runs binary found in system PATH (CI/production installs)</li>
+</ul>
 <h2 id="exit-codes">Exit Codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>0</code> - Success (all stacks executed successfully)</li>
@@ -1649,17 +1655,21 @@
 <li><code>2</code> - Usage error (invalid flags or arguments)</li>
 </ul>
 <h2 id="execution-metrics">Execution Metrics<a class="headerlink" href="#execution-metrics" title="Permanent link">&para;</a></h2>
-<p>Cultivator automatically tracks and reports execution time:
-- <strong>Per-module duration</strong>: Displayed in the logs for each module upon completion.
-- <strong>Total duration</strong>: Displayed at the end of the command execution.</p>
+<p>Cultivator automatically tracks and reports execution time:</p>
+<ul>
+<li><strong>Per-module duration</strong>: Displayed in the logs for each module upon completion.</li>
+<li><strong>Total duration</strong>: Displayed at the end of the command execution.</li>
+</ul>
 <p>These metrics help identify infrastructure bottlenecks and optimize CI/CD runtime.</p>
 <h2 id="summary-table">Summary Table<a class="headerlink" href="#summary-table" title="Permanent link">&para;</a></h2>
-<p>At the end of each execution, Cultivator displays a summary table with the following information:
-- <strong>Module</strong>: The relative path to the module.
-- <strong>Command</strong>: The Terragrunt command executed.
-- <strong>Status</strong>: <code>SUCCESS</code> or <code>FAILURE</code>.
-- <strong>Duration</strong>: The time taken to execute the module.
-- <strong>Notes</strong>: Additional context, such as exit codes or error messages.</p>
+<p>At the end of each execution, Cultivator displays a summary table with the following information:</p>
+<ul>
+<li><strong>Module</strong>: The relative path to the module.</li>
+<li><strong>Command</strong>: The Terragrunt command executed.</li>
+<li><strong>Status</strong>: <code>SUCCESS</code> or <code>FAILURE</code>.</li>
+<li><strong>Duration</strong>: The time taken to execute the module.</li>
+<li><strong>Notes</strong>: Additional context, such as exit codes or error messages.</li>
+</ul>
 <p>This table provides a high-level overview of the entire run, making it easy to identify failed modules in large projects.</p>
 <h2 id="standard-workflow">Standard Workflow<a class="headerlink" href="#standard-workflow" title="Permanent link">&para;</a></h2>
 <p>For pull requests + main branch merges:</p>

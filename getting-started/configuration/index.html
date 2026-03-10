@@ -1475,7 +1475,7 @@
 <ul>
 <li><strong>Type</strong>: String list</li>
 <li><strong>Default</strong>: empty</li>
-<li><strong>Description</strong>: Optional tags filter parsed from <code>terragrunt.hcl</code> comments (example: <code># cultivator:tags=app,db</code>)</li>
+<li><strong>Description</strong>: Optional tags filter parsed from <code>terragrunt.hcl</code> tag metadata. Recommended source format is <code># cultivator:tags = app,db</code>; legacy <code>cultivator_tags = ["app", "db"]</code> remains supported.</li>
 </ul>
 <h3 id="parallelism">parallelism<a class="headerlink" href="#parallelism" title="Permanent link">&para;</a></h3>
 <ul>
