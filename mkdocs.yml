@@ -90,6 +90,10 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/Ops-Talks/cultivator
+      name: Cultivator on GitHub
+    - icon: fontawesome/solid/building
+      link: https://github.com/orgs/Ops-Talks/repositories
+      name: Ops-Talks Projects
 
 extra_css:
   - stylesheets/custom.css

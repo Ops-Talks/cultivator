@@ -75,6 +75,7 @@ func DefaultConfig() Config {
 	return Config{
 		Root:        ".",
 		Parallelism: parallelism,
+		BaseRef:     "HEAD",
 	}
 }
 

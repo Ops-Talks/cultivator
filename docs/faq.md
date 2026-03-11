@@ -29,7 +29,7 @@ While you can write custom bash scripts to orchestrate Terragrunt stacks, you'll
 - Handle parallelization with complex semaphore patterns
 - Rewrite scripts for different CI systems
 
-Cultivator automates all of this. See [Why Cultivator?](index.md#why-cultivator) for detailed comparison with practical examples.
+Cultivator automates all of this. See [Key Advantages](index.md#key-advantages) for a summary of what Cultivator provides.
 
 ### Do I need a separate server?
 
@@ -399,7 +399,7 @@ on_failure:
 
 1. Search [existing issues](https://github.com/Ops-Talks/cultivator/issues)
 2. Create a new issue with:
-   - Cultivator version: `cultivator version`
+   - Cultivator version (run `cultivator version`, e.g. `cultivator v0.3.10 (commit abc1234, built 2026-01-15T12:00:00Z)`)
    - Terragrunt version: `terragrunt version`
    - OS/environment details
    - Steps to reproduce

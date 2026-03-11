@@ -1,71 +1,249 @@
 # Example GitHub Actions workflow for using Cultivator in your own infrastructure repository.
-# Copy this file to .github/workflows/cultivator.yml in your infra repo and adjust paths as needed.
+# Copy this file to .github/workflows/cultivator.yml in your infra repo and adjust
+# paths, versions, and environment variables as needed.
 #
-# This workflow uses Magic Mode to only plan changed modules on Pull Requests,
-# while maintaining DAG-aware execution order for both plan and apply.
+# Workflow: doctor -> plan (on PR) / apply (on merge)
+# Features: Magic Mode, DAG-aware execution, PR comments, artifact uploads.
 
-name: Cultivator Plan & Apply
+name: Cultivator
 
 on:
   pull_request:
-    branches: [ main ]
-    paths:
-      - 'live/**'
-      - 'cultivator.yml'
-      - '.github/workflows/cultivator.yml'
-  push:
-    branches:
-      - main
-    paths:
-      - 'live/**'
-      - 'cultivator.yml'
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  issues: read
   pull-requests: write
 
-jobs:
-  plan:
-    name: Terragrunt Plan (Magic Mode)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+env:
+  CULTIVATOR_VERSION: v0.4.10
+  TOFU_VERSION: 1.11.5
+  TERRAGRUNT_VERSION: 0.99.1
+  CULTIVATOR_ROOT: live
+  CULTIVATOR_ENV: ""
+  CULTIVATOR_PARALLELISM: "4"
 
+jobs:
+  doctor:
+    name: Doctor
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y wget unzip curl
+
+          wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          sudo unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          rm tofu_${TOFU_VERSION}_linux_amd64.zip
+
+          wget -q -O terragrunt \
+            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+          wget -q -O cultivator \
+            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
+
+      - name: Run doctor
+        run: cultivator doctor --root "$CULTIVATOR_ROOT"
+
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    needs: doctor
+    if: (github.event_name == 'pull_request' && github.event.action != 'closed') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for git diff to work correctly
+          fetch-depth: 0 # Required for Magic Mode (git diff)
 
-      # Add your cloud provider authentication step here.
+      - name: Install tools
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Run Cultivator plan
-        uses: Ops-Talks/cultivator@v0.4.1
+          sudo apt-get update
+          sudo apt-get install -y wget unzip curl
+
+          wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          sudo unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          rm tofu_${TOFU_VERSION}_linux_amd64.zip
+
+          wget -q -O terragrunt \
+            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+          wget -q -O cultivator \
+            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
+
+      - name: Run plan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          args=(
+            --root "$CULTIVATOR_ROOT"
+            --parallelism "$CULTIVATOR_PARALLELISM"
+            --non-interactive=true
+          )
+
+          if [[ -n "$CULTIVATOR_ENV" ]]; then
+            args+=(--env "$CULTIVATOR_ENV")
+          fi
+
+          # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            changed_args=("${args[@]}" --changed-only --base "${{ github.base_ref }}")
+
+            set +e
+            cultivator plan "${changed_args[@]}" 2>&1 | tee plan_output.txt
+            plan_exit=${PIPESTATUS[0]}
+            set -e
+
+            if [[ $plan_exit -ne 0 ]]; then
+              exit $plan_exit
+            fi
+
+            if grep -q "no modules matched" plan_output.txt; then
+              echo "No modules matched in changed-only mode. Running full plan."
+              cultivator plan "${args[@]}" 2>&1 | tee plan_output.txt
+            fi
+          else
+            cultivator plan "${args[@]}" 2>&1 | tee plan_output.txt
+          fi
+
+      - name: Upload plan output
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          command: plan
-          root: live
-          # Enable Magic Mode: only target modules affected by Git changes
-          changed-only: 'true'
-          base: ${{ github.base_ref }}
-          non-interactive: 'true'
+          name: plan-output
+          path: plan_output.txt
+
+      - name: Comment plan on PR
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const plan = fs.existsSync('plan_output.txt')
+              ? fs.readFileSync('plan_output.txt', 'utf8')
+              : 'No plan output file found.';
+
+            const body = [
+              '## Cultivator Plan',
+              '',
+              '```text',
+              plan.slice(0, 65000),
+              '```'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
 
   apply:
-    name: Terragrunt Apply (DAG Ordered)
+    name: Apply
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
+    needs: doctor
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    environment: production
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-
-      # Add your cloud provider authentication step here.
-
-      - name: Run Cultivator apply
-        uses: Ops-Talks/cultivator@v0.4.1
         with:
-          command: apply
-          root: live
-          env: prod
-          non-interactive: 'true'
-          auto-approve: 'true'
-          # DAG execution order is automatically applied to ensure safe deployment sequence.
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0 # Required for accurate change mapping and DAG resolution
+
+      - name: Install tools
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y wget unzip curl
+
+          wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          sudo unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          rm tofu_${TOFU_VERSION}_linux_amd64.zip
+
+          wget -q -O terragrunt \
+            https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+          wget -q -O cultivator \
+            https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+          chmod +x cultivator
+          sudo mv cultivator /usr/local/bin/cultivator
+
+      - name: Run apply
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          args=(
+            --root "$CULTIVATOR_ROOT"
+            --parallelism "$CULTIVATOR_PARALLELISM"
+            --non-interactive=true
+            --auto-approve=true
+          )
+
+          if [[ -n "$CULTIVATOR_ENV" ]]; then
+            args+=(--env "$CULTIVATOR_ENV")
+          fi
+
+          # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
+          # Execution order is automatically determined by the built-in DAG engine.
+          cultivator apply "${args[@]}" 2>&1 | tee apply_output.txt
+
+      - name: Upload apply output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apply-output
+          path: apply_output.txt
+
+      - name: Comment apply on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const output = fs.existsSync('apply_output.txt')
+              ? fs.readFileSync('apply_output.txt', 'utf8')
+              : 'No apply output file found.';
+
+            const body = [
+              '## Cultivator Apply',
+              '',
+              '```text',
+              output.slice(0, 65000),
+              '```'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

@@ -1,47 +1,22 @@
-# Example Terragrunt Project Structure
+# Examples
 
-This directory contains an example Terragrunt project structure to demonstrate how Cultivator works.
+This directory contains ready-to-use CI/CD pipeline configurations for Cultivator.
 
-## Structure
+## Pipeline Examples
 
-```text
-examples/
-├── terragrunt/
-│   ├── terragrunt.hcl              # Root Terragrunt config
-│   ├── environments/
-│   │   ├── dev/
-│   │   │   ├── vpc/
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── database/
-│   │   │   │   └── terragrunt.hcl
-│   │   │   └── app/
-│   │   │       └── terragrunt.hcl
-│   │   ├── staging/
-│   │   │   ├── vpc/
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── database/
-│   │   │   │   └── terragrunt.hcl
-│   │   │   └── app/
-│   │   │       └── terragrunt.hcl
-│   │   └── prod/
-│   │       ├── vpc/
-│   │       │   └── terragrunt.hcl
-│   │       ├── database/
-│   │       │   └── terragrunt.hcl
-│   │       └── app/
-│   │           └── terragrunt.hcl
-│   └── modules/
-│       ├── vpc/
-│       ├── database/
-│       └── app/
-```
+| File | Description |
+|------|-------------|
+| [`github-actions.yml`](github-actions.yml) | GitHub Actions pipeline: plan on PRs, apply on merge to main |
+| [`gitlab-ci.yml`](gitlab-ci.yml) | GitLab CI/CD pipeline: plan on MRs, apply on merge to main |
 
-## How Cultivator Detects Changes
+Copy the relevant file into your infrastructure repository and adjust paths, versions, and environment variables as needed.
 
-1. **File Changes**: When you modify any `.hcl` or `.tf` file, Cultivator detects it
-2. **Module Detection**: It finds which Terragrunt module contains the changed file
-3. **Dependency Analysis**: It checks if any other modules depend on the changed module
-4. **Execution Order**: It determines the correct order to run operations based on dependencies
+## How Cultivator Works in CI
+
+1. **Discovery**: Cultivator walks the root directory and finds all `terragrunt.hcl` files
+2. **Filtering**: It applies scope filters (environment, paths, tags, Git changes)
+3. **Dependency Analysis**: It parses `dependency` blocks and builds a DAG for execution order
+4. **Execution**: It runs Terragrunt commands in parallel, respecting the dependency graph
 
 ## Example Scenarios
 
@@ -52,7 +27,7 @@ examples/
   - `environments/dev/vpc` (direct)
   - `environments/dev/database` (depends on vpc)
   - `environments/dev/app` (depends on vpc and database)
-- **Execution order**: vpc → database → app
+- **Execution order**: vpc -> database -> app
 
 ### Scenario 2: Change App in Staging
 
@@ -67,13 +42,8 @@ examples/
 - **Affected modules**: ALL (because all inherit from root)
 - **Execution order**: Topologically sorted based on dependencies
 
-## Pipeline Examples
+## Further Reading
 
-This directory contains ready-to-use pipeline configuration examples:
-
-| File | Description |
-|------|-------------|
-| [`github-actions.yml`](github-actions.yml) | GitHub Actions pipeline: plan on PRs, apply on merge to main |
-| [`.gitlab-ci.yml`](.gitlab-ci.yml) | GitLab CI/CD pipeline: plan on MRs, apply on merge to main |
-
-See the main [Installation Guide](../docs/getting-started/installation.md) for full setup instructions.
+- [Installation Guide](../docs/getting-started/installation.md) for full setup instructions
+- [GitHub Actions Guide](../docs/user-guide/github-actions.md) for detailed GitHub Actions patterns
+- [GitLab Pipelines Guide](../docs/user-guide/gitlab-pipelines.md) for detailed GitLab CI patterns

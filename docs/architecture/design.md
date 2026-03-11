@@ -117,7 +117,7 @@ Exit Code (0 = success, 1 = failure, 2 = usage error)
 
 ## Configuration Reference
 
-Cultivator reads from `cultivator.yml` in the repository root:
+When using a config file, pass it explicitly with `--config`:
 
 ```yaml
 root: live                    # Root directory to scan for stacks

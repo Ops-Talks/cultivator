@@ -35,9 +35,9 @@ permissions:
   pull-requests: write
 
 env:
-  CULTIVATOR_VERSION: v0.3.10
+  CULTIVATOR_VERSION: v0.4.10
   TOFU_VERSION: 1.11.5
-  TERRAGRUNT_VERSION: 0.99.0
+  TERRAGRUNT_VERSION: 0.99.1
   CULTIVATOR_ROOT: providers
   CULTIVATOR_ENV: ""
   CULTIVATOR_PARALLELISM: "4"
@@ -119,17 +119,30 @@ jobs:
             --non-interactive=true
           )
 
-          # Enable Magic Mode on Pull Requests to target only changed modules
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            args+=(--changed-only --base "${{ github.base_ref }}")
-          fi
-
           if [[ -n "$CULTIVATOR_ENV" ]]; then
             args+=(--env "$CULTIVATOR_ENV")
           fi
 
           # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
-          cultivator plan "${args[@]}" 2>&1 | tee plan_output.txt
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            changed_args=("${args[@]}" --changed-only --base "${{ github.base_ref }}")
+
+            set +e
+            cultivator plan "${changed_args[@]}" 2>&1 | tee plan_output.txt
+            plan_exit=${PIPESTATUS[0]}
+            set -e
+
+            if [[ $plan_exit -ne 0 ]]; then
+              exit $plan_exit
+            fi
+
+            if grep -q "no modules matched" plan_output.txt; then
+              echo "No modules matched in changed-only mode. Running full plan."
+              cultivator plan "${args[@]}" 2>&1 | tee plan_output.txt
+            fi
+          else
+            cultivator plan "${args[@]}" 2>&1 | tee plan_output.txt
+          fi
 
       - name: Upload plan output
         if: always()

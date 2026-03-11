@@ -9,7 +9,7 @@ You can start using Cultivator without any configuration file. A `cultivator.yml
 - **Go 1.25+** (for building from source)
 - **Git** (2.0+)
 - **Docker** (optional, for containerized deployment)
-- **GitHub Account** with repository access
+- **Git hosting** (GitHub, GitLab, etc.) if using CI integration
 - **Terragrunt** (for your infrastructure)
 
 ## Choose Your Path

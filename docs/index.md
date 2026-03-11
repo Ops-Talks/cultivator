@@ -57,4 +57,4 @@ Cultivator simplifies Terragrunt orchestration by providing:
 
 ## License
 
-Cultivator is licensed under the GNU GPL v3 License. See [LICENSE](LICENSE) for details.
+Cultivator is licensed under the GNU GPL v3 License. See [LICENSE](https://github.com/Ops-Talks/cultivator/blob/main/LICENSE) for details.

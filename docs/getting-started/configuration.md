@@ -24,6 +24,14 @@ Pass any YAML file path via `--config`. Common conventions: `cultivator.yml` or 
 root: live
 parallelism: 4
 non_interactive: true
+```
+
+## Full config example
+
+```yaml
+root: live
+parallelism: 4
+non_interactive: true
 dry_run: false
 show_graph: true
 changed_only: false
@@ -174,6 +182,7 @@ Flags override environment variables and config file.
 
 ```bash
 cultivator plan \
+  --config=cultivator.yml \
   --root=live \
   --env=prod \
   --include=envs/prod/app1 \

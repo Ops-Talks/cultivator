@@ -69,7 +69,7 @@ Cultivator recursively walks the root directory, finds all `terragrunt.hcl` file
 
 Use multiple filters to narrow execution:
 
-- `--env=dev` - by environment variable
+- `--env=dev` - by environment name
 - `--include=envs/prod/* --include=envs/staging/*` - by path pattern
 - `--exclude=experimental` - exclude paths
 - `--tags=critical,prod` - by inline tags (recommended: `# cultivator:tags = critical,prod`)

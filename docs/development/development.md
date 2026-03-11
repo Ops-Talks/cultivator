@@ -22,7 +22,7 @@
 ```text
 User invokes Cultivator
     |
-Config Loader (merge cultivator.yml + env vars + CLI flags)
+Config Loader (merge optional --config file + env vars + CLI flags)
     |
 Stack Discovery (find all terragrunt.hcl files)
     |

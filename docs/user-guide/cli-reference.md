@@ -2,6 +2,25 @@
 
 Learn the key commands and workflows for Cultivator.
 
+## Common Flags
+
+These flags are available on `plan`, `apply`, and `destroy`:
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--config` | Path to config file | (none) |
+| `--root` | Root directory for terragrunt modules | `.` |
+| `--env` | Environment filter | (none) |
+| `--include` | Relative paths to include (comma-separated or repeated) | (none) |
+| `--exclude` | Relative paths to exclude (comma-separated or repeated) | (none) |
+| `--tags` | Tag filters (comma-separated or repeated) | (none) |
+| `--parallelism` | Max parallel executions | CPU count |
+| `--non-interactive` | Add `-input=false` to Terragrunt commands | `false` |
+| `--dry-run` | Print commands without executing them | `false` |
+| `--graph` | Show Mermaid dependency graph | `false` |
+| `--changed-only` | Only execute modules with changed files | `false` |
+| `--base` | Git base reference for `--changed-only` | `HEAD` |
+
 ## Available Commands
 
 ### Plan
@@ -12,14 +31,9 @@ Run `terragrunt plan` on matching stacks.
 cultivator plan --root=live --env=dev --non-interactive
 ```
 
-**Options**:
+**Command-specific options**:
 
 - `--destroy` - run `terragrunt plan -destroy`
-- `--non-interactive` - add `-input=false`
-- `--dry-run` - don't execute terragrunt commands
-- `--graph` - show mermaid dependency graph
-- `--changed-only` - only execute modules with changed files
-- `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
 ### Apply
 
@@ -29,14 +43,9 @@ Run `terragrunt apply` on matching stacks.
 cultivator apply --root=live --env=dev --non-interactive --auto-approve
 ```
 
-**Options**:
+**Command-specific options**:
 
 - `--auto-approve` - add `-auto-approve`
-- `--non-interactive` - add `-input=false`
-- `--dry-run` - don't execute terragrunt commands
-- `--graph` - show mermaid dependency graph
-- `--changed-only` - only execute modules with changed files
-- `--base` - git base reference for `--changed-only` (default: `HEAD`)
 
 ### Destroy
 
@@ -46,14 +55,34 @@ Run `terragrunt destroy` on matching stacks.
 cultivator destroy --root=live --env=dev --non-interactive --auto-approve
 ```
 
-**Options**:
+**Command-specific options**:
 
 - `--auto-approve` - add `-auto-approve`
-- `--non-interactive` - add `-input=false`
-- `--dry-run` - don't execute terragrunt commands
-- `--graph` - show mermaid dependency graph
-- `--changed-only` - only execute modules with changed files
-- `--base` - git base reference for `--changed-only` (default: `HEAD`)
+
+### Doctor
+
+Verify your environment and configuration. Checks for Terragrunt in PATH, validates the config file (if provided), and confirms the root directory exists.
+
+```bash
+cultivator doctor --root=live
+cultivator doctor --root=live --config=cultivator.yml
+```
+
+**Flags**: `--config`, `--root`
+
+### Version
+
+Print version information.
+
+```bash
+cultivator version
+```
+
+Example output:
+
+```text
+cultivator v0.3.10 (commit abc1234, built 2026-01-15T12:00:00Z)
+```
 
 ## CLI Examples
 
@@ -93,22 +122,6 @@ Compare current branch against `main` and only run `plan` on modules that have f
 
 ```bash
 ./cultivator plan --changed-only --base=main
-```
-
-### Doctor
-
-Verify your environment and configuration.
-
-```bash
-cultivator doctor --root=live --config=cultivator.yml
-```
-
-### Version
-
-Print version information.
-
-```bash
-cultivator version
 ```
 
 ## CLI Arguments & Flags

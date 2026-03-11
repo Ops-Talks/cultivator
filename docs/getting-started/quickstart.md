@@ -53,36 +53,12 @@ destroy:
 
 ## Step 4: Add a CI job
 
-Example GitHub Actions workflow for plan on pull requests. Note that downloading a pre-compiled binary is more efficient than building from source in every job:
+For production-ready CI integration, see the dedicated guides:
 
-```yaml
-name: Cultivator Plan
+- **[GitHub Actions](../user-guide/github-actions.md)** -- plan on PRs, apply on merge
+- **[GitLab Pipelines](../user-guide/gitlab-pipelines.md)** -- plan on MRs, apply on merge
 
-on:
-  pull_request:
-
-jobs:
-  plan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Cultivator
-        run: |
-          CULTIVATOR_VERSION="v1.0.0" # Use the desired version
-          curl -L https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64 -o cultivator
-          chmod +x cultivator
-          sudo mv cultivator /usr/local/bin/cultivator
-
-      - name: Install Terragrunt
-        run: |
-          curl -L https://github.com/gruntwork-io/terragrunt/releases/latest/download/terragrunt_linux_amd64 -o terragrunt
-          chmod +x terragrunt
-          sudo mv terragrunt /usr/local/bin/terragrunt
-
-      - name: Cultivator plan
-        run: cultivator plan --root=live --env=dev --non-interactive
-```
+Ready-to-use pipeline files are also available in the [`examples/`](https://github.com/Ops-Talks/cultivator/tree/main/examples) directory.
 
 ## Next Steps
 

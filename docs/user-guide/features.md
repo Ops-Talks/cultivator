@@ -147,6 +147,22 @@ CULTIVATOR_LOG_LEVEL=debug cultivator plan --root=live --env=dev
 Accepted values: `debug`, `info`, `warning`, `error`. Default: `info`.
 Terragrunt output is always printed in full, regardless of this setting.
 
+## Environment Verification (Doctor)
+
+Before running plans or applies, verify that your environment is correctly configured:
+
+```bash
+cultivator doctor --root=live
+```
+
+The `doctor` command checks:
+
+- **Terragrunt** is installed and available in `PATH`
+- **Config file** is loadable (when passed with `--config`)
+- **Root directory** exists and is a valid directory
+
+This is useful as a pre-flight check in CI pipelines before running plan or apply.
+
 ## Stateless Operation
 
 Cultivator does not manage state or backends. Terragrunt and Terraform/OpenTofu handle state as usual.

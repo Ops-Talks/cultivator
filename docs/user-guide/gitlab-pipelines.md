@@ -1,6 +1,6 @@
 # GitLab CI/CD Integration
 
-This guide shows how to run Cultivator in GitLab CI/CD using the same model as `examples/.gitlab-ci.yml` in this repository.
+This guide shows how to run Cultivator in GitLab CI/CD using the same model as `examples/gitlab-ci.yml` in this repository.
 
 Cultivator runs as a CLI inside your job environment. You need:
 
