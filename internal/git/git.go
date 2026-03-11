@@ -19,9 +19,15 @@ func GetChangedFiles(ctx context.Context, workingDir string, baseRef string, log
 	if baseRef == "" {
 		baseRef = "HEAD"
 	}
+	repoRoot, err := gitRepoRoot(ctx, workingDir)
+	if err != nil {
+		return nil, fmt.Errorf("resolve git repository root: %w", err)
+	}
+
 	baseRefs := buildBaseRefCandidates(baseRef)
 	debugLog(logger, "collecting changed files", logging.Fields{
 		"working_dir": workingDir,
+		"repo_root":   repoRoot,
 		"base_ref":    baseRef,
 		"candidates":  strings.Join(baseRefs, ","),
 	})
@@ -56,9 +62,8 @@ func GetChangedFiles(ctx context.Context, workingDir string, baseRef string, log
 		if clean == "" {
 			continue
 		}
-		// Git returns relative paths from the repo root.
-		// We resolve them to absolute paths for consistency.
-		absPath := filepath.Join(workingDir, clean)
+		// Git returns paths relative to the repository root.
+		absPath := filepath.Join(repoRoot, clean)
 		changedFiles = append(changedFiles, absPath)
 	}
 	debugLog(logger, "changed files collected", logging.Fields{
@@ -113,6 +118,22 @@ func gitDiffNameOnly(ctx context.Context, workingDir, baseRef string) ([]byte, e
 		return nil, fmt.Errorf("git diff failed: %w", err)
 	}
 	return output, nil
+}
+
+func gitRepoRoot(ctx context.Context, workingDir string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--show-toplevel")
+	cmd.Dir = workingDir
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git rev-parse --show-toplevel failed: %w", err)
+	}
+
+	root := strings.TrimSpace(string(output))
+	if root == "" {
+		return "", fmt.Errorf("git repository root is empty")
+	}
+
+	return filepath.Clean(root), nil
 }
 
 // IsGitRepo checks if the given directory is part of a git repository.

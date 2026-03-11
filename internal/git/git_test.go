@@ -45,6 +45,24 @@ func TestGetChangedFiles(t *testing.T) {
 			t.Fatalf("GetChangedFiles() error = %q, want base refs context", err.Error())
 		}
 	})
+
+	t.Run("resolves changed paths from repository root when working dir is nested", func(t *testing.T) {
+		t.Parallel()
+		repoDir, baseBranch, changedRelPath := setupRepoWithProviderChange(t)
+
+		got, err := GetChangedFiles(context.Background(), filepath.Join(repoDir, "providers"), baseBranch, nil)
+		if err != nil {
+			t.Fatalf("GetChangedFiles() error = %v", err)
+		}
+
+		want := filepath.Join(repoDir, changedRelPath)
+		assertContainsPath(t, got, want)
+		for _, changed := range got {
+			if strings.Contains(changed, string(filepath.Separator)+"providers"+string(filepath.Separator)+"providers"+string(filepath.Separator)) {
+				t.Fatalf("changed file path contains duplicated providers prefix: %q", changed)
+			}
+		}
+	})
 }
 
 func runCmd(t *testing.T, dir string, name string, args ...string) {
@@ -101,10 +119,58 @@ func setupRepoWithFeatureChange(t *testing.T) (string, string) {
 	return repoDir, baseBranch
 }
 
+func setupRepoWithProviderChange(t *testing.T) (string, string, string) {
+	t.Helper()
+	tmpDir := t.TempDir()
+	remoteDir := filepath.Join(tmpDir, "remote.git")
+	runCmd(t, tmpDir, "git", "init", "--bare", remoteDir)
+
+	repoDir := filepath.Join(tmpDir, "work")
+	runCmd(t, tmpDir, "git", "clone", remoteDir, repoDir)
+	runCmd(t, repoDir, "git", "config", "user.email", "test@example.com")
+	runCmd(t, repoDir, "git", "config", "user.name", "test")
+
+	changedRelPath := filepath.Join("providers", "aws", "dev", "terragrunt.hcl")
+	changedAbsPath := filepath.Join(repoDir, changedRelPath)
+	if err := os.MkdirAll(filepath.Dir(changedAbsPath), 0o755); err != nil {
+		t.Fatalf("mkdir providers tree: %v", err)
+	}
+	if err := os.WriteFile(changedAbsPath, []byte("terraform {}\n"), 0o644); err != nil {
+		t.Fatalf("write initial terragrunt file: %v", err)
+	}
+	runCmd(t, repoDir, "git", "add", changedRelPath)
+	runCmd(t, repoDir, "git", "commit", "-m", "initial provider stack")
+
+	baseBranch := runCmdOutput(t, repoDir, "git", "branch", "--show-current")
+	if baseBranch == "" {
+		t.Fatal("base branch is empty")
+	}
+	runCmd(t, repoDir, "git", "push", "-u", "origin", baseBranch)
+
+	runCmd(t, repoDir, "git", "checkout", "-b", "feature")
+	if err := os.WriteFile(changedAbsPath, []byte("terraform {}\n# change\n"), 0o644); err != nil {
+		t.Fatalf("write changed terragrunt file: %v", err)
+	}
+	runCmd(t, repoDir, "git", "add", changedRelPath)
+
+	return repoDir, baseBranch, changedRelPath
+}
+
 func assertContainsBaseName(t *testing.T, files []string, want string) {
 	t.Helper()
 	for _, f := range files {
 		if filepath.Base(f) == want {
+			return
+		}
+	}
+	t.Fatalf("changed files %v do not contain %q", files, want)
+}
+
+func assertContainsPath(t *testing.T, files []string, want string) {
+	t.Helper()
+	want = filepath.Clean(want)
+	for _, f := range files {
+		if filepath.Clean(f) == want {
 			return
 		}
 	}
