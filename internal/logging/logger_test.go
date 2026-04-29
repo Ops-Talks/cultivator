@@ -323,12 +323,13 @@ func Test_LogSummaryTable(t *testing.T) {
 	l.LogSummaryTable(rows, "1.5s")
 
 	result := out.String()
-	// tablewriter by default upper-cases headers and footers
+	// tablewriter by default upper-cases headers; footers are rendered as-is
+	// (AutoFormat is disabled on footers to avoid mangling duration strings).
 	expectedStrings := []string{
 		"MODULE", "COMMAND", "STATUS", "DURATION", "NOTES",
 		"vpc", "plan", "SUCCESS", "1s",
 		"db", "FAILURE", "500ms", "error",
-		"TOTAL RUNTIME", "1.5S",
+		"TOTAL RUNTIME", "1.5s",
 	}
 
 	for _, s := range expectedStrings {

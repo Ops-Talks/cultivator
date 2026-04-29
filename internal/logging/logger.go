@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 // SummaryRow holds a single row of execution metadata for display in the summary table.
@@ -28,30 +29,64 @@ func (l *Logger) LogSummaryTable(rows []SummaryRow, totalDuration string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	table := tablewriter.NewWriter(l.out)
-	table.SetHeader([]string{"Module", "Command", "Status", "Duration", "Notes"})
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetHeaderLine(true)
-	table.SetBorder(true)
-	table.SetCenterSeparator("|")
-	table.SetColumnSeparator("|")
-	table.SetRowSeparator("-")
+	// Use ASCII symbols so the output is portable across terminals that may not
+	// support Unicode box-drawing characters (e.g. CI log viewers).
+	table := tablewriter.NewTable(l.out,
+		tablewriter.WithRendition(tw.Rendition{
+			Symbols: tw.NewSymbols(tw.StyleASCII),
+			Borders: tw.Border{Left: tw.On, Right: tw.On, Top: tw.On, Bottom: tw.On},
+			Settings: tw.Settings{
+				Lines: tw.Lines{
+					ShowHeaderLine: tw.On,
+					ShowFooterLine: tw.On,
+				},
+			},
+		}),
+		tablewriter.WithConfig(tablewriter.Config{
+			Header: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoFormat: tw.On,
+					AutoWrap:   tw.WrapNone,
+				},
+				Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+			},
+			Row: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoWrap: tw.WrapNone,
+				},
+				Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+			},
+			// AutoFormat is intentionally left off for the footer because the
+			// title-casing algorithm inserts spaces around punctuation (e.g.
+			// "1.5s" → "1 . 5 S"), which breaks duration strings.
+			Footer: tw.CellConfig{
+				Formatting: tw.CellFormatting{
+					AutoWrap: tw.WrapNone,
+				},
+				Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+			},
+		}),
+	)
+
+	table.Header("Module", "Command", "Status", "Duration", "Notes")
 
 	for _, row := range rows {
-		table.Append([]string{
+		if err := table.Append([]string{
 			row.Module,
 			row.Command,
 			row.Status,
 			row.Duration,
 			row.Notes,
-		})
+		}); err != nil {
+			fmt.Fprintf(l.errOut, "logging: table append row %q: %v\n", row.Module, err) //nolint:errcheck // best-effort error reporting
+		}
 	}
 
-	table.SetFooter([]string{"TOTAL RUNTIME", "", "", totalDuration, ""})
-	table.Render()
+	table.Footer("TOTAL RUNTIME", "", "", totalDuration, "")
+
+	if err := table.Render(); err != nil {
+		fmt.Fprintf(l.errOut, "logging: failed to render summary table: %v\n", err) //nolint:errcheck // best-effort error reporting
+	}
 }
 
 // Level represents the severity of a log message.
