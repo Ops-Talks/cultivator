@@ -78,14 +78,14 @@ func (l *Logger) LogSummaryTable(rows []SummaryRow, totalDuration string) {
 			row.Duration,
 			row.Notes,
 		}); err != nil {
-			fmt.Fprintf(l.errOut, "logging: table append: %v\n", err) //nolint:errcheck // best-effort error reporting
+			fmt.Fprintf(l.errOut, "logging: table append row %q: %v\n", row.Module, err) //nolint:errcheck // best-effort error reporting
 		}
 	}
 
 	table.Footer("TOTAL RUNTIME", "", "", totalDuration, "")
 
 	if err := table.Render(); err != nil {
-		fmt.Fprintf(l.errOut, "logging: table render: %v\n", err) //nolint:errcheck // best-effort error reporting
+		fmt.Fprintf(l.errOut, "logging: failed to render summary table: %v\n", err) //nolint:errcheck // best-effort error reporting
 	}
 }
 
