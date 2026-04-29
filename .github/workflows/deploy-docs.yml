@@ -58,6 +58,9 @@ jobs:
     name: Documentation Quality Check
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      issues: write
 
     steps:
       - name: Checkout repository
