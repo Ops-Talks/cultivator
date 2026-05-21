@@ -1810,11 +1810,11 @@
 <p>Unlike Atlantis (which is comment-triggered automation in GitHub):</p>
 <ul>
 <li><strong>Atlantis</strong>: Webhook-based; comments on PRs trigger automation inside GitHub</li>
-<li><strong>Cultivator</strong>: CLI-based; you explicitly call it from CI jobs (GitHub Actions, GitLab CI, etc.)</li>
+<li><strong>Cultivator</strong>: CLI-based; you explicitly call it from CI jobs (GitHub Actions, GitLab CI, Bitbucket Pipelines, etc.)</li>
 </ul>
 <p><strong>Advantages of Cultivator's approach:</strong></p>
 <ul>
-<li>Works in any CI system (GitHub Actions, GitLab CI, local development)</li>
+<li>Works in any CI system (GitHub Actions, GitLab CI, Bitbucket Pipelines, local development)</li>
 <li>Simpler to debug (just run the CLI command locally)</li>
 <li>Better separation of concerns (CI orchestrates, Cultivator executes)</li>
 <li>No GitHub-specific logic in the tool</li>

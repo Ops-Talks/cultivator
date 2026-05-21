@@ -883,9 +883,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8-logging-boundary" class="md-nav__link">
+  <a href="#8-ci-provider-detection" class="md-nav__link">
     <span class="md-ellipsis">
-      8. Logging Boundary
+      8. CI Provider Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-logging-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Logging Boundary
     </span>
   </a>
   
@@ -1301,9 +1310,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8-logging-boundary" class="md-nav__link">
+  <a href="#8-ci-provider-detection" class="md-nav__link">
     <span class="md-ellipsis">
-      8. Logging Boundary
+      8. CI Provider Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-logging-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Logging Boundary
     </span>
   </a>
   
@@ -1464,7 +1482,7 @@
 <h1 id="architecture-design">Architecture Design<a class="headerlink" href="#architecture-design" title="Permanent link">&para;</a></h1>
 <p>Understand how Cultivator works under the hood.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Cultivator is a <strong>CLI-first tool</strong> that orchestrates Terragrunt stack discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI) or locally, and delegates state management entirely to Terraform/OpenTofu backends.</p>
+<p>Cultivator is a <strong>CLI-first tool</strong> that orchestrates Terragrunt stack discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI, Bitbucket Pipelines) or locally, and delegates state management entirely to Terraform/OpenTofu backends.</p>
 <p>Unlike PR-based automation, Cultivator is <strong>job-triggered</strong>: you call it explicitly in your CI workflow, providing flags to control scope and behavior.</p>
 <h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2>
 <h3 id="1-config-loader">1. Config Loader<a class="headerlink" href="#1-config-loader" title="Permanent link">&para;</a></h3>
@@ -1510,7 +1528,13 @@
 <li>Formats and displays results in human-readable text</li>
 <li>Reports exit codes and errors per module</li>
 </ul>
-<h3 id="8-logging-boundary">8. Logging Boundary<a class="headerlink" href="#8-logging-boundary" title="Permanent link">&para;</a></h3>
+<h3 id="8-ci-provider-detection">8. CI Provider Detection<a class="headerlink" href="#8-ci-provider-detection" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Detects the active CI provider from environment variables (<code>GITHUB_ACTIONS</code>, <code>GITLAB_CI</code>, <code>BITBUCKET_BUILD_NUMBER</code>, etc.)</li>
+<li>Resolves the base branch for <code>--changed-only</code> (Magic Mode) automatically from CI-specific env vars</li>
+<li>Supports GitHub Actions, GitLab CI, and Bitbucket Pipelines; falls back gracefully when no CI is detected</li>
+</ul>
+<h3 id="9-logging-boundary">9. Logging Boundary<a class="headerlink" href="#9-logging-boundary" title="Permanent link">&para;</a></h3>
 <ul>
 <li>CLI owns user-facing logs and summary output.</li>
 <li>Discovery, runner, and git use injected logger instances for debug-level diagnostics only.</li>
@@ -1520,17 +1544,19 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    |
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Config Loader -&gt; Parse defaults + optional --config file + env vars + flags
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    |
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Stack Discovery + Scope Filter -&gt; Find all terragrunt.hcl files, apply --env, --include, --exclude, --tags
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>CI Provider Detection -&gt; Auto-resolve base branch for Magic Mode (GitHub Actions / GitLab CI / Bitbucket Pipelines)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    |
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Git Integration -&gt; Filter by changed files (if --changed-only)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Stack Discovery + Scope Filter -&gt; Find all terragrunt.hcl files, apply --env, --include, --exclude, --tags
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Dependency Graph -&gt; Build execution order (DAG)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Git Integration -&gt; Filter by changed files (if --changed-only)
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Executor (parallel worker pool) -&gt; Run Terragrunt commands
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Dependency Graph -&gt; Build execution order (DAG)
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    |
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Output Formatter -&gt; Display results
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Executor (parallel worker pool) -&gt; Run Terragrunt commands
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    |
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Output Formatter -&gt; Display results
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    |
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Exit Code (0 = success, 1 = failure, 2 = usage error)
 </span></code></pre></div>
 <h2 id="key-design-principles">Key Design Principles<a class="headerlink" href="#key-design-principles" title="Permanent link">&para;</a></h2>
 <h3 id="1-stateless-operation">1. Stateless Operation<a class="headerlink" href="#1-stateless-operation" title="Permanent link">&para;</a></h3>
