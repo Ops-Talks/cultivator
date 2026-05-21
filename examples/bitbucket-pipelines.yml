@@ -1,0 +1,160 @@
+# Bitbucket Pipelines — Cultivator reference pipeline
+#
+# Requires the following repository variables (Settings > Repository variables):
+#   CULTIVATOR_VERSION   e.g. v0.4.10
+#   TOFU_VERSION         e.g. 1.11.5
+#   TERRAGRUNT_VERSION   e.g. 0.99.1
+#   CULTIVATOR_ROOT      e.g. providers
+#   CULTIVATOR_ENV       leave empty to run all stacks under CULTIVATOR_ROOT
+#   CULTIVATOR_PARALLELISM   e.g. 4
+#   BITBUCKET_APP_PASSWORD   Bitbucket App Password for PR comments
+#                            (Settings > App passwords, scope: pull-requests write)
+#   BITBUCKET_USERNAME       Bitbucket username paired with BITBUCKET_APP_PASSWORD
+#                            for the PR comment API call
+#
+# Cloud credentials (e.g. AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) should
+# also be stored as repository or deployment variables.
+
+image: alpine:3.21
+
+definitions:
+  steps:
+    - step: &install-tools
+        name: Install tools
+        script:
+          - apk add --no-cache wget unzip curl jq ca-certificates git bash
+          - wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+          - unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+          - rm tofu_${TOFU_VERSION}_linux_amd64.zip
+          - wget -q -O /usr/local/bin/terragrunt
+              https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+          - chmod +x /usr/local/bin/terragrunt
+          - wget -q -O /usr/local/bin/cultivator
+              https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+          - chmod +x /usr/local/bin/cultivator
+
+pipelines:
+  # ─── Pull Request pipelines ──────────────────────────────────────────────────
+  pull-requests:
+    '**':
+      - step:
+          name: Doctor
+          script:
+            - apk add --no-cache wget unzip curl ca-certificates
+            - wget -q -O /usr/local/bin/terragrunt
+                https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+            - chmod +x /usr/local/bin/terragrunt
+            - wget -q -O /usr/local/bin/cultivator
+                https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+            - chmod +x /usr/local/bin/cultivator
+            - cultivator doctor --root "$CULTIVATOR_ROOT"
+
+      - step:
+          name: Plan
+          # fetch-depth: 0 equivalent — clone full history for Magic Mode (git diff)
+          clone:
+            depth: full
+          script:
+            - apk add --no-cache wget unzip curl jq ca-certificates git bash
+            - wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+            - unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+            - rm tofu_${TOFU_VERSION}_linux_amd64.zip
+            - wget -q -O /usr/local/bin/terragrunt
+                https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+            - chmod +x /usr/local/bin/terragrunt
+            - wget -q -O /usr/local/bin/cultivator
+                https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+            - chmod +x /usr/local/bin/cultivator
+            - |
+              set -euo pipefail
+
+              # Build argument list
+              ARGS=(
+                --root "$CULTIVATOR_ROOT"
+                --parallelism "$CULTIVATOR_PARALLELISM"
+                --non-interactive=true
+              )
+
+              if [ -n "$CULTIVATOR_ENV" ]; then
+                ARGS+=(--env "$CULTIVATOR_ENV")
+              fi
+
+              # Magic Mode: Cultivator auto-detects BITBUCKET_PR_DESTINATION_BRANCH
+              # and sets --base automatically when --changed-only is active.
+              ARGS+=(--changed-only)
+
+              # 2>&1 captures Terragrunt output (written to stderr) alongside stdout.
+              set +e
+              cultivator plan "${ARGS[@]}" 2>&1 | tee plan_output.txt
+              CULTIVATOR_EXIT="${PIPESTATUS[0]}"
+              set -e
+
+              # Post plan output as a PR comment via the Bitbucket REST API.
+              if [ -z "${BITBUCKET_APP_PASSWORD:-}" ]; then
+                echo "BITBUCKET_APP_PASSWORD not set; skipping PR comment"
+              else
+                PLAN_OUTPUT=$(cat plan_output.txt)
+                COMMENT=$(printf '## Cultivator Plan\n\n```\n%s\n```' "${PLAN_OUTPUT}")
+                curl --silent --show-error --fail \
+                  --user "${BITBUCKET_USERNAME}:${BITBUCKET_APP_PASSWORD}" \
+                  --header "Content-Type: application/json" \
+                  --request POST \
+                  "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${BITBUCKET_PR_ID}/comments" \
+                  --data "$(jq -n --arg body "${COMMENT}" '{"content":{"raw":$body}}')"
+              fi
+
+              exit "$CULTIVATOR_EXIT"
+          artifacts:
+            - plan_output.txt
+
+  # ─── Default branch pipeline (runs after PR merge) ───────────────────────────
+  branches:
+    main:
+      - step:
+          name: Doctor
+          script:
+            - apk add --no-cache wget unzip curl ca-certificates
+            - wget -q -O /usr/local/bin/terragrunt
+                https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+            - chmod +x /usr/local/bin/terragrunt
+            - wget -q -O /usr/local/bin/cultivator
+                https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+            - chmod +x /usr/local/bin/cultivator
+            - cultivator doctor --root "$CULTIVATOR_ROOT"
+
+      - step:
+          name: Apply
+          # Manual trigger — requires a human to approve before infrastructure changes.
+          trigger: manual
+          deployment: production
+          clone:
+            depth: full
+          script:
+            - apk add --no-cache wget unzip curl jq ca-certificates git bash
+            - wget -q https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_amd64.zip
+            - unzip -q tofu_${TOFU_VERSION}_linux_amd64.zip -d /usr/local/bin
+            - rm tofu_${TOFU_VERSION}_linux_amd64.zip
+            - wget -q -O /usr/local/bin/terragrunt
+                https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+            - chmod +x /usr/local/bin/terragrunt
+            - wget -q -O /usr/local/bin/cultivator
+                https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
+            - chmod +x /usr/local/bin/cultivator
+            - |
+              set -euo pipefail
+
+              ARGS=(
+                --root "$CULTIVATOR_ROOT"
+                --parallelism "$CULTIVATOR_PARALLELISM"
+                --non-interactive=true
+                --auto-approve=true
+              )
+
+              if [ -n "$CULTIVATOR_ENV" ]; then
+                ARGS+=(--env "$CULTIVATOR_ENV")
+              fi
+
+              # Execution order is automatically determined by the built-in DAG engine.
+              cultivator apply "${ARGS[@]}" 2>&1 | tee apply_output.txt
+          artifacts:
+            - apply_output.txt

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Ops-Talks/cultivator/internal/ci"
 	"github.com/Ops-Talks/cultivator/internal/runner"
 )
 
@@ -62,7 +63,7 @@ func TestE2E_TerragruntStructure(t *testing.T) {
 			executor := &cliFakeExecutor{}
 			r := runner.New().WithExecutor(executor)
 
-			code := runTerragruntCommand(tt.args, tt.command, r)
+			code := runTerragruntCommand(tt.args, tt.command, r, ci.Detect)
 
 			if code != tt.expectedStatus {
 				t.Errorf("expected status %d, got %d", tt.expectedStatus, code)
@@ -89,7 +90,7 @@ func TestE2E_TerragruntLarge(t *testing.T) {
 
 		// Run plan on prod environment which has many modules
 		args := []string{"-root", testdataDir, "-env", "prod", "-parallelism", "10"}
-		code := runTerragruntCommand(args, cmdPlan, r)
+		code := runTerragruntCommand(args, cmdPlan, r, ci.Detect)
 
 		if code != 0 {
 			t.Errorf("expected status 0, got %d", code)

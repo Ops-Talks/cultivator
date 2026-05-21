@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Ops-Talks/cultivator/internal/ci"
 	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/dag"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
@@ -47,7 +48,7 @@ func Run(args []string, version VersionInfo) int {
 	command := args[1]
 	switch command {
 	case cmdPlan, cmdApply, cmdDestroy:
-		return runTerragruntCommand(args[2:], command, runner.New())
+		return runTerragruntCommand(args[2:], command, runner.New(), ci.Detect)
 	case cmdVersion:
 		printVersion(version)
 		return 0
@@ -60,7 +61,7 @@ func Run(args []string, version VersionInfo) int {
 	}
 }
 
-func runTerragruntCommand(args []string, command string, r runner.RunnerIface) int {
+func runTerragruntCommand(args []string, command string, r runner.RunnerIface, detectCI func() ci.Environment) int {
 	state, code := parseTerragruntFlags(args, command)
 	if code != 0 {
 		return code
@@ -75,6 +76,13 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 	logger := logging.New(logLevelFromEnv(), os.Stdout, os.Stderr)
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	if resolved := resolveCIBaseRef(cfg, detectCI); resolved != "" {
+		logger.Debug("auto-detected base ref from CI pipeline environment", logging.Fields{
+			"base_ref": resolved,
+		})
+		cfg.BaseRef = resolved
+	}
 
 	modules, err := discovery.Discover(cfg.Root, discovery.Options{
 		Env:     cfg.Env,
@@ -127,6 +135,20 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 		"duration": duration.String(),
 	})
 	return 0
+}
+
+// resolveCIBaseRef returns the base branch detected from the CI pipeline
+// environment when all of the following are true:
+//   - changed-only mode is active
+//   - the base ref was not explicitly configured (still the default "HEAD")
+//   - the CI environment provides a PR target branch
+//
+// Returns an empty string when none of the conditions are met.
+func resolveCIBaseRef(cfg config.Config, detect func() ci.Environment) string {
+	if !cfg.ChangedOnly || cfg.BaseRef != "HEAD" {
+		return ""
+	}
+	return detect().BaseRef
 }
 
 // filterChangedModules keeps only modules that contain at least one file
