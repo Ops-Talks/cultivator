@@ -31,57 +31,40 @@ type Environment struct {
 // environment. The first matching provider wins. If no supported CI provider
 // is detected the returned Environment has Provider == ProviderUnknown.
 func Detect() Environment {
+	return detectFromEnv(os.Getenv)
+}
+
+// detectFromEnv is the testable implementation of Detect. It accepts a getenv
+// function so callers can substitute a fake environment without touching global
+// os state.
+func detectFromEnv(getenv func(string) string) Environment {
 	switch {
-	case isBitbucket():
-		return detectBitbucket()
-	case isGitHub():
-		return detectGitHub()
-	case isGitLab():
-		return detectGitLab()
+	case getenv("BITBUCKET_BUILD_NUMBER") != "":
+		return Environment{
+			Provider:  ProviderBitbucket,
+			IsPR:      getenv("BITBUCKET_PR_ID") != "",
+			BaseRef:   getenv("BITBUCKET_PR_DESTINATION_BRANCH"),
+			HeadRef:   getenv("BITBUCKET_BRANCH"),
+			CommitSHA: getenv("BITBUCKET_COMMIT"),
+		}
+	case getenv("GITHUB_ACTIONS") == "true":
+		baseRef := getenv("GITHUB_BASE_REF")
+		return Environment{
+			Provider:  ProviderGitHub,
+			IsPR:      baseRef != "",
+			BaseRef:   baseRef,
+			HeadRef:   getenv("GITHUB_HEAD_REF"),
+			CommitSHA: getenv("GITHUB_SHA"),
+		}
+	case getenv("GITLAB_CI") == "true":
+		return Environment{
+			Provider:  ProviderGitLab,
+			IsPR:      getenv("CI_MERGE_REQUEST_IID") != "",
+			BaseRef:   getenv("CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
+			HeadRef:   getenv("CI_COMMIT_REF_NAME"),
+			CommitSHA: getenv("CI_COMMIT_SHA"),
+		}
 	default:
 		return Environment{}
-	}
-}
-
-func isBitbucket() bool {
-	return os.Getenv("BITBUCKET_BUILD_NUMBER") != ""
-}
-
-func isGitHub() bool {
-	return os.Getenv("GITHUB_ACTIONS") == "true"
-}
-
-func isGitLab() bool {
-	return os.Getenv("GITLAB_CI") == "true"
-}
-
-func detectBitbucket() Environment {
-	return Environment{
-		Provider:  ProviderBitbucket,
-		IsPR:      os.Getenv("BITBUCKET_PR_ID") != "",
-		BaseRef:   os.Getenv("BITBUCKET_PR_DESTINATION_BRANCH"),
-		HeadRef:   os.Getenv("BITBUCKET_BRANCH"),
-		CommitSHA: os.Getenv("BITBUCKET_COMMIT"),
-	}
-}
-
-func detectGitHub() Environment {
-	baseRef := os.Getenv("GITHUB_BASE_REF")
-	return Environment{
-		Provider:  ProviderGitHub,
-		IsPR:      baseRef != "",
-		BaseRef:   baseRef,
-		HeadRef:   os.Getenv("GITHUB_HEAD_REF"),
-		CommitSHA: os.Getenv("GITHUB_SHA"),
-	}
-}
-
-func detectGitLab() Environment {
-	return Environment{
-		Provider:  ProviderGitLab,
-		IsPR:      os.Getenv("CI_MERGE_REQUEST_IID") != "",
-		BaseRef:   os.Getenv("CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
-		HeadRef:   os.Getenv("CI_COMMIT_REF_NAME"),
-		CommitSHA: os.Getenv("CI_COMMIT_SHA"),
 	}
 }

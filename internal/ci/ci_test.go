@@ -1,34 +1,18 @@
 package ci
 
-import (
-	"os"
-	"testing"
-)
+import "testing"
 
-// setEnv sets environment variables for the duration of a test, restoring the
-// original values when the test completes.
-func setEnv(t *testing.T, pairs map[string]string) {
-	t.Helper()
-	for key, val := range pairs {
-		orig, existed := os.LookupEnv(key)
-		if err := os.Setenv(key, val); err != nil {
-			t.Fatalf("os.Setenv(%q): %v", key, err)
-		}
-		if existed {
-			t.Cleanup(func() { os.Setenv(key, orig) }) //nolint:errcheck
-		} else {
-			t.Cleanup(func() { os.Unsetenv(key) }) //nolint:errcheck
-		}
+// fakeEnv returns a getenv function that reads from the provided map.
+func fakeEnv(pairs map[string]string) func(string) string {
+	return func(key string) string {
+		return pairs[key]
 	}
 }
 
-func TestDetect_Unknown(t *testing.T) {
-	// Ensure none of the CI sentinel variables are set.
-	for _, key := range []string{"BITBUCKET_BUILD_NUMBER", "GITHUB_ACTIONS", "GITLAB_CI"} {
-		os.Unsetenv(key) //nolint:errcheck
-	}
+func TestDetectFromEnv_Unknown(t *testing.T) {
+	t.Parallel()
 
-	env := Detect()
+	env := detectFromEnv(fakeEnv(map[string]string{}))
 
 	if env.Provider != ProviderUnknown {
 		t.Errorf("Provider = %q, want %q", env.Provider, ProviderUnknown)
@@ -41,16 +25,16 @@ func TestDetect_Unknown(t *testing.T) {
 	}
 }
 
-func TestDetect_Bitbucket(t *testing.T) {
+func TestDetectFromEnv_Bitbucket(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		envVars   map[string]string
-		wantIsPR  bool
-		wantBase  string
-		wantHead  string
-		wantSHA   string
+		name     string
+		envVars  map[string]string
+		wantIsPR bool
+		wantBase string
+		wantHead string
+		wantSHA  string
 	}{
 		{
 			name: "PR pipeline",
@@ -84,13 +68,7 @@ func TestDetect_Bitbucket(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Clear competing providers first.
-			for _, key := range []string{"GITHUB_ACTIONS", "GITLAB_CI"} {
-				os.Unsetenv(key) //nolint:errcheck
-			}
-			setEnv(t, tc.envVars)
-
-			env := Detect()
+			env := detectFromEnv(fakeEnv(tc.envVars))
 
 			if env.Provider != ProviderBitbucket {
 				t.Errorf("Provider = %q, want %q", env.Provider, ProviderBitbucket)
@@ -111,7 +89,7 @@ func TestDetect_Bitbucket(t *testing.T) {
 	}
 }
 
-func TestDetect_GitHub(t *testing.T) {
+func TestDetectFromEnv_GitHub(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -138,9 +116,8 @@ func TestDetect_GitHub(t *testing.T) {
 		{
 			name: "push event (no PR)",
 			envVars: map[string]string{
-				"GITHUB_ACTIONS":  "true",
-				"GITHUB_HEAD_REF": "",
-				"GITHUB_SHA":      "sha222",
+				"GITHUB_ACTIONS": "true",
+				"GITHUB_SHA":     "sha222",
 			},
 			wantIsPR: false,
 			wantBase: "",
@@ -153,12 +130,7 @@ func TestDetect_GitHub(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			for _, key := range []string{"BITBUCKET_BUILD_NUMBER", "GITLAB_CI"} {
-				os.Unsetenv(key) //nolint:errcheck
-			}
-			setEnv(t, tc.envVars)
-
-			env := Detect()
+			env := detectFromEnv(fakeEnv(tc.envVars))
 
 			if env.Provider != ProviderGitHub {
 				t.Errorf("Provider = %q, want %q", env.Provider, ProviderGitHub)
@@ -179,7 +151,7 @@ func TestDetect_GitHub(t *testing.T) {
 	}
 }
 
-func TestDetect_GitLab(t *testing.T) {
+func TestDetectFromEnv_GitLab(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -193,11 +165,11 @@ func TestDetect_GitLab(t *testing.T) {
 		{
 			name: "merge request pipeline",
 			envVars: map[string]string{
-				"GITLAB_CI":                              "true",
-				"CI_MERGE_REQUEST_IID":                   "12",
-				"CI_MERGE_REQUEST_TARGET_BRANCH_NAME":    "main",
-				"CI_COMMIT_REF_NAME":                     "feat/something",
-				"CI_COMMIT_SHA":                          "sha333",
+				"GITLAB_CI":                           "true",
+				"CI_MERGE_REQUEST_IID":                "12",
+				"CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "main",
+				"CI_COMMIT_REF_NAME":                  "feat/something",
+				"CI_COMMIT_SHA":                       "sha333",
 			},
 			wantIsPR: true,
 			wantBase: "main",
@@ -222,12 +194,7 @@ func TestDetect_GitLab(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			for _, key := range []string{"BITBUCKET_BUILD_NUMBER", "GITHUB_ACTIONS"} {
-				os.Unsetenv(key) //nolint:errcheck
-			}
-			setEnv(t, tc.envVars)
-
-			env := Detect()
+			env := detectFromEnv(fakeEnv(tc.envVars))
 
 			if env.Provider != ProviderGitLab {
 				t.Errorf("Provider = %q, want %q", env.Provider, ProviderGitLab)
@@ -248,19 +215,17 @@ func TestDetect_GitLab(t *testing.T) {
 	}
 }
 
-func TestDetect_PriorityBitbucketOverGitHub(t *testing.T) {
-	// When multiple CI env vars are set simultaneously, Bitbucket takes priority.
-	for _, key := range []string{"GITHUB_ACTIONS", "GITLAB_CI", "BITBUCKET_BUILD_NUMBER"} {
-		os.Unsetenv(key) //nolint:errcheck
-	}
+func TestDetectFromEnv_PriorityBitbucketOverGitHub(t *testing.T) {
+	t.Parallel()
 
-	setEnv(t, map[string]string{
+	// When multiple CI env vars are set simultaneously, Bitbucket takes priority.
+	env := detectFromEnv(fakeEnv(map[string]string{
 		"BITBUCKET_BUILD_NUMBER": "1",
 		"GITHUB_ACTIONS":         "true",
-	})
+	}))
 
-	env := Detect()
 	if env.Provider != ProviderBitbucket {
 		t.Errorf("Provider = %q, want %q (Bitbucket must take priority)", env.Provider, ProviderBitbucket)
 	}
 }
+
