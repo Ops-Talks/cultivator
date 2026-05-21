@@ -132,7 +132,7 @@ pipelines:
             - apply_output.txt
 ```
 
-A complete reference pipeline is available in [`examples/bitbucket-pipelines.yml`](../../examples/bitbucket-pipelines.yml).
+A complete reference pipeline is available in [`examples/bitbucket-pipelines.yml`](https://github.com/Ops-Talks/cultivator/blob/main/examples/bitbucket-pipelines.yml).
 
 ---
 

@@ -228,4 +228,3 @@ func TestDetectFromEnv_PriorityBitbucketOverGitHub(t *testing.T) {
 		t.Errorf("Provider = %q, want %q (Bitbucket must take priority)", env.Provider, ProviderBitbucket)
 	}
 }
-

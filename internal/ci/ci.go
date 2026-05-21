@@ -15,6 +15,10 @@ const (
 	ProviderGitLab    Provider = "gitlab"
 )
 
+// envTrue is the string value used by CI providers (GitHub Actions, GitLab CI)
+// to signal that a build is running inside their environment.
+const envTrue = "true"
+
 // Environment holds CI-provider-agnostic values derived from the active CI
 // environment. Fields may be empty when the corresponding value is not
 // available (e.g. BaseRef is empty when not running in a pull-request
@@ -47,7 +51,7 @@ func detectFromEnv(getenv func(string) string) Environment {
 			HeadRef:   getenv("BITBUCKET_BRANCH"),
 			CommitSHA: getenv("BITBUCKET_COMMIT"),
 		}
-	case getenv("GITHUB_ACTIONS") == "true":
+	case getenv("GITHUB_ACTIONS") == envTrue:
 		baseRef := getenv("GITHUB_BASE_REF")
 		return Environment{
 			Provider:  ProviderGitHub,
@@ -56,7 +60,7 @@ func detectFromEnv(getenv func(string) string) Environment {
 			HeadRef:   getenv("GITHUB_HEAD_REF"),
 			CommitSHA: getenv("GITHUB_SHA"),
 		}
-	case getenv("GITLAB_CI") == "true":
+	case getenv("GITLAB_CI") == envTrue:
 		return Environment{
 			Provider:  ProviderGitLab,
 			IsPR:      getenv("CI_MERGE_REQUEST_IID") != "",

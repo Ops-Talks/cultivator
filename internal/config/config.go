@@ -248,17 +248,24 @@ func ParseBool(value string) bool {
 
 func parseBoolLenient(value string) bool {
 	lower := strings.ToLower(strings.TrimSpace(value))
-	return lower == "true" || lower == "1" || lower == "on" || lower == "yes"
+	return lower == boolTrue || lower == "1" || lower == "on" || lower == boolYes
 }
 
 var errInvalidBooleanValue = errors.New("invalid boolean value")
 
+const (
+	boolTrue  = "true"
+	boolFalse = "false"
+	boolYes   = "yes"
+	boolOff   = "off"
+)
+
 // ParseBoolStrict parses boolean values for strict channels (such as CLI flags).
 func ParseBoolStrict(value string) (bool, error) {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "true", "1", "t", "yes", "y", "on":
+	case boolTrue, "1", "t", boolYes, "y", "on":
 		return true, nil
-	case "false", "0", "f", "no", "n", "off":
+	case boolFalse, "0", "f", "no", "n", boolOff:
 		return false, nil
 	default:
 		return false, fmt.Errorf("%w: %s", errInvalidBooleanValue, strings.TrimSpace(value))
