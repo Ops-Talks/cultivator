@@ -57,6 +57,7 @@ For production-ready CI integration, see the dedicated guides:
 
 - **[GitHub Actions](../user-guide/github-actions.md)** -- plan on PRs, apply on merge
 - **[GitLab Pipelines](../user-guide/gitlab-pipelines.md)** -- plan on MRs, apply on merge
+- **[Bitbucket Pipelines](../user-guide/bitbucket-pipelines.md)** -- plan on PRs, apply on merge
 
 Ready-to-use pipeline files are also available in the [`examples/`](https://github.com/Ops-Talks/cultivator/tree/main/examples) directory.
 

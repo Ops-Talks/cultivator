@@ -4,7 +4,7 @@ Understand how Cultivator works under the hood.
 
 ## Overview
 
-Cultivator is a **CLI-first tool** that orchestrates Terragrunt stack discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI) or locally, and delegates state management entirely to Terraform/OpenTofu backends.
+Cultivator is a **CLI-first tool** that orchestrates Terragrunt stack discovery, filtering, and execution. It runs as a command in CI/CD systems (GitHub Actions, GitLab CI, Bitbucket Pipelines) or locally, and delegates state management entirely to Terraform/OpenTofu backends.
 
 Unlike PR-based automation, Cultivator is **job-triggered**: you call it explicitly in your CI workflow, providing flags to control scope and behavior.
 
@@ -53,7 +53,13 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 - Formats and displays results in human-readable text
 - Reports exit codes and errors per module
 
-### 8. Logging Boundary
+### 8. CI Provider Detection
+
+- Detects the active CI provider from environment variables (`GITHUB_ACTIONS`, `GITLAB_CI`, `BITBUCKET_BUILD_NUMBER`, etc.)
+- Resolves the base branch for `--changed-only` (Magic Mode) automatically from CI-specific env vars
+- Supports GitHub Actions, GitLab CI, and Bitbucket Pipelines; falls back gracefully when no CI is detected
+
+### 9. Logging Boundary
 
 - CLI owns user-facing logs and summary output.
 - Discovery, runner, and git use injected logger instances for debug-level diagnostics only.
@@ -64,6 +70,8 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 CLI Invocation (plan/apply/destroy)
     |
 Config Loader -> Parse defaults + optional --config file + env vars + flags
+    |
+CI Provider Detection -> Auto-resolve base branch for Magic Mode (GitHub Actions / GitLab CI / Bitbucket Pipelines)
     |
 Stack Discovery + Scope Filter -> Find all terragrunt.hcl files, apply --env, --include, --exclude, --tags
     |

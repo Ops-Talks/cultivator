@@ -15,7 +15,8 @@
 - Parallel execution (configurable worker pool)
 - Output formatting (text-based)
 - Configuration management (YAML + CLI flags + env vars)
-- CI/CD integration (GitHub Actions, GitLab CI)
+- CI/CD integration (GitHub Actions, GitLab CI, Bitbucket Pipelines)
+- CI auto-detection (base branch resolution for Magic Mode)
 
 ## Architecture Overview
 
@@ -49,6 +50,9 @@ cultivator/
 │       ├── main.go              # Entry point with ldflags injection
 │       └── main_test.go         # CLI tests
 ├── internal/
+│   ├── ci/
+│   │   ├── ci.go                # CI provider detection (GitHub Actions, GitLab CI, Bitbucket Pipelines)
+│   │   └── ci_test.go           # CI detection unit tests
 │   ├── cli/
 │   │   ├── cli.go               # CLI command routing and flag parsing
 │   │   ├── cli_test.go          # CLI unit tests
@@ -194,6 +198,16 @@ cultivator/
 - Run `git diff --name-only` against a configurable base ref
 - Return the set of changed file paths
 - Map changed files to affected Terragrunt modules
+
+### 9. CI Package (internal/ci/)
+
+**Purpose**: Detect the CI provider and resolve the base branch for Magic Mode.
+
+**Responsibilities**:
+
+- Detect active CI provider from environment variables (e.g., `GITHUB_ACTIONS`, `GITLAB_CI`, `BITBUCKET_BUILD_NUMBER`)
+- Resolve the correct base branch ref per provider (e.g., `GITHUB_BASE_REF`, `CI_MERGE_REQUEST_TARGET_BRANCH_NAME`, `BITBUCKET_PR_DESTINATION_BRANCH`)
+- Provide a uniform interface for the CLI to resolve `--base-branch` automatically in CI environments
 
 ## Testing
 
