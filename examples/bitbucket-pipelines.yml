@@ -9,6 +9,8 @@
 #   CULTIVATOR_PARALLELISM   e.g. 4
 #   BITBUCKET_APP_PASSWORD   Bitbucket App Password for PR comments
 #                            (Settings > App passwords, scope: pull-requests write)
+#   BITBUCKET_USERNAME       Bitbucket username paired with BITBUCKET_APP_PASSWORD
+#                            for the PR comment API call
 #
 # Cloud credentials (e.g. AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) should
 # also be stored as repository or deployment variables.

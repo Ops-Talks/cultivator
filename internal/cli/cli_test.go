@@ -572,7 +572,7 @@ func Test_runTerragruntCommand_Flow(t *testing.T) {
 		// Mock RunArgs
 		args := []string{"-root", tmpDir, "-tags", "app"}
 
-		code := runTerragruntCommand(args, cmdPlan, r)
+		code := runTerragruntCommand(args, cmdPlan, r, ci.Detect)
 		if code != 0 {
 			t.Errorf("runTerragruntCommand() = %d, want 0", code)
 		}
@@ -588,7 +588,7 @@ func Test_runTerragruntCommand_Flow(t *testing.T) {
 		r := runner.New().WithExecutor(executor)
 
 		args := []string{"-root", tmpDir, "-tags", "nonexistent"}
-		code := runTerragruntCommand(args, cmdPlan, r)
+		code := runTerragruntCommand(args, cmdPlan, r, ci.Detect)
 
 		if code != 0 {
 			t.Errorf("runTerragruntCommand() = %d, want 0 (graceful exit)", code)
@@ -608,7 +608,7 @@ func Test_runTerragruntCommand_Flow(t *testing.T) {
 		r := runner.New().WithExecutor(executor)
 
 		args := []string{"-root", tmpDir}
-		code := runTerragruntCommand(args, cmdPlan, r)
+		code := runTerragruntCommand(args, cmdPlan, r, ci.Detect)
 
 		if code != 1 {
 			t.Errorf("runTerragruntCommand() = %d, want 1 (failure)", code)
@@ -639,7 +639,7 @@ func Test_runTerragruntCommand_FakeRunner(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			fr := &fakeRunnerIface{}
-			code := runTerragruntCommand([]string{"-root", tmpDir}, tc.command, fr)
+			code := runTerragruntCommand([]string{"-root", tmpDir}, tc.command, fr, ci.Detect)
 			if code != 0 {
 				t.Errorf("runTerragruntCommand() = %d, want 0", code)
 			}
@@ -770,9 +770,7 @@ func Test_runTerragruntCommand_CIAutoDetect(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(moduleDir, "terragrunt.hcl"), []byte(""), 0o644)
 
 	// Inject a fake CI detector that returns a Bitbucket PR environment.
-	orig := ciDetectFunc
-	t.Cleanup(func() { ciDetectFunc = orig })
-	ciDetectFunc = func() ci.Environment {
+	detect := func() ci.Environment {
 		return ci.Environment{Provider: ci.ProviderBitbucket, BaseRef: "main", IsPR: true}
 	}
 
@@ -784,7 +782,7 @@ func Test_runTerragruntCommand_CIAutoDetect(t *testing.T) {
 	// expect exit code 1, but the point is that the command reaches
 	// filterChangedModules with the detected base ref rather than "HEAD".
 	args := []string{"-root", tmpDir, "-changed-only=true"}
-	code := runTerragruntCommand(args, cmdPlan, r)
+	code := runTerragruntCommand(args, cmdPlan, r, detect)
 
 	// Without a real git repo the command exits with 1 (filterChangedModules
 	// returns an error), which proves the changed-only path was reached.

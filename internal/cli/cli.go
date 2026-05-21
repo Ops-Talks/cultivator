@@ -22,10 +22,6 @@ import (
 	"github.com/Ops-Talks/cultivator/internal/runner"
 )
 
-// ciDetectFunc is the CI environment detector called by runTerragruntCommand.
-// It can be replaced in tests to inject a mock CI environment.
-var ciDetectFunc = ci.Detect
-
 const (
 	cmdPlan    = "plan"
 	cmdApply   = "apply"
@@ -52,7 +48,7 @@ func Run(args []string, version VersionInfo) int {
 	command := args[1]
 	switch command {
 	case cmdPlan, cmdApply, cmdDestroy:
-		return runTerragruntCommand(args[2:], command, runner.New())
+		return runTerragruntCommand(args[2:], command, runner.New(), ci.Detect)
 	case cmdVersion:
 		printVersion(version)
 		return 0
@@ -65,7 +61,7 @@ func Run(args []string, version VersionInfo) int {
 	}
 }
 
-func runTerragruntCommand(args []string, command string, r runner.RunnerIface) int {
+func runTerragruntCommand(args []string, command string, r runner.RunnerIface, detectCI func() ci.Environment) int {
 	state, code := parseTerragruntFlags(args, command)
 	if code != 0 {
 		return code
@@ -81,7 +77,7 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if resolved := resolveCIBaseRef(cfg, ciDetectFunc); resolved != "" {
+	if resolved := resolveCIBaseRef(cfg, detectCI); resolved != "" {
 		logger.Debug("auto-detected base ref from CI pipeline environment", logging.Fields{
 			"base_ref": resolved,
 		})
