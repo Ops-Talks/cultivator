@@ -16,7 +16,7 @@ If you are looking for a solution to automate your Terragrunt stacks in CI/CD pi
 - **[Installation](getting-started/installation.md)** - Learn how to install and setup Cultivator for your environment.
 - **[CLI Reference](user-guide/cli-reference.md)** - Full reference for commands, flags, and common workflows.
 - **[Configuration](getting-started/configuration.md)** - Customize Cultivator using YAML, environment variables, or flags.
-- **[CI/CD Guides](user-guide/index.md)** - Detailed integration guides for **GitHub Actions** and **GitLab CI/CD**.
+- **[CI/CD Guides](user-guide/index.md)** - Detailed integration guides for **GitHub Actions**, **GitLab CI/CD**, and **Bitbucket Pipelines**.
 - **[FAQ](faq.md)** - Frequently asked questions about usage, security, and troubleshooting.
 
 ---

@@ -33,6 +33,7 @@ For production-ready CI workflows, see the dedicated guides:
 
 - **[GitHub Actions](../user-guide/github-actions.md)** -- full plan/apply lifecycle with doctor, PR comments, and artifacts
 - **[GitLab Pipelines](../user-guide/gitlab-pipelines.md)** -- full plan/apply lifecycle with MR comments and manual approval
+- **[Bitbucket Pipelines](../user-guide/bitbucket-pipelines.md)** -- full plan/apply lifecycle with PR comments and manual approval gates
 
 Ready-to-use pipeline files are also available in the [`examples/`](https://github.com/Ops-Talks/cultivator/tree/main/examples) directory.
 

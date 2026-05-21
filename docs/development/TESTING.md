@@ -12,15 +12,18 @@ Cultivator uses a comprehensive testing strategy combining unit tests, integrati
 
 | Package    | Coverage | Status      |
 |------------|----------|-------------|
-| config     | 92.4%    | Excellent   |
-| discovery  | 93.1%    | Excellent   |
-| hcl        | 100.0%   | Excellent   |
-| logging    | 95.3%    | Excellent   |
-| runner     | 90.7%    | Excellent   |
-| cli        | 85.5%    | Excellent   |
+| ci         | 85.7%    | Excellent   |
+| cli        | 82.5%    | Excellent   |
 | cmd        | 50.0%    | Good        |
+| config     | 95.9%    | Excellent   |
+| dag        | 100.0%   | Excellent   |
+| discovery  | 93.1%    | Excellent   |
+| git        | 90.5%    | Excellent   |
+| hcl        | 88.0%    | Excellent   |
+| logging    | 90.2%    | Excellent   |
+| runner     | 84.5%    | Excellent   |
 
-**Total Project Coverage**: ~88.5% (statement coverage)
+**Total Project Coverage**: ~89% (statement coverage)
 
 ## Test Types
 

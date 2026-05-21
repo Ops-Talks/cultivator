@@ -11,11 +11,11 @@ Cultivator is a **CLI that orchestrates Terragrunt execution** in CI/CD pipeline
 Unlike Atlantis (which is comment-triggered automation in GitHub):
 
 - **Atlantis**: Webhook-based; comments on PRs trigger automation inside GitHub
-- **Cultivator**: CLI-based; you explicitly call it from CI jobs (GitHub Actions, GitLab CI, etc.)
+- **Cultivator**: CLI-based; you explicitly call it from CI jobs (GitHub Actions, GitLab CI, Bitbucket Pipelines, etc.)
 
 **Advantages of Cultivator's approach:**
 
-- Works in any CI system (GitHub Actions, GitLab CI, local development)
+- Works in any CI system (GitHub Actions, GitLab CI, Bitbucket Pipelines, local development)
 - Simpler to debug (just run the CLI command locally)
 - Better separation of concerns (CI orchestrates, Cultivator executes)
 - No GitHub-specific logic in the tool

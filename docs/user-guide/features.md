@@ -171,6 +171,7 @@ Cultivator does not manage state or backends. Terragrunt and Terraform/OpenTofu 
 
 - GitHub Actions
 - GitLab CI
+- Bitbucket Pipelines
 - Local execution
 
 ---
