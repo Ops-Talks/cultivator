@@ -61,6 +61,7 @@ jobs:
     permissions:
       contents: read
       issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -84,7 +85,11 @@ jobs:
         run: mkdocs build
 
       - name: Comment PR with build status
-        if: success()
+        # Skip when the PR comes from a fork (GITHUB_TOKEN is read-only in that
+        # case) and tolerate any permission errors from bot-authored PRs whose
+        # token is forced to read-only regardless of the declared permissions.
+        if: success() && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
         uses: actions/github-script@v9
         with:
           script: |
