@@ -113,6 +113,7 @@ nav:
     - CLI Reference: user-guide/cli-reference.md
     - GitHub Actions: user-guide/github-actions.md
     - GitLab Pipelines: user-guide/gitlab-pipelines.md
+    - Bitbucket Pipelines: user-guide/bitbucket-pipelines.md
   - Architecture:
     - Design: architecture/design.md
     - External Modules: architecture/external-modules.md

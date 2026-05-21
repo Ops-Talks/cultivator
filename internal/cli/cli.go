@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Ops-Talks/cultivator/internal/ci"
 	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/dag"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
@@ -20,6 +21,10 @@ import (
 	"github.com/Ops-Talks/cultivator/internal/logging"
 	"github.com/Ops-Talks/cultivator/internal/runner"
 )
+
+// ciDetectFunc is the CI environment detector called by runTerragruntCommand.
+// It can be replaced in tests to inject a mock CI environment.
+var ciDetectFunc = ci.Detect
 
 const (
 	cmdPlan    = "plan"
@@ -76,6 +81,13 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	if resolved := resolveCIBaseRef(cfg, ciDetectFunc); resolved != "" {
+		logger.Debug("auto-detected base ref from CI pipeline environment", logging.Fields{
+			"base_ref": resolved,
+		})
+		cfg.BaseRef = resolved
+	}
+
 	modules, err := discovery.Discover(cfg.Root, discovery.Options{
 		Env:     cfg.Env,
 		Include: cfg.Include,
@@ -127,6 +139,20 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface) i
 		"duration": duration.String(),
 	})
 	return 0
+}
+
+// resolveCIBaseRef returns the base branch detected from the CI pipeline
+// environment when all of the following are true:
+//   - changed-only mode is active
+//   - the base ref was not explicitly configured (still the default "HEAD")
+//   - the CI environment provides a PR target branch
+//
+// Returns an empty string when none of the conditions are met.
+func resolveCIBaseRef(cfg config.Config, detect func() ci.Environment) string {
+	if !cfg.ChangedOnly || cfg.BaseRef != "HEAD" {
+		return ""
+	}
+	return detect().BaseRef
 }
 
 // filterChangedModules keeps only modules that contain at least one file

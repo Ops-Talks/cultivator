@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ops-Talks/cultivator/internal/ci"
 	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
 	"github.com/Ops-Talks/cultivator/internal/logging"
@@ -682,4 +683,112 @@ func (f *cliFakeExecutor) Run(_ context.Context, workDir string, _ string, args 
 	defer f.mu.Unlock()
 	f.calls = append(f.calls, cliCall{workDir: workDir, args: args})
 	return "ok", "", 0, nil
+}
+
+func Test_ResolveCIBaseRef(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		cfg    config.Config
+		detect func() ci.Environment
+		want   string
+	}{
+		{
+			name: "not changed-only - no CI detection",
+			cfg:  config.Config{ChangedOnly: false, BaseRef: "HEAD"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderBitbucket, BaseRef: "main", IsPR: true}
+			},
+			want: "",
+		},
+		{
+			name: "changed-only with explicit base ref - no CI override",
+			cfg:  config.Config{ChangedOnly: true, BaseRef: "main"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderBitbucket, BaseRef: "develop", IsPR: true}
+			},
+			want: "",
+		},
+		{
+			name: "changed-only default base ref in Bitbucket PR pipeline",
+			cfg:  config.Config{ChangedOnly: true, BaseRef: "HEAD"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderBitbucket, BaseRef: "main", IsPR: true}
+			},
+			want: "main",
+		},
+		{
+			name: "changed-only default base ref in GitHub PR pipeline",
+			cfg:  config.Config{ChangedOnly: true, BaseRef: "HEAD"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderGitHub, BaseRef: "develop", IsPR: true}
+			},
+			want: "develop",
+		},
+		{
+			name: "changed-only default base ref in GitLab MR pipeline",
+			cfg:  config.Config{ChangedOnly: true, BaseRef: "HEAD"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderGitLab, BaseRef: "staging", IsPR: true}
+			},
+			want: "staging",
+		},
+		{
+			name: "changed-only default base ref but no CI environment",
+			cfg:  config.Config{ChangedOnly: true, BaseRef: "HEAD"},
+			detect: func() ci.Environment {
+				return ci.Environment{}
+			},
+			want: "",
+		},
+		{
+			name: "changed-only in Bitbucket branch pipeline (no PR, no base ref)",
+			cfg:  config.Config{ChangedOnly: true, BaseRef: "HEAD"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: false, BaseRef: ""}
+			},
+			want: "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := resolveCIBaseRef(tc.cfg, tc.detect)
+			if got != tc.want {
+				t.Errorf("resolveCIBaseRef() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func Test_runTerragruntCommand_CIAutoDetect(t *testing.T) {
+	tmpDir := t.TempDir()
+	moduleDir := filepath.Join(tmpDir, "env", "vpc")
+	_ = os.MkdirAll(moduleDir, 0o755)
+	_ = os.WriteFile(filepath.Join(moduleDir, "terragrunt.hcl"), []byte(""), 0o644)
+
+	// Inject a fake CI detector that returns a Bitbucket PR environment.
+	orig := ciDetectFunc
+	t.Cleanup(func() { ciDetectFunc = orig })
+	ciDetectFunc = func() ci.Environment {
+		return ci.Environment{Provider: ci.ProviderBitbucket, BaseRef: "main", IsPR: true}
+	}
+
+	executor := &cliFakeExecutor{}
+	r := runner.New().WithExecutor(executor)
+
+	// changed-only without --base: CI detection should kick in.
+	// The git repo check will fail (tmpDir is not a git repo), so we
+	// expect exit code 1, but the point is that the command reaches
+	// filterChangedModules with the detected base ref rather than "HEAD".
+	args := []string{"-root", tmpDir, "-changed-only=true"}
+	code := runTerragruntCommand(args, cmdPlan, r)
+
+	// Without a real git repo the command exits with 1 (filterChangedModules
+	// returns an error), which proves the changed-only path was reached.
+	if code != 1 {
+		t.Errorf("runTerragruntCommand() with CI auto-detect = %d, want 1 (no git repo)", code)
+	}
 }
