@@ -7,11 +7,12 @@
 #   CULTIVATOR_ROOT          e.g. providers
 #   CULTIVATOR_ENV           leave empty to run all stacks under CULTIVATOR_ROOT
 #   CULTIVATOR_PARALLELISM   e.g. 4
-#   BITBUCKET_APP_PASSWORD   App password scoped to "Pull requests: write"
-#                            (Personal settings > App passwords) used only for
-#                            the PR comment API call. Prefer OIDC for cloud
-#                            credentials whenever possible.
-#   BITBUCKET_USERNAME       Bitbucket username paired with BITBUCKET_APP_PASSWORD
+#   REPO_ACCESS_TOKEN        Repository Access Token with the `pullrequest`
+#                            write scope, used to post the plan as a PR comment.
+#                            Mark the variable as Secured. App Passwords are
+#                            deprecated by Atlassian; use a Repository Access
+#                            Token (or an API token for user-level scripts).
+#                            See Repository settings > Access tokens.
 #
 # Cloud credentials (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY, etc.) should
 # also be stored as repository or deployment variables. Long-lived secrets are
@@ -76,16 +77,16 @@ definitions:
             CULTIVATOR_EXIT="${PIPESTATUS[0]}"
             set -e
 
-            if [ -z "${BITBUCKET_APP_PASSWORD:-}" ]; then
-              echo "BITBUCKET_APP_PASSWORD not set; skipping PR comment"
+            if [ -z "${REPO_ACCESS_TOKEN:-}" ]; then
+              echo "REPO_ACCESS_TOKEN not set; skipping PR comment"
             else
               PLAN_OUTPUT=$(cat plan_output.txt)
               COMMENT=$(printf '## Cultivator Plan\n\n```\n%s\n```' "${PLAN_OUTPUT}")
               curl --silent --show-error --fail \
-                --user "${BITBUCKET_USERNAME}:${BITBUCKET_APP_PASSWORD}" \
+                --header "Authorization: Bearer ${REPO_ACCESS_TOKEN}" \
                 --header "Content-Type: application/json" \
                 --request POST \
-                "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${BITBUCKET_PR_ID}/comments" \
+                "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${BITBUCKET_REPO_SLUG}/pullrequests/${BITBUCKET_PR_ID}/comments" \
                 --data "$(jq -n --arg body "${COMMENT}" '{"content":{"raw":$body}}')"
             fi
 
