@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,8 +42,8 @@ func TestGetChangedFiles(t *testing.T) {
 		if err == nil {
 			t.Fatal("GetChangedFiles() error = nil, want non-nil")
 		}
-		if !strings.Contains(err.Error(), "git diff failed for base refs") {
-			t.Fatalf("GetChangedFiles() error = %q, want base refs context", err.Error())
+		if !errors.Is(err, ErrBaseRefNotFound) {
+			t.Fatalf("GetChangedFiles() error = %v, want errors.Is(err, ErrBaseRefNotFound)", err)
 		}
 	})
 
@@ -235,4 +236,51 @@ func TestIsGitRepo(t *testing.T) {
 	if !IsGitRepo(context.Background(), tmpDir, nil) {
 		t.Errorf("expected %s to be a git repo", tmpDir)
 	}
+}
+
+func TestFetchRemoteBranch(t *testing.T) {
+	t.Parallel()
+
+	t.Run("recovers a missing destination branch", func(t *testing.T) {
+		t.Parallel()
+		repoDir, baseBranch := setupRepoWithFeatureChange(t)
+
+		// Drop both the local branch and the remote-tracking ref to simulate
+		// a Bitbucket Pipelines clone that did not fetch the destination branch.
+		runCmd(t, repoDir, "git", "branch", "-D", baseBranch)
+		runCmd(t, repoDir, "git", "update-ref", "-d", "refs/remotes/origin/"+baseBranch)
+
+		_, err := GetChangedFiles(context.Background(), repoDir, baseBranch, nil)
+		if !errors.Is(err, ErrBaseRefNotFound) {
+			t.Fatalf("expected ErrBaseRefNotFound before fetch, got %v", err)
+		}
+
+		if err := FetchRemoteBranch(context.Background(), repoDir, "origin", baseBranch, nil); err != nil {
+			t.Fatalf("FetchRemoteBranch() error = %v", err)
+		}
+
+		got, err := GetChangedFiles(context.Background(), repoDir, baseBranch, nil)
+		if err != nil {
+			t.Fatalf("GetChangedFiles() after fetch error = %v", err)
+		}
+		assertContainsBaseName(t, got, "file2.txt")
+	})
+
+	t.Run("rejects empty remote", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		err := FetchRemoteBranch(context.Background(), repoDir, "", "main", nil)
+		if err == nil || !strings.Contains(err.Error(), "remote is required") {
+			t.Fatalf("expected remote-required error, got %v", err)
+		}
+	})
+
+	t.Run("rejects empty branch", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		err := FetchRemoteBranch(context.Background(), repoDir, "origin", "", nil)
+		if err == nil || !strings.Contains(err.Error(), "branch is required") {
+			t.Fatalf("expected branch-required error, got %v", err)
+		}
+	})
 }
