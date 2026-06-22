@@ -18,8 +18,9 @@ These flags are available on `plan`, `apply`, and `destroy`:
 | `--non-interactive` | Add `-input=false` to Terragrunt commands | `false` |
 | `--dry-run` | Print commands without executing them | `false` |
 | `--graph` | Show Mermaid dependency graph | `false` |
-| `--changed-only` | Only execute modules with changed files | `false` |
-| `--base` | Git base reference for `--changed-only` | `HEAD` |
+| `--changed-only` | Only execute modules with changed files. Scoped to `--root`: files outside the configured root do not select any module. | `false` |
+| `--base` | Git base reference for `--changed-only`. | `HEAD` |
+| `--no-auto-fetch` | Disable the automatic `git fetch origin <branch>` retry that Cultivator performs in Bitbucket Pipelines pull-request builds when the destination branch is not locally resolvable. | `false` |
 
 ## Available Commands
 

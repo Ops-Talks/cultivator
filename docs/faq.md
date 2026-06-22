@@ -318,6 +318,29 @@ cultivator plan --root=live --env=prod
 cultivator plan --config=cultivator.yml --env=prod
 ```
 
+### Why did `--changed-only` run every stack in a previous version?
+
+Older releases applied the "ancestor-config" heuristic (for `root.hcl` and
+`environment.hcl`) without scoping it to the configured `--root`. A single
+changed file at the repository root, such as `bitbucket-pipelines.yml`,
+matched every discovered module and Cultivator executed all stacks. The
+scoping fix landed in Magic Mode: changes outside `--root` no longer select
+any module, while shared parent configs inside `--root` still propagate to
+their descendants. If you still see all stacks running, double-check that
+`--root` is pointing at the directory that actually contains your Terragrunt
+hierarchy.
+
+### Why does `--changed-only` fail in Bitbucket Pipelines with "git diff failed"?
+
+Bitbucket Pipelines clones a single branch and does not create
+remote-tracking refs for the PR destination. When Cultivator cannot resolve
+`origin/<base>` it now fetches the destination branch automatically
+(`git fetch --no-tags origin <branch>`) and retries the diff once. Pair
+that with `clone.depth: full` to make sure the merge base is reachable. To
+opt out (for example to enforce a manual fetch step), pass
+`--no-auto-fetch`. The CLI exits non-zero if the base ref still cannot be
+resolved; it never silently falls back to running every stack.
+
 ## Advanced Questions
 
 ### Can I use Cultivator with Helm/Kustomize?

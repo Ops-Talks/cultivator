@@ -141,16 +141,89 @@ A complete reference pipeline is available in [`examples/bitbucket-pipelines.yml
 When `--changed-only` is active, Cultivator automatically reads the
 `BITBUCKET_PR_DESTINATION_BRANCH` environment variable to determine the git
 base reference. This means you do **not** need to pass `--base` explicitly in
-Bitbucket Pipelines — the right branch is detected automatically.
+Bitbucket Pipelines - the right branch is detected automatically.
 
 ```bash
 # This is sufficient; --base is resolved automatically from the pipeline env.
 cultivator plan --changed-only --root providers
 ```
 
-If you are running outside a PR pipeline (e.g. a manual branch run), set
-`BITBUCKET_PR_DESTINATION_BRANCH` explicitly or pass `--base <branch>` on the
-command line.
+If you are running outside a PR pipeline (for example a manual branch run),
+set `BITBUCKET_PR_DESTINATION_BRANCH` explicitly or pass `--base <branch>` on
+the command line.
+
+### Pull-request merge semantics
+
+Bitbucket clones the source branch and **merges the destination branch into it
+before running the script**. As a consequence:
+
+- `git diff origin/<destination>` shows only the changes introduced by the
+  pull request, not the full source-branch history.
+- Pipelines must clone enough history to reach the merge base. The default
+  `clone.depth` is **50 commits**; set `clone.depth: full` on every step that
+  uses Magic Mode.
+
+### Source-branch globs
+
+Glob patterns under `pull-requests:` match the **source branch** of the pull
+request, never the destination. For example, `pull-requests: { 'feature/*': ... }`
+fires when a PR is opened from a `feature/*` branch toward any target.
+
+### Forked repositories
+
+Pull requests opened from a forked repository do **not** trigger the
+`pull-requests` pipeline. This is an Atlassian platform limitation and cannot
+be worked around from Cultivator itself.
+
+### Parallel runs with `branches:` and `default:`
+
+`pull-requests:` runs **in addition to** any matching `branches:` or `default:`
+entry for the same event. To avoid two pipelines starting in parallel for one
+push, scope `branches:` to the trunk (for example `main`) and rely on
+`pull-requests:` for everything else.
+
+### Auto-fetch of the destination branch
+
+When `--changed-only` cannot resolve the base ref locally (a common situation
+in Bitbucket because the destination branch is not cloned as a tracking ref),
+Cultivator now fetches it automatically:
+
+```bash
+git fetch --no-tags origin "$BITBUCKET_PR_DESTINATION_BRANCH"
+```
+
+The retry runs at most once per invocation and is enabled only for Bitbucket
+Pipelines pull-request builds. Pass `--no-auto-fetch` to opt out (for example
+when you want to enforce a manual fetch step earlier in the pipeline).
+Cultivator still exits non-zero when the destination ref cannot be resolved
+after the fetch attempt; it never silently falls back to running every stack.
+
+### Modern alternative: `triggers.pullrequest-fulfilled`
+
+Custom pipelines can subscribe to specific pull-request events via the
+`triggers` property:
+
+```yaml
+pipelines:
+  custom:
+    apply-after-merge:
+      - step:
+          name: Apply on merge
+          trigger: automatic
+          script:
+            - cultivator apply --root providers --auto-approve=true
+  triggers:
+    pullrequest-fulfilled:
+      - pipeline: apply-after-merge
+        target:
+          branches:
+            include:
+              - main
+```
+
+`triggers` events fire only for the custom pipeline referenced and require
+`destination` matching. Known limits documented by Atlassian: up to 20
+conditions per repository and 100 referenced pipelines per event type.
 
 ---
 
@@ -174,12 +247,17 @@ Available Bitbucket pipeline environment variables:
 
 | Variable | Description |
 |---|---|
-| `BITBUCKET_REPO_FULL_NAME` | `workspace/repo-slug` |
-| `BITBUCKET_PR_ID` | Pull request ID (only set in PR pipelines) |
-| `BITBUCKET_PR_DESTINATION_BRANCH` | Target branch of the PR |
-| `BITBUCKET_BRANCH` | Current branch |
-| `BITBUCKET_COMMIT` | Current commit SHA |
-| `BITBUCKET_BUILD_NUMBER` | Build number |
+| `BITBUCKET_WORKSPACE` | Workspace slug containing the repository. |
+| `BITBUCKET_REPO_SLUG` | Repository slug. |
+| `BITBUCKET_REPO_FULL_NAME` | Convenience form: `workspace/repo-slug`. |
+| `BITBUCKET_CLONE_DIR` | Absolute path of the directory where the repository is cloned. |
+| `BITBUCKET_BRANCH` | In PR builds this is the **source branch**, not the destination. |
+| `BITBUCKET_COMMIT` | Commit SHA being built. |
+| `BITBUCKET_BUILD_NUMBER` | Monotonic build counter. |
+| `BITBUCKET_PR_ID` | Pull request ID (set only in PR builds). |
+| `BITBUCKET_PR_DESTINATION_BRANCH` | Destination branch of the PR. |
+| `BITBUCKET_PR_DESTINATION_COMMIT` | Tip commit of the destination branch at the time of the build. |
+| `BITBUCKET_STEP_OIDC_TOKEN` | Short-lived OIDC token minted for the current step (when OIDC is configured). |
 
 ---
 
@@ -257,7 +335,22 @@ When a PR is merged into `main`:
 
 ## Secrets and credentials
 
-Store cloud credentials in **Repository settings > Repository variables**:
+### Prefer OIDC for cloud credentials
+
+Bitbucket Pipelines can issue a short-lived OIDC token to each step
+(`BITBUCKET_STEP_OIDC_TOKEN`). Configure your cloud provider to trust the
+Bitbucket OIDC issuer and exchange the token for temporary credentials at the
+beginning of every step. This avoids storing long-lived secrets in repository
+variables and is the recommended option for AWS, GCP, and Azure.
+
+See Atlassian's
+[OIDC integration documentation](https://support.atlassian.com/bitbucket-cloud/docs/integrate-pipelines-with-resource-servers-using-oidc/)
+for end-to-end setup steps.
+
+### Fallback: long-lived credentials
+
+When OIDC is not available, store cloud credentials in **Repository settings >
+Repository variables**:
 
 ```
 AWS_ACCESS_KEY_ID     = <value>
@@ -292,8 +385,15 @@ variables are only set automatically in `pull-requests` pipeline steps.
 
 ### Magic Mode finds no changes
 
-Ensure `clone.depth: full` is set on the Plan step. A shallow clone (the
-Bitbucket default) may not contain the full history needed for `git diff`.
+Ensure `clone.depth: full` is set on every step that uses Magic Mode. The
+default `clone.depth` in Bitbucket Pipelines is **50 commits**, which is often
+enough for small PRs but breaks down for long-lived branches.
+
+If the destination branch still cannot be resolved, Cultivator now performs a
+single `git fetch --no-tags origin "$BITBUCKET_PR_DESTINATION_BRANCH"` and
+retries the diff. The CLI exits non-zero when the ref is still unreachable;
+it never silently runs every stack. Pass `--no-auto-fetch` to disable the
+retry.
 
 ### No stacks discovered
 

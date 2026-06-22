@@ -40,7 +40,7 @@ Cultivator simplifies Terragrunt orchestration by providing:
 - **Automatic Stack Discovery** - Recursive search for `terragrunt.hcl` files.
 - **Smart Filtering** - Scope execution by environment, path patterns, and custom tags.
 - **Dependency Awareness** - Automatically parses and respects HCL dependency blocks.
-- **Magic Mode** - Automatically filter modules by Git changes (`--changed-only`).
+- **Magic Mode** - Automatically filter modules by Git changes (`--changed-only`), scoped to the configured `--root` so unrelated repository-level files (such as CI manifests) never select every stack.
 - **Parallel Execution** - Configurable worker pool for safe, concurrent runs.
 - **Stateless Operation** - No server required; leverages your existing Terraform/OpenTofu backends.
 
