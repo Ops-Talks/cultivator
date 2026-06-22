@@ -3,6 +3,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -11,9 +12,19 @@ import (
 	"github.com/Ops-Talks/cultivator/internal/logging"
 )
 
+// ErrBaseRefNotFound is returned by GetChangedFiles when none of the candidate
+// base refs can be resolved locally (typical of CI environments that do not
+// fetch the destination branch by default, such as Bitbucket Pipelines).
+// Callers can use errors.Is to detect this case and offer a recovery path,
+// for example by fetching the missing branch and retrying.
+var ErrBaseRefNotFound = errors.New("base ref not found locally")
+
 // GetChangedFiles returns a list of files that have changed since the baseRef.
 // It uses 'git diff --name-only <baseRef>' to identify changes.
 // BaseRef can be a branch name (e.g., 'main') or a commit hash.
+//
+// When every candidate ref fails because git cannot resolve it locally, the
+// returned error wraps ErrBaseRefNotFound.
 func GetChangedFiles(ctx context.Context, workingDir string, baseRef string, logger *logging.Logger) ([]string, error) {
 	baseRef = strings.TrimSpace(baseRef)
 	if baseRef == "" {
@@ -33,14 +44,18 @@ func GetChangedFiles(ctx context.Context, workingDir string, baseRef string, log
 	})
 
 	var (
-		output  []byte
-		lastErr error
-		usedRef string
+		output             []byte
+		lastErr            error
+		usedRef            string
+		allUnknownRevision = true
 	)
 	for _, ref := range baseRefs {
 		out, err := gitDiffNameOnly(ctx, workingDir, ref)
 		if err != nil {
 			lastErr = err
+			if !isUnknownRevisionErr(err) {
+				allUnknownRevision = false
+			}
 			debugLog(logger, "git diff failed for candidate base ref", logging.Fields{
 				"base_ref": ref,
 				"error":    err.Error(),
@@ -49,9 +64,13 @@ func GetChangedFiles(ctx context.Context, workingDir string, baseRef string, log
 		}
 		output = out
 		usedRef = ref
+		allUnknownRevision = false
 		break
 	}
 	if output == nil {
+		if allUnknownRevision {
+			return nil, fmt.Errorf("%w: tried %s: %w", ErrBaseRefNotFound, strings.Join(baseRefs, ","), lastErr)
+		}
 		return nil, fmt.Errorf("git diff failed for base refs %s: %w", strings.Join(baseRefs, ","), lastErr)
 	}
 
@@ -72,6 +91,37 @@ func GetChangedFiles(ctx context.Context, workingDir string, baseRef string, log
 	})
 
 	return changedFiles, nil
+}
+
+// FetchRemoteBranch runs 'git fetch --no-tags <remote> <branch>' in workingDir.
+// It is intended as a recovery hook for CI environments (notably Bitbucket
+// Pipelines) where the PR destination branch is not present locally.
+// The command output is captured and returned as part of the error on failure
+// so callers can surface a useful diagnostic.
+func FetchRemoteBranch(ctx context.Context, workingDir, remote, branch string, logger *logging.Logger) error {
+	remote = strings.TrimSpace(remote)
+	branch = strings.TrimSpace(branch)
+	if remote == "" {
+		return fmt.Errorf("remote is required")
+	}
+	if branch == "" {
+		return fmt.Errorf("branch is required")
+	}
+
+	debugLog(logger, "fetching remote branch", logging.Fields{
+		"working_dir": workingDir,
+		"remote":      remote,
+		"branch":      branch,
+	})
+
+	// #nosec G204 -- remote and branch are validated above and supplied by trusted callers.
+	cmd := exec.CommandContext(ctx, "git", "fetch", "--no-tags", remote, branch)
+	cmd.Dir = workingDir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git fetch %s %s: %w: %s", remote, branch, err, strings.TrimSpace(string(out)))
+	}
+	return nil
 }
 
 func buildBaseRefCandidates(baseRef string) []string {
@@ -120,6 +170,33 @@ func gitDiffNameOnly(ctx context.Context, workingDir, baseRef string) ([]byte, e
 	return output, nil
 }
 
+// isUnknownRevisionErr reports whether err corresponds to git failing to
+// resolve the ref (as opposed to a permission/IO/transport failure). It
+// inspects the captured stderr from *exec.ExitError because git reports
+// missing refs with messages such as "fatal: ambiguous argument 'origin/X':
+// unknown revision or path not in the working tree." and exits with code 128.
+func isUnknownRevisionErr(err error) bool {
+	var exitErr *exec.ExitError
+	if !errors.As(err, &exitErr) {
+		return false
+	}
+	stderr := strings.ToLower(string(exitErr.Stderr))
+	if stderr == "" {
+		return false
+	}
+	switch {
+	case strings.Contains(stderr, "unknown revision"):
+		return true
+	case strings.Contains(stderr, "ambiguous argument"):
+		return true
+	case strings.Contains(stderr, "bad revision"):
+		return true
+	case strings.Contains(stderr, "not a valid object name"):
+		return true
+	}
+	return false
+}
+
 func gitRepoRoot(ctx context.Context, workingDir string) (string, error) {
 	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--show-toplevel")
 	cmd.Dir = workingDir
@@ -153,3 +230,4 @@ func debugLog(logger *logging.Logger, msg string, fields logging.Fields) {
 	}
 	logger.Debug(msg, fields)
 }
+

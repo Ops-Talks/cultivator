@@ -354,6 +354,17 @@ func TestLoadEnv(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "no_auto_fetch env var",
+			envs: map[string]string{
+				prefix + "_NO_AUTO_FETCH": "true",
+			},
+			want: func(t *testing.T, cfg Config) {
+				if !cfg.NoAutoFetch {
+					t.Error("NoAutoFetch = false, want true")
+				}
+			},
+		},
 	}
 
 	for _, tc := range tests {

@@ -3,6 +3,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -97,7 +98,7 @@ func runTerragruntCommand(args []string, command string, r runner.RunnerIface, d
 	}
 
 	if cfg.ChangedOnly {
-		modules, code = filterChangedModules(ctx, cfg, modules, logger)
+		modules, code = filterChangedModules(ctx, cfg, modules, logger, detectCI)
 		if code != 0 {
 			return code
 		}
@@ -153,7 +154,7 @@ func resolveCIBaseRef(cfg config.Config, detect func() ci.Environment) string {
 
 // filterChangedModules keeps only modules that contain at least one file
 // changed relative to cfg.BaseRef. Returns (nil, non-zero) on error.
-func filterChangedModules(ctx context.Context, cfg config.Config, modules []discovery.Module, logger *logging.Logger) ([]discovery.Module, int) {
+func filterChangedModules(ctx context.Context, cfg config.Config, modules []discovery.Module, logger *logging.Logger, detectCI func() ci.Environment) ([]discovery.Module, int) {
 	if !git.IsGitRepo(ctx, cfg.Root, logger) {
 		logger.Error("not a git repository, --changed-only is not supported", logging.Fields{"root": cfg.Root})
 		return nil, 1
@@ -161,33 +162,96 @@ func filterChangedModules(ctx context.Context, cfg config.Config, modules []disc
 
 	changedFiles, err := git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef, logger)
 	if err != nil {
-		logger.Error("failed to get changed files", logging.Fields{"error": err.Error(), "base": cfg.BaseRef})
-		return nil, 1
+		if fetched, retryErr := maybeAutoFetchBaseRef(ctx, cfg, logger, detectCI, err); fetched {
+			if retryErr != nil {
+				logger.Error("failed to get changed files after auto-fetch", logging.Fields{"error": retryErr.Error(), "base": cfg.BaseRef})
+				return nil, 1
+			}
+			changedFiles, err = git.GetChangedFiles(ctx, cfg.Root, cfg.BaseRef, logger)
+		}
+		if err != nil {
+			logger.Error("failed to get changed files", logging.Fields{
+				"error":      err.Error(),
+				"base":       cfg.BaseRef,
+				"suggestion": fmt.Sprintf("git fetch origin %s", cfg.BaseRef),
+			})
+			return nil, 1
+		}
 	}
+
+	rootPath := filepath.Clean(cfg.Root)
+	logger.Debug("filtering modules by changed files", logging.Fields{
+		"root":          rootPath,
+		"changed_files": len(changedFiles),
+	})
 
 	var filtered []discovery.Module
 	for _, mod := range modules {
-		if moduleHasChanges(mod.Path, changedFiles) {
+		if moduleHasChanges(mod.Path, rootPath, changedFiles) {
 			filtered = append(filtered, mod)
 		}
 	}
 	return filtered, 0
 }
 
-// moduleHasChanges reports whether any changed file path falls within modPath.
-func moduleHasChanges(modPath string, changedFiles []string) bool {
+// maybeAutoFetchBaseRef attempts to recover from a missing base ref by
+// fetching it from origin when running in a Bitbucket Pipelines pull request
+// build. The first return value reports whether a fetch was attempted; the
+// second carries any fetch error. Auto-fetch is skipped when cfg.NoAutoFetch
+// is true, when the CI provider is not Bitbucket, when the build is not a
+// pull request, or when the original error is not ErrBaseRefNotFound.
+func maybeAutoFetchBaseRef(ctx context.Context, cfg config.Config, logger *logging.Logger, detectCI func() ci.Environment, originalErr error) (bool, error) {
+	if cfg.NoAutoFetch || detectCI == nil {
+		return false, nil
+	}
+	if !errors.Is(originalErr, git.ErrBaseRefNotFound) {
+		return false, nil
+	}
+	env := detectCI()
+	if env.Provider != ci.ProviderBitbucket || !env.IsPR {
+		return false, nil
+	}
+	logger.Info("base ref missing locally, attempting auto-fetch", logging.Fields{
+		"remote": "origin",
+		"branch": cfg.BaseRef,
+	})
+	if err := git.FetchRemoteBranch(ctx, cfg.Root, "origin", cfg.BaseRef, logger); err != nil {
+		logger.Warning("auto-fetch failed; run the command manually to recover", logging.Fields{
+			"error":      err.Error(),
+			"suggestion": fmt.Sprintf("git fetch origin %s", cfg.BaseRef),
+		})
+		return true, err
+	}
+	logger.Info("auto-fetch succeeded", logging.Fields{"branch": cfg.BaseRef})
+	return true, nil
+}
+
+// moduleHasChanges reports whether any changed file selects modPath.
+// A module is selected when a changed file lives inside the module itself,
+// or when a changed file inside rootPath is an ancestor-directory config
+// (for example root.hcl or environment.hcl) of the module. Changes outside
+// rootPath never select a module, otherwise a file at the repository root
+// would match every discovered module.
+func moduleHasChanges(modPath, rootPath string, changedFiles []string) bool {
 	modPath = filepath.Clean(modPath)
+	rootPath = filepath.Clean(rootPath)
+	sep := string(os.PathSeparator)
 	for _, f := range changedFiles {
 		changedPath := filepath.Clean(f)
-		if strings.HasPrefix(changedPath, modPath) {
+
+		if changedPath == modPath || strings.HasPrefix(changedPath, modPath+sep) {
 			return true
 		}
 
-		// A change in parent config files (for example root.hcl/environment.hcl)
-		// can affect all descendant modules.
+		if changedPath != rootPath && !strings.HasPrefix(changedPath, rootPath+sep) {
+			continue
+		}
+
 		changedDir := filepath.Dir(changedPath)
-		rel, err := filepath.Rel(changedDir, modPath)
-		if err == nil && rel != "." && !strings.HasPrefix(rel, "..") {
+		if changedDir == modPath {
+			continue
+		}
+		if strings.HasPrefix(modPath, changedDir+sep) {
 			return true
 		}
 	}
@@ -262,6 +326,8 @@ type terragruntFlagState struct {
 	showGraphSet            bool
 	changedOnlyValue        bool
 	changedOnlySet          bool
+	noAutoFetchValue        bool
+	noAutoFetchSet          bool
 	baseRefValue            string
 	baseRefSet              bool
 	planDestroyValue        bool
@@ -288,6 +354,7 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 	dryRun := newBoolFlag(fs, "dry-run", "don't execute terragrunt commands")
 	showGraph := newBoolFlag(fs, "graph", "show mermaid dependency graph")
 	changedOnly := newBoolFlag(fs, "changed-only", "only execute modules with changed files")
+	noAutoFetch := newBoolFlag(fs, "no-auto-fetch", "disable automatic git fetch of the PR destination branch in CI builds")
 	baseRef := fs.String("base", "", "git base reference for --changed-only")
 
 	var planDestroy *boolFlag
@@ -321,6 +388,7 @@ func parseTerragruntFlags(args []string, command string) (terragruntFlagState, i
 		dryRun:             dryRun,
 		showGraph:          showGraph,
 		changedOnly:        changedOnly,
+		noAutoFetch:        noAutoFetch,
 		baseRef:            baseRef,
 		planDestroy:        planDestroy,
 		applyAutoApprove:   applyAutoApprove,
@@ -343,6 +411,7 @@ type flagInputs struct {
 	dryRun             *boolFlag
 	showGraph          *boolFlag
 	changedOnly        *boolFlag
+	noAutoFetch        *boolFlag
 	baseRef            *string
 	planDestroy        *boolFlag
 	applyAutoApprove   *boolFlag
@@ -375,6 +444,7 @@ func populateFlagState(state *terragruntFlagState, in flagInputs) {
 	applyBoolFlagState(in.dryRun, &state.dryRunValue, &state.dryRunSet)
 	applyBoolFlagState(in.showGraph, &state.showGraphValue, &state.showGraphSet)
 	applyBoolFlagState(in.changedOnly, &state.changedOnlyValue, &state.changedOnlySet)
+	applyBoolFlagState(in.noAutoFetch, &state.noAutoFetchValue, &state.noAutoFetchSet)
 	if in.baseRef != nil && *in.baseRef != "" {
 		state.baseRefValue = *in.baseRef
 		state.baseRefSet = true
@@ -474,6 +544,7 @@ func buildOverrides(state terragruntFlagState) config.Overrides {
 	applyBoolOverride(state.dryRunSet, state.dryRunValue, &ovr.DryRun)
 	applyBoolOverride(state.showGraphSet, state.showGraphValue, &ovr.ShowGraph)
 	applyBoolOverride(state.changedOnlySet, state.changedOnlyValue, &ovr.ChangedOnly)
+	applyBoolOverride(state.noAutoFetchSet, state.noAutoFetchValue, &ovr.NoAutoFetch)
 	applyStringOverride(state.baseRefSet, state.baseRefValue, &ovr.BaseRef)
 	applyBoolOverride(state.planDestroySet, state.planDestroyValue, &ovr.PlanDestroy)
 	applyBoolOverride(state.applyAutoApproveSet, state.applyAutoApproveValue, &ovr.ApplyAutoApprove)

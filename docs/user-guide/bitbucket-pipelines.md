@@ -13,10 +13,11 @@ Unlike GitHub Actions or GitLab CI, Bitbucket Pipelines uses:
 
 - `bitbucket-pipelines.yml` as the pipeline definition file
 - `pipelines.pull-requests` for PR-triggered pipelines
-- `pipelines.branches` for branch-triggered pipelines (e.g. after merge to `main`)
+- `pipelines.branches` for branch-triggered pipelines (for example after merge to `main`)
 - `trigger: manual` for steps requiring human approval
 - `deployment:` for environment promotion gates
-- PR comments posted via the Bitbucket REST API using an App Password
+- PR comments posted via the Bitbucket REST API using a Repository Access Token
+  (App Passwords are deprecated by Atlassian)
 
 ---
 
@@ -34,105 +35,101 @@ Set the following in **Repository settings > Repository variables**:
 | `CULTIVATOR_ROOT` | `providers` | Root directory for Terragrunt modules |
 | `CULTIVATOR_ENV` | _(empty)_ | Optional environment filter |
 | `CULTIVATOR_PARALLELISM` | `4` | Max parallel executions |
-| `BITBUCKET_USERNAME` | `ci-bot` | Bitbucket username for API auth |
-| `BITBUCKET_APP_PASSWORD` | `...` | App Password with **Pull requests: Write** scope |
+| `REPO_ACCESS_TOKEN` | `ATCTT3xFfGN0...` | Repository Access Token with the `pullrequest` write scope. Used as a Bearer token to post PR comments. Mark the variable as **Secured**. |
 
-Cloud credentials (e.g. `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) should also be stored as repository variables.
+Cloud credentials (for example `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
+should also be stored as repository variables. Prefer OIDC where the cloud
+provider supports it; see [Secrets and credentials](#secrets-and-credentials).
 
-### Creating a Bitbucket App Password
+### Creating a Repository Access Token
 
-1. Go to **Personal settings > App passwords**.
-2. Click **Create app password**.
-3. Grant the **Pull requests: Write** permission.
-4. Store the generated token as `BITBUCKET_APP_PASSWORD`.
+Bitbucket Cloud is deprecating App Passwords. The replacement for CI-style
+automation is a **Repository Access Token** scoped to a single repository:
+
+1. Open **Repository settings > Access tokens** for the repository.
+2. Click **Create Repository Access Token**.
+3. Grant the `pullrequest` write scope (this implicitly includes
+   `pullrequest:read` and `repository:read`).
+4. Optionally set an expiry date and enable token rotation.
+5. Copy the token (it is shown only once) and store it as a **Secured**
+   repository variable named `REPO_ACCESS_TOKEN`.
+
+Authenticate API calls with `Authorization: Bearer $REPO_ACCESS_TOKEN`. No
+username is required; the token is tied to the repository, not to a user.
+
+For user-level scripting use cases outside Pipelines, prefer an API token over
+an App Password (see Atlassian's
+[API tokens documentation](https://support.atlassian.com/bitbucket-cloud/docs/api-tokens/)).
 
 ---
 
 ## Recommended pipeline
 
+The structure below is the minimal skeleton. The full reference, including the
+install script that downloads OpenTofu, Terragrunt, and Cultivator, lives in
+[`examples/bitbucket-pipelines.yml`](https://github.com/Ops-Talks/cultivator/blob/main/examples/bitbucket-pipelines.yml).
+Each step references an anchored definition under `definitions.steps` so the
+install logic is declared once and reused.
+
 ```yaml
-# bitbucket-pipelines.yml
+# bitbucket-pipelines.yml (skeleton)
 
 image: alpine:3.21
 
+definitions:
+  steps:
+    - step: &doctor-step
+        name: Doctor
+        script:
+          - # install terragrunt + cultivator (see the reference example)
+          - cultivator doctor --root "$CULTIVATOR_ROOT"
+
+    - step: &plan-step
+        name: Plan
+        clone:
+          depth: full          # required for Magic Mode (git diff)
+        script:
+          - # install opentofu + terragrunt + cultivator
+          - |
+            cultivator plan \
+              --root "$CULTIVATOR_ROOT" \
+              --parallelism "$CULTIVATOR_PARALLELISM" \
+              --non-interactive=true \
+              --changed-only   # auto-detects BITBUCKET_PR_DESTINATION_BRANCH
+        artifacts:
+          - plan_output.txt
+
+    - step: &apply-step
+        name: Apply
+        trigger: manual         # human approval gate
+        deployment: production
+        clone:
+          depth: full
+        script:
+          - # install opentofu + terragrunt + cultivator
+          - |
+            cultivator apply \
+              --root "$CULTIVATOR_ROOT" \
+              --parallelism "$CULTIVATOR_PARALLELISM" \
+              --non-interactive=true \
+              --auto-approve=true
+
 pipelines:
   pull-requests:
-    '**':
-      - step:
-          name: Doctor
-          script:
-            - apk add --no-cache wget unzip curl ca-certificates
-            - wget -q -O /usr/local/bin/terragrunt
-                https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
-            - chmod +x /usr/local/bin/terragrunt
-            - wget -q -O /usr/local/bin/cultivator
-                https://github.com/Ops-Talks/cultivator/releases/download/${CULTIVATOR_VERSION}/cultivator-linux-amd64
-            - chmod +x /usr/local/bin/cultivator
-            - cultivator doctor --root "$CULTIVATOR_ROOT"
-
-      - step:
-          name: Plan
-          clone:
-            depth: full  # Required for Magic Mode (git diff)
-          script:
-            - # ... install tools ...
-            - |
-              ARGS=(
-                --root "$CULTIVATOR_ROOT"
-                --parallelism "$CULTIVATOR_PARALLELISM"
-                --non-interactive=true
-                --changed-only  # Magic Mode: auto-detects BITBUCKET_PR_DESTINATION_BRANCH
-              )
-              if [ -n "$CULTIVATOR_ENV" ]; then ARGS+=(--env "$CULTIVATOR_ENV"); fi
-
-              cultivator plan "${ARGS[@]}" 2>&1 | tee plan_output.txt
-              CULTIVATOR_EXIT="${PIPESTATUS[0]}"
-
-              # Post plan output as a PR comment
-              if [ -n "${BITBUCKET_APP_PASSWORD:-}" ]; then
-                PLAN_OUTPUT=$(cat plan_output.txt)
-                COMMENT=$(printf '## Cultivator Plan\n\n```\n%s\n```' "${PLAN_OUTPUT}")
-                curl --silent --show-error --fail \
-                  --user "${BITBUCKET_USERNAME}:${BITBUCKET_APP_PASSWORD}" \
-                  --header "Content-Type: application/json" \
-                  --request POST \
-                  "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${BITBUCKET_PR_ID}/comments" \
-                  --data "$(jq -n --arg body "${COMMENT}" '{"content":{"raw":$body}}')"
-              fi
-
-              exit "$CULTIVATOR_EXIT"
-          artifacts:
-            - plan_output.txt
+    "**":
+      - step: *doctor-step
+      - step: *plan-step
 
   branches:
     main:
-      - step:
-          name: Doctor
-          # ... same as above ...
-
-      - step:
-          name: Apply
-          trigger: manual
-          deployment: production
-          clone:
-            depth: full
-          script:
-            - # ... install tools ...
-            - |
-              ARGS=(
-                --root "$CULTIVATOR_ROOT"
-                --parallelism "$CULTIVATOR_PARALLELISM"
-                --non-interactive=true
-                --auto-approve=true
-              )
-              if [ -n "$CULTIVATOR_ENV" ]; then ARGS+=(--env "$CULTIVATOR_ENV"); fi
-
-              cultivator apply "${ARGS[@]}" 2>&1 | tee apply_output.txt
-          artifacts:
-            - apply_output.txt
+      - step: *doctor-step
+      - step: *apply-step
 ```
 
-A complete reference pipeline is available in [`examples/bitbucket-pipelines.yml`](https://github.com/Ops-Talks/cultivator/blob/main/examples/bitbucket-pipelines.yml).
+The `branches.main` pipeline is what runs after a PR is merged. With
+`trigger: manual` on `*apply-step`, the Apply step pauses until someone clicks
+**Run** in the Bitbucket UI - the equivalent of a GitHub environment approval
+gate or GitLab `when: manual`.
 
 ---
 
@@ -141,16 +138,89 @@ A complete reference pipeline is available in [`examples/bitbucket-pipelines.yml
 When `--changed-only` is active, Cultivator automatically reads the
 `BITBUCKET_PR_DESTINATION_BRANCH` environment variable to determine the git
 base reference. This means you do **not** need to pass `--base` explicitly in
-Bitbucket Pipelines — the right branch is detected automatically.
+Bitbucket Pipelines - the right branch is detected automatically.
 
 ```bash
 # This is sufficient; --base is resolved automatically from the pipeline env.
 cultivator plan --changed-only --root providers
 ```
 
-If you are running outside a PR pipeline (e.g. a manual branch run), set
-`BITBUCKET_PR_DESTINATION_BRANCH` explicitly or pass `--base <branch>` on the
-command line.
+If you are running outside a PR pipeline (for example a manual branch run),
+set `BITBUCKET_PR_DESTINATION_BRANCH` explicitly or pass `--base <branch>` on
+the command line.
+
+### Pull-request merge semantics
+
+Bitbucket clones the source branch and **merges the destination branch into it
+before running the script**. As a consequence:
+
+- `git diff origin/<destination>` shows only the changes introduced by the
+  pull request, not the full source-branch history.
+- Pipelines must clone enough history to reach the merge base. The default
+  `clone.depth` is **50 commits**; set `clone.depth: full` on every step that
+  uses Magic Mode.
+
+### Source-branch globs
+
+Glob patterns under `pull-requests:` match the **source branch** of the pull
+request, never the destination. For example, `pull-requests: { 'feature/*': ... }`
+fires when a PR is opened from a `feature/*` branch toward any target.
+
+### Forked repositories
+
+Pull requests opened from a forked repository do **not** trigger the
+`pull-requests` pipeline. This is an Atlassian platform limitation and cannot
+be worked around from Cultivator itself.
+
+### Parallel runs with `branches:` and `default:`
+
+`pull-requests:` runs **in addition to** any matching `branches:` or `default:`
+entry for the same event. To avoid two pipelines starting in parallel for one
+push, scope `branches:` to the trunk (for example `main`) and rely on
+`pull-requests:` for everything else.
+
+### Auto-fetch of the destination branch
+
+When `--changed-only` cannot resolve the base ref locally (a common situation
+in Bitbucket because the destination branch is not cloned as a tracking ref),
+Cultivator now fetches it automatically:
+
+```bash
+git fetch --no-tags origin "$BITBUCKET_PR_DESTINATION_BRANCH"
+```
+
+The retry runs at most once per invocation and is enabled only for Bitbucket
+Pipelines pull-request builds. Pass `--no-auto-fetch` to opt out (for example
+when you want to enforce a manual fetch step earlier in the pipeline).
+Cultivator still exits non-zero when the destination ref cannot be resolved
+after the fetch attempt; it never silently falls back to running every stack.
+
+### Modern alternative: `triggers.pullrequest-fulfilled`
+
+Custom pipelines can subscribe to specific pull-request events via the
+`triggers` property:
+
+```yaml
+pipelines:
+  custom:
+    apply-after-merge:
+      - step:
+          name: Apply on merge
+          trigger: automatic
+          script:
+            - cultivator apply --root providers --auto-approve=true
+  triggers:
+    pullrequest-fulfilled:
+      - pipeline: apply-after-merge
+        target:
+          branches:
+            include:
+              - main
+```
+
+`triggers` events fire only for the custom pipeline referenced and require
+`destination` matching. Known limits documented by Atlassian: up to 20
+conditions per repository and 100 referenced pipelines per event type.
 
 ---
 
@@ -159,14 +229,16 @@ command line.
 Bitbucket does not provide a built-in write token equivalent to GitHub's
 `GITHUB_TOKEN`. Comments must be posted using the
 [Bitbucket REST API](https://developer.atlassian.com/cloud/bitbucket/rest/api-group-pullrequests/)
-authenticated with an App Password:
+authenticated with a Repository Access Token (or, for user-level scripts, an
+API token). Both are sent as a Bearer token; App Passwords with HTTP Basic
+auth are deprecated.
 
 ```bash
 curl --silent --show-error --fail \
-  --user "${BITBUCKET_USERNAME}:${BITBUCKET_APP_PASSWORD}" \
+  --header "Authorization: Bearer ${REPO_ACCESS_TOKEN}" \
   --header "Content-Type: application/json" \
   --request POST \
-  "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${BITBUCKET_PR_ID}/comments" \
+  "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_WORKSPACE}/${BITBUCKET_REPO_SLUG}/pullrequests/${BITBUCKET_PR_ID}/comments" \
   --data "$(jq -n --arg body "## Cultivator Plan\n\n\`\`\`\n$(cat plan_output.txt)\n\`\`\`" '{"content":{"raw":$body}}')"
 ```
 
@@ -174,36 +246,17 @@ Available Bitbucket pipeline environment variables:
 
 | Variable | Description |
 |---|---|
-| `BITBUCKET_REPO_FULL_NAME` | `workspace/repo-slug` |
-| `BITBUCKET_PR_ID` | Pull request ID (only set in PR pipelines) |
-| `BITBUCKET_PR_DESTINATION_BRANCH` | Target branch of the PR |
-| `BITBUCKET_BRANCH` | Current branch |
-| `BITBUCKET_COMMIT` | Current commit SHA |
-| `BITBUCKET_BUILD_NUMBER` | Build number |
-
----
-
-## Apply after merge
-
-Bitbucket Pipelines does not expose a "PR merged" event in the same way as
-GitHub Actions. The recommended pattern is to trigger `apply` via a
-`pipelines.branches.main` pipeline that runs on every push to `main`
-(which in practice means after a PR is merged):
-
-```yaml
-branches:
-  main:
-    - step:
-        name: Apply
-        trigger: manual       # Requires a human to click "Run" in the UI
-        deployment: production
-        script:
-          - cultivator apply --root providers --auto-approve=true
-```
-
-With `trigger: manual`, the pipeline pauses at the Apply step until someone
-approves it in the Bitbucket UI, providing a safety gate equivalent to GitHub's
-environment approvals or GitLab's `when: manual`.
+| `BITBUCKET_WORKSPACE` | Workspace slug containing the repository. |
+| `BITBUCKET_REPO_SLUG` | Repository slug. |
+| `BITBUCKET_REPO_FULL_NAME` | Convenience form: `workspace/repo-slug`. |
+| `BITBUCKET_CLONE_DIR` | Absolute path of the directory where the repository is cloned. |
+| `BITBUCKET_BRANCH` | In PR builds this is the **source branch**, not the destination. |
+| `BITBUCKET_COMMIT` | Commit SHA being built. |
+| `BITBUCKET_BUILD_NUMBER` | Monotonic build counter. |
+| `BITBUCKET_PR_ID` | Pull request ID (set only in PR builds). |
+| `BITBUCKET_PR_DESTINATION_BRANCH` | Destination branch of the PR. |
+| `BITBUCKET_PR_DESTINATION_COMMIT` | Tip commit of the destination branch at the time of the build. |
+| `BITBUCKET_STEP_OIDC_TOKEN` | Short-lived OIDC token minted for the current step (when OIDC is configured). |
 
 ---
 
@@ -231,7 +284,7 @@ non_interactive: true
 | Pipeline file | `bitbucket-pipelines.yml` | `.github/workflows/*.yml` | `.gitlab-ci.yml` |
 | PR event | `pipelines.pull-requests` | `on: pull_request` | `rules: merge_request_event` |
 | Manual step | `trigger: manual` | `environment:` (approval gates) | `when: manual` |
-| PR write token | App Password (repository variable) | `secrets.GITHUB_TOKEN` (built-in) | `GITLAB_TOKEN` (variable) |
+| PR write token | Repository Access Token (Bearer; App Passwords deprecated) | `secrets.GITHUB_TOKEN` (built-in) | `GITLAB_TOKEN` (variable) |
 | Target branch env var | `BITBUCKET_PR_DESTINATION_BRANCH` | `GITHUB_BASE_REF` | `CI_MERGE_REQUEST_TARGET_BRANCH_NAME` |
 
 ---
@@ -243,8 +296,8 @@ When a PR is opened or updated:
 1. `Doctor` runs first.
 2. `Plan` runs only after `Doctor` succeeds.
 3. Plan output is saved as a pipeline artifact.
-4. A PR comment is posted with the plan output (requires `BITBUCKET_APP_PASSWORD`).
-5. `Apply` is not triggered — it runs only on the `main` branch after merge.
+4. A PR comment is posted with the plan output (requires `REPO_ACCESS_TOKEN`).
+5. `Apply` is not triggered - it runs only on the `main` branch after merge.
 
 When a PR is merged into `main`:
 
@@ -257,7 +310,22 @@ When a PR is merged into `main`:
 
 ## Secrets and credentials
 
-Store cloud credentials in **Repository settings > Repository variables**:
+### Prefer OIDC for cloud credentials
+
+Bitbucket Pipelines can issue a short-lived OIDC token to each step
+(`BITBUCKET_STEP_OIDC_TOKEN`). Configure your cloud provider to trust the
+Bitbucket OIDC issuer and exchange the token for temporary credentials at the
+beginning of every step. This avoids storing long-lived secrets in repository
+variables and is the recommended option for AWS, GCP, and Azure.
+
+See Atlassian's
+[OIDC integration documentation](https://support.atlassian.com/bitbucket-cloud/docs/integrate-pipelines-with-resource-servers-using-oidc/)
+for end-to-end setup steps.
+
+### Fallback: long-lived credentials
+
+When OIDC is not available, store cloud credentials in **Repository settings >
+Repository variables**:
 
 ```
 AWS_ACCESS_KEY_ID     = <value>
@@ -282,18 +350,28 @@ Cultivator delegates to Terragrunt. Install both binaries in the same step.
 
 ### PR comment step fails with `401 Unauthorized`
 
-Ensure `BITBUCKET_USERNAME` and `BITBUCKET_APP_PASSWORD` are set correctly and
-the App Password has the **Pull requests: Write** permission.
+Ensure `REPO_ACCESS_TOKEN` is set, marked as **Secured**, and was created with
+the `pullrequest` write scope. The token is sent as a Bearer token; do **not**
+use HTTP Basic auth with an App Password (Atlassian has deprecated App
+Passwords).
 
 ### PR comment step fails with `404 Not Found`
 
-Verify `BITBUCKET_REPO_FULL_NAME` and `BITBUCKET_PR_ID` are available. These
-variables are only set automatically in `pull-requests` pipeline steps.
+Verify `BITBUCKET_WORKSPACE`, `BITBUCKET_REPO_SLUG`, and `BITBUCKET_PR_ID` are
+available. `BITBUCKET_PR_ID` is only set automatically in `pull-requests`
+pipeline steps.
 
 ### Magic Mode finds no changes
 
-Ensure `clone.depth: full` is set on the Plan step. A shallow clone (the
-Bitbucket default) may not contain the full history needed for `git diff`.
+Ensure `clone.depth: full` is set on every step that uses Magic Mode. The
+default `clone.depth` in Bitbucket Pipelines is **50 commits**, which is often
+enough for small PRs but breaks down for long-lived branches.
+
+If the destination branch still cannot be resolved, Cultivator now performs a
+single `git fetch --no-tags origin "$BITBUCKET_PR_DESTINATION_BRANCH"` and
+retries the diff. The CLI exits non-zero when the ref is still unreachable;
+it never silently runs every stack. Pass `--no-auto-fetch` to disable the
+retry.
 
 ### No stacks discovered
 

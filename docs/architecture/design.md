@@ -30,9 +30,10 @@ Unlike PR-based automation, Cultivator is **job-triggered**: you call it explici
 
 ### 4. Git Integration (Magic Mode)
 
-- Queries Git for changed files using `git diff`
-- Maps file changes to specific Terragrunt modules
-- Filters execution scope to only affected modules when `--changed-only` is active
+- Queries Git for changed files using `git diff` against the configured base ref, trying the bare ref, `origin/<ref>`, and `refs/remotes/origin/<ref>` candidates in order.
+- Maps file changes to specific Terragrunt modules, scoping the ancestor heuristic to the configured `--root`. Changes outside the root never select a module (so a file at the repository root such as `bitbucket-pipelines.yml` does not trigger every stack), and shared parent configs (`root.hcl`, `environment.hcl`) inside the root propagate to descendants.
+- Filters execution scope to only affected modules when `--changed-only` is active.
+- When every candidate ref fails to resolve, the diff returns the sentinel `ErrBaseRefNotFound`. In Bitbucket Pipelines pull-request builds the CLI then invokes `FetchRemoteBranch(ctx, root, "origin", baseRef)` once and retries the diff. The behavior is opt-out via `--no-auto-fetch` and never activates outside Bitbucket PR builds.
 
 ### 5. Dependency Graph (DAG)
 

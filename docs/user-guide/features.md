@@ -98,7 +98,10 @@ Cultivator automatically detects and respects Terragrunt `dependency` blocks. It
 
 - **Automatic Filtering**: Use `--changed-only` to let Cultivator query Git for modified files and automatically target only the relevant Terragrunt modules.
 - **Smart Mapping**: Changes to a file inside a module's directory (or its subdirectories) will trigger that module.
+- **Root-Scoped Discovery**: Only files inside the configured `--root` participate in module selection. A change to a file at the repository root (for example a `bitbucket-pipelines.yml`) located outside `--root` does not select any module.
+- **Shared-Config Propagation**: When a shared parent configuration (such as `root.hcl` or `environment.hcl`) lives inside `--root` and is modified, every descendant module is selected. This keeps environment-wide changes safe.
 - **Custom Base**: Use `--base=main` (or any branch/commit) to specify the reference point for change detection.
+- **Bitbucket Auto-Fetch**: In Bitbucket Pipelines pull-request builds, when the destination branch is not available locally Cultivator fetches it automatically (`git fetch --no-tags origin <branch>`) and retries the diff once. The behavior is opt-out via `--no-auto-fetch`.
 
 ```bash
 # In a PR branch, plan only what changed compared to main

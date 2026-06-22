@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,8 +42,8 @@ func TestGetChangedFiles(t *testing.T) {
 		if err == nil {
 			t.Fatal("GetChangedFiles() error = nil, want non-nil")
 		}
-		if !strings.Contains(err.Error(), "git diff failed for base refs") {
-			t.Fatalf("GetChangedFiles() error = %q, want base refs context", err.Error())
+		if !errors.Is(err, ErrBaseRefNotFound) {
+			t.Fatalf("GetChangedFiles() error = %v, want errors.Is(err, ErrBaseRefNotFound)", err)
 		}
 	})
 
@@ -234,5 +235,157 @@ func TestIsGitRepo(t *testing.T) {
 	runCmd(t, tmpDir, "git", "init")
 	if !IsGitRepo(context.Background(), tmpDir, nil) {
 		t.Errorf("expected %s to be a git repo", tmpDir)
+	}
+}
+
+func TestFetchRemoteBranch(t *testing.T) {
+	t.Parallel()
+
+	t.Run("recovers a missing destination branch", func(t *testing.T) {
+		t.Parallel()
+		repoDir, baseBranch := setupRepoWithFeatureChange(t)
+
+		// Drop both the local branch and the remote-tracking ref to simulate
+		// a Bitbucket Pipelines clone that did not fetch the destination branch.
+		runCmd(t, repoDir, "git", "branch", "-D", baseBranch)
+		runCmd(t, repoDir, "git", "update-ref", "-d", "refs/remotes/origin/"+baseBranch)
+
+		_, err := GetChangedFiles(context.Background(), repoDir, baseBranch, nil)
+		if !errors.Is(err, ErrBaseRefNotFound) {
+			t.Fatalf("expected ErrBaseRefNotFound before fetch, got %v", err)
+		}
+
+		if err := FetchRemoteBranch(context.Background(), repoDir, "origin", baseBranch, nil); err != nil {
+			t.Fatalf("FetchRemoteBranch() error = %v", err)
+		}
+
+		got, err := GetChangedFiles(context.Background(), repoDir, baseBranch, nil)
+		if err != nil {
+			t.Fatalf("GetChangedFiles() after fetch error = %v", err)
+		}
+		assertContainsBaseName(t, got, "file2.txt")
+	})
+
+	t.Run("rejects empty remote", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		err := FetchRemoteBranch(context.Background(), repoDir, "", "main", nil)
+		if err == nil || !strings.Contains(err.Error(), "remote is required") {
+			t.Fatalf("expected remote-required error, got %v", err)
+		}
+	})
+
+	t.Run("rejects empty branch", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		err := FetchRemoteBranch(context.Background(), repoDir, "origin", "", nil)
+		if err == nil || !strings.Contains(err.Error(), "branch is required") {
+			t.Fatalf("expected branch-required error, got %v", err)
+		}
+	})
+}
+
+func Test_isUnknownRevisionErr(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil error returns false", func(t *testing.T) {
+		t.Parallel()
+		if isUnknownRevisionErr(nil) {
+			t.Fatalf("isUnknownRevisionErr(nil) = true, want false")
+		}
+	})
+
+	t.Run("non-exit error returns false", func(t *testing.T) {
+		t.Parallel()
+		if isUnknownRevisionErr(errors.New("plain error")) {
+			t.Fatalf("isUnknownRevisionErr(plain) = true, want false")
+		}
+	})
+
+	t.Run("exit error with empty stderr returns false", func(t *testing.T) {
+		t.Parallel()
+		cmd := exec.Command("sh", "-c", "exit 1")
+		_, err := cmd.Output()
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			t.Fatalf("expected *exec.ExitError, got %T", err)
+		}
+		if isUnknownRevisionErr(exitErr) {
+			t.Fatalf("isUnknownRevisionErr(emptyStderr) = true, want false")
+		}
+	})
+
+	t.Run("real git unknown-revision error returns true", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		cmd := exec.Command("git", "diff", "--name-only", "definitely-not-a-real-ref")
+		cmd.Dir = repoDir
+		_, err := cmd.Output()
+		if err == nil {
+			t.Fatalf("expected git diff to fail")
+		}
+		if !isUnknownRevisionErr(err) {
+			t.Fatalf("isUnknownRevisionErr(realGitErr) = false, want true (err=%v)", err)
+		}
+	})
+
+	t.Run("matches each well-known message", func(t *testing.T) {
+		t.Parallel()
+		messages := []string{
+			"unknown revision",
+			"ambiguous argument",
+			"bad revision",
+			"not a valid object name",
+		}
+		for _, msg := range messages {
+			cmd := exec.Command("sh", "-c", "echo "+msg+" 1>&2; exit 1")
+			_, err := cmd.Output()
+			var exitErr *exec.ExitError
+			if !errors.As(err, &exitErr) {
+				t.Fatalf("expected *exec.ExitError for %q, got %T", msg, err)
+			}
+			if !isUnknownRevisionErr(exitErr) {
+				t.Fatalf("isUnknownRevisionErr(%q) = false, want true", msg)
+			}
+		}
+	})
+
+	t.Run("non-matching stderr returns false", func(t *testing.T) {
+		t.Parallel()
+		cmd := exec.Command("sh", "-c", "echo permission denied 1>&2; exit 1")
+		_, err := cmd.Output()
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			t.Fatalf("expected *exec.ExitError, got %T", err)
+		}
+		if isUnknownRevisionErr(exitErr) {
+			t.Fatalf("isUnknownRevisionErr(permission) = true, want false")
+		}
+	})
+}
+
+func Test_dedupeCandidates_skipsEmpty(t *testing.T) {
+	t.Parallel()
+	got := dedupeCandidates([]string{"", "a", "", "a", "b"})
+	want := []string{"a", "b"}
+	if len(got) != len(want) {
+		t.Fatalf("dedupeCandidates() = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("dedupeCandidates()[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func Test_FetchRemoteBranch_fetchFailure(t *testing.T) {
+	t.Parallel()
+	repoDir, _ := setupRepoWithFeatureChange(t)
+	err := FetchRemoteBranch(context.Background(), repoDir, "definitely-not-a-real-remote", "main", nil)
+	if err == nil {
+		t.Fatal("expected fetch error, got nil")
+	}
+	if !strings.Contains(err.Error(), "git fetch") {
+		t.Fatalf("expected error to mention 'git fetch', got %v", err)
 	}
 }
