@@ -41,6 +41,7 @@ type Config struct {
 	ShowGraph      bool          `yaml:"show_graph"`
 	ChangedOnly    bool          `yaml:"changed_only"`
 	BaseRef        string        `yaml:"base_ref"`
+	NoAutoFetch    bool          `yaml:"no_auto_fetch"`
 	Plan           PlanConfig    `yaml:"plan"`
 	Apply          ApplyConfig   `yaml:"apply"`
 	Destroy        DestroyConfig `yaml:"destroy"`
@@ -61,6 +62,7 @@ type Overrides struct {
 	ShowGraph          *bool
 	ChangedOnly        *bool
 	BaseRef            *string
+	NoAutoFetch        *bool
 	PlanDestroy        *bool
 	ApplyAutoApprove   *bool
 	DestroyAutoApprove *bool
@@ -143,6 +145,7 @@ func LoadEnv(prefix string) Config {
 		{"_DRY_RUN", func(c *Config, v string) { c.DryRun = parseBoolLenient(v) }},
 		{"_SHOW_GRAPH", func(c *Config, v string) { c.ShowGraph = parseBoolLenient(v) }},
 		{"_CHANGED_ONLY", func(c *Config, v string) { c.ChangedOnly = parseBoolLenient(v) }},
+		{"_NO_AUTO_FETCH", func(c *Config, v string) { c.NoAutoFetch = parseBoolLenient(v) }},
 		{"_PLAN_DESTROY", func(c *Config, v string) { c.Plan.Destroy = parseBoolLenient(v) }},
 		{"_APPLY_AUTO_APPROVE", func(c *Config, v string) { c.Apply.AutoApprove = parseBoolLenient(v) }},
 		{"_DESTROY_AUTO_APPROVE", func(c *Config, v string) { c.Destroy.AutoApprove = parseBoolLenient(v) }},
@@ -192,6 +195,7 @@ func MergeConfig(base, override Config) Config {
 	mergeBoolTrue(&result.DryRun, override.DryRun)
 	mergeBoolTrue(&result.ShowGraph, override.ShowGraph)
 	mergeBoolTrue(&result.ChangedOnly, override.ChangedOnly)
+	mergeBoolTrue(&result.NoAutoFetch, override.NoAutoFetch)
 	mergeBoolTrue(&result.Plan.Destroy, override.Plan.Destroy)
 	mergeBoolTrue(&result.Apply.AutoApprove, override.Apply.AutoApprove)
 	mergeBoolTrue(&result.Destroy.AutoApprove, override.Destroy.AutoApprove)
@@ -208,6 +212,7 @@ func ApplyOverrides(cfg Config, ovr Overrides) Config {
 	applyPtr(&cfg.DryRun, ovr.DryRun)
 	applyPtr(&cfg.ShowGraph, ovr.ShowGraph)
 	applyPtr(&cfg.ChangedOnly, ovr.ChangedOnly)
+	applyPtr(&cfg.NoAutoFetch, ovr.NoAutoFetch)
 	if ovr.IncludeSet {
 		cfg.Include = ovr.Include
 	}

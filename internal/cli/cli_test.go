@@ -15,6 +15,7 @@ import (
 	"github.com/Ops-Talks/cultivator/internal/ci"
 	"github.com/Ops-Talks/cultivator/internal/config"
 	"github.com/Ops-Talks/cultivator/internal/discovery"
+	"github.com/Ops-Talks/cultivator/internal/git"
 	"github.com/Ops-Talks/cultivator/internal/logging"
 	"github.com/Ops-Talks/cultivator/internal/runner"
 )
@@ -267,40 +268,89 @@ func Test_ParseTerragruntFlags(t *testing.T) {
 func Test_ModuleHasChanges(t *testing.T) {
 	t.Parallel()
 
-	modulePath := "/repo/providers/aws/avalon/dev/sqs/opstalks-test"
+	const (
+		modulePath = "/repo/providers/aws/avalon/dev/sqs/opstalks-test"
+		rootPath   = "/repo/providers"
+	)
 
 	tests := []struct {
 		name         string
+		modulePath   string
+		rootPath     string
 		changedFiles []string
 		want         bool
 	}{
 		{
 			name:         "file changed inside module",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
 			changedFiles: []string{"/repo/providers/aws/avalon/dev/sqs/opstalks-test/terragrunt.hcl"},
 			want:         true,
 		},
 		{
 			name:         "parent root config changed",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
 			changedFiles: []string{"/repo/providers/aws/root.hcl"},
 			want:         true,
 		},
 		{
 			name:         "parent environment config changed",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
 			changedFiles: []string{"/repo/providers/aws/avalon/dev/environment.hcl"},
 			want:         true,
 		},
 		{
-			name:         "unrelated path changed",
+			name:         "unrelated path outside root",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
 			changedFiles: []string{"/repo/.github/workflows/cultivator.yaml"},
 			want:         false,
+		},
+		{
+			name:         "repo-root file outside root does not match (regression)",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
+			changedFiles: []string{"/repo/bitbucket-pipelines.yml"},
+			want:         false,
+		},
+		{
+			name:         "sibling tree inside root does not match",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
+			changedFiles: []string{"/repo/providers/gcp/other-stack/main.tf"},
+			want:         false,
+		},
+		{
+			name:         "path-prefix collision does not match",
+			modulePath:   "/repo/providers/aws",
+			rootPath:     rootPath,
+			changedFiles: []string{"/repo/providers/aws-extra/main.tf"},
+			want:         false,
+		},
+		{
+			name:         "file directly under root selects every module",
+			modulePath:   modulePath,
+			rootPath:     rootPath,
+			changedFiles: []string{"/repo/providers/global.hcl"},
+			want:         true,
+		},
+		{
+			name:         "trailing slash on root is normalized",
+			modulePath:   modulePath,
+			rootPath:     "/repo/providers/",
+			changedFiles: []string{"/repo/providers/aws/root.hcl"},
+			want:         true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := moduleHasChanges(modulePath, tc.changedFiles)
+			got := moduleHasChanges(tc.modulePath, tc.rootPath, tc.changedFiles)
 			if got != tc.want {
-				t.Errorf("moduleHasChanges() = %v, want %v", got, tc.want)
+				t.Errorf("moduleHasChanges(%q, %q, %v) = %v, want %v",
+					tc.modulePath, tc.rootPath, tc.changedFiles, got, tc.want)
 			}
 		})
 	}
@@ -788,5 +838,99 @@ func Test_runTerragruntCommand_CIAutoDetect(t *testing.T) {
 	// returns an error), which proves the changed-only path was reached.
 	if code != 1 {
 		t.Errorf("runTerragruntCommand() with CI auto-detect = %d, want 1 (no git repo)", code)
+	}
+}
+
+func Test_MaybeAutoFetchBaseRef_gating(t *testing.T) {
+	t.Parallel()
+
+	logger := logging.New(logging.LevelDebug, &bytes.Buffer{}, &bytes.Buffer{})
+	bitbucketPR := func() ci.Environment {
+		return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: true, BaseRef: "main"}
+	}
+
+	tests := []struct {
+		name        string
+		cfg         config.Config
+		detect      func() ci.Environment
+		err         error
+		wantFetched bool
+	}{
+		{
+			name:        "skips when NoAutoFetch is set",
+			cfg:         config.Config{Root: t.TempDir(), BaseRef: "main", NoAutoFetch: true},
+			detect:      bitbucketPR,
+			err:         git.ErrBaseRefNotFound,
+			wantFetched: false,
+		},
+		{
+			name:        "skips when detect is nil",
+			cfg:         config.Config{Root: t.TempDir(), BaseRef: "main"},
+			detect:      nil,
+			err:         git.ErrBaseRefNotFound,
+			wantFetched: false,
+		},
+		{
+			name:        "skips when error is unrelated",
+			cfg:         config.Config{Root: t.TempDir(), BaseRef: "main"},
+			detect:      bitbucketPR,
+			err:         errors.New("some other failure"),
+			wantFetched: false,
+		},
+		{
+			name: "skips when provider is not Bitbucket",
+			cfg:  config.Config{Root: t.TempDir(), BaseRef: "main"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderGitHub, IsPR: true, BaseRef: "main"}
+			},
+			err:         git.ErrBaseRefNotFound,
+			wantFetched: false,
+		},
+		{
+			name: "skips when build is not a pull request",
+			cfg:  config.Config{Root: t.TempDir(), BaseRef: "main"},
+			detect: func() ci.Environment {
+				return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: false}
+			},
+			err:         git.ErrBaseRefNotFound,
+			wantFetched: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			fetched, err := maybeAutoFetchBaseRef(context.Background(), tc.cfg, logger, tc.detect, tc.err)
+			if fetched != tc.wantFetched {
+				t.Errorf("maybeAutoFetchBaseRef() fetched = %v, want %v", fetched, tc.wantFetched)
+			}
+			if err != nil {
+				t.Errorf("maybeAutoFetchBaseRef() err = %v, want nil", err)
+			}
+		})
+	}
+}
+
+func Test_parseTerragruntFlags_noAutoFetch(t *testing.T) {
+	t.Parallel()
+
+	state, code := parseTerragruntFlags([]string{"-changed-only=true", "-no-auto-fetch=true"}, cmdPlan)
+	if code != 0 {
+		t.Fatalf("parseTerragruntFlags exit code = %d, want 0", code)
+	}
+	if !state.noAutoFetchSet {
+		t.Fatalf("noAutoFetchSet = false, want true")
+	}
+	if !state.noAutoFetchValue {
+		t.Fatalf("noAutoFetchValue = false, want true")
+	}
+
+	cfg, err := buildTerragruntConfig(state)
+	if err != nil {
+		t.Fatalf("buildTerragruntConfig() error = %v", err)
+	}
+	if !cfg.NoAutoFetch {
+		t.Fatalf("cfg.NoAutoFetch = false, want true")
 	}
 }
