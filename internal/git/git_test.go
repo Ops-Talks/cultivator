@@ -284,3 +284,108 @@ func TestFetchRemoteBranch(t *testing.T) {
 		}
 	})
 }
+
+func Test_isUnknownRevisionErr(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil error returns false", func(t *testing.T) {
+		t.Parallel()
+		if isUnknownRevisionErr(nil) {
+			t.Fatalf("isUnknownRevisionErr(nil) = true, want false")
+		}
+	})
+
+	t.Run("non-exit error returns false", func(t *testing.T) {
+		t.Parallel()
+		if isUnknownRevisionErr(errors.New("plain error")) {
+			t.Fatalf("isUnknownRevisionErr(plain) = true, want false")
+		}
+	})
+
+	t.Run("exit error with empty stderr returns false", func(t *testing.T) {
+		t.Parallel()
+		cmd := exec.Command("sh", "-c", "exit 1")
+		_, err := cmd.Output()
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			t.Fatalf("expected *exec.ExitError, got %T", err)
+		}
+		if isUnknownRevisionErr(exitErr) {
+			t.Fatalf("isUnknownRevisionErr(emptyStderr) = true, want false")
+		}
+	})
+
+	t.Run("real git unknown-revision error returns true", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _ := setupRepoWithFeatureChange(t)
+		cmd := exec.Command("git", "diff", "--name-only", "definitely-not-a-real-ref")
+		cmd.Dir = repoDir
+		_, err := cmd.Output()
+		if err == nil {
+			t.Fatalf("expected git diff to fail")
+		}
+		if !isUnknownRevisionErr(err) {
+			t.Fatalf("isUnknownRevisionErr(realGitErr) = false, want true (err=%v)", err)
+		}
+	})
+
+	t.Run("matches each well-known message", func(t *testing.T) {
+		t.Parallel()
+		messages := []string{
+			"unknown revision",
+			"ambiguous argument",
+			"bad revision",
+			"not a valid object name",
+		}
+		for _, msg := range messages {
+			cmd := exec.Command("sh", "-c", "echo "+msg+" 1>&2; exit 1")
+			_, err := cmd.Output()
+			var exitErr *exec.ExitError
+			if !errors.As(err, &exitErr) {
+				t.Fatalf("expected *exec.ExitError for %q, got %T", msg, err)
+			}
+			if !isUnknownRevisionErr(exitErr) {
+				t.Fatalf("isUnknownRevisionErr(%q) = false, want true", msg)
+			}
+		}
+	})
+
+	t.Run("non-matching stderr returns false", func(t *testing.T) {
+		t.Parallel()
+		cmd := exec.Command("sh", "-c", "echo permission denied 1>&2; exit 1")
+		_, err := cmd.Output()
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			t.Fatalf("expected *exec.ExitError, got %T", err)
+		}
+		if isUnknownRevisionErr(exitErr) {
+			t.Fatalf("isUnknownRevisionErr(permission) = true, want false")
+		}
+	})
+}
+
+func Test_dedupeCandidates_skipsEmpty(t *testing.T) {
+	t.Parallel()
+	got := dedupeCandidates([]string{"", "a", "", "a", "b"})
+	want := []string{"a", "b"}
+	if len(got) != len(want) {
+		t.Fatalf("dedupeCandidates() = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("dedupeCandidates()[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func Test_FetchRemoteBranch_fetchFailure(t *testing.T) {
+	t.Parallel()
+	repoDir, _ := setupRepoWithFeatureChange(t)
+	err := FetchRemoteBranch(context.Background(), repoDir, "definitely-not-a-real-remote", "main", nil)
+	if err == nil {
+		t.Fatal("expected fetch error, got nil")
+	}
+	if !strings.Contains(err.Error(), "git fetch") {
+		t.Fatalf("expected error to mention 'git fetch', got %v", err)
+	}
+}

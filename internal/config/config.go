@@ -110,7 +110,8 @@ func LoadFile(path string) (Config, map[string]interface{}, bool, error) {
 	knownKeys := map[string]struct{}{
 		"root": {}, "env": {}, "include": {}, "exclude": {}, "tags": {},
 		"parallelism": {}, "non_interactive": {}, "dry_run": {}, "show_graph": {},
-		"changed_only": {}, "base_ref": {}, "plan": {}, "apply": {}, "destroy": {}, "doctor": {},
+		"changed_only": {}, "base_ref": {}, "no_auto_fetch": {},
+		"plan": {}, "apply": {}, "destroy": {}, "doctor": {},
 	}
 	for key := range raw {
 		if _, ok := knownKeys[key]; ok {

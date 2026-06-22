@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -933,4 +934,184 @@ func Test_parseTerragruntFlags_noAutoFetch(t *testing.T) {
 	if !cfg.NoAutoFetch {
 		t.Fatalf("cfg.NoAutoFetch = false, want true")
 	}
+}
+
+// setupCLIRepoWithChange initializes a git repository with a single committed
+// file plus an uncommitted change in a sub-module directory. It returns the
+// repository root, the module path (absolute), the base branch name, and the
+// relative path of the changed file inside the module.
+func setupCLIRepoWithChange(t *testing.T) (string, string, string, string) {
+	t.Helper()
+	tmpDir := t.TempDir()
+	remoteDir := filepath.Join(tmpDir, "remote.git")
+	cliRunCmd(t, tmpDir, "git", "init", "--bare", remoteDir)
+
+	repoDir := filepath.Join(tmpDir, "work")
+	cliRunCmd(t, tmpDir, "git", "clone", remoteDir, repoDir)
+	cliRunCmd(t, repoDir, "git", "config", "user.email", "test@example.com")
+	cliRunCmd(t, repoDir, "git", "config", "user.name", "test")
+
+	moduleRel := filepath.Join("envs", "dev", "vpc")
+	moduleAbs := filepath.Join(repoDir, moduleRel)
+	if err := os.MkdirAll(moduleAbs, 0o755); err != nil {
+		t.Fatalf("mkdir module: %v", err)
+	}
+	tg := filepath.Join(moduleAbs, "terragrunt.hcl")
+	if err := os.WriteFile(tg, []byte("terraform {}\n"), 0o644); err != nil {
+		t.Fatalf("write terragrunt.hcl: %v", err)
+	}
+	cliRunCmd(t, repoDir, "git", "add", filepath.Join(moduleRel, "terragrunt.hcl"))
+	cliRunCmd(t, repoDir, "git", "commit", "-m", "initial")
+
+	baseBranch := strings.TrimSpace(cliRunCmdOutput(t, repoDir, "git", "branch", "--show-current"))
+	if baseBranch == "" {
+		t.Fatal("base branch empty")
+	}
+	cliRunCmd(t, repoDir, "git", "push", "-u", "origin", baseBranch)
+
+	cliRunCmd(t, repoDir, "git", "checkout", "-b", "feature")
+	if err := os.WriteFile(tg, []byte("terraform {}\n# change\n"), 0o644); err != nil {
+		t.Fatalf("rewrite terragrunt.hcl: %v", err)
+	}
+	cliRunCmd(t, repoDir, "git", "add", filepath.Join(moduleRel, "terragrunt.hcl"))
+	cliRunCmd(t, repoDir, "git", "commit", "-m", "change")
+	return repoDir, moduleAbs, baseBranch, filepath.Join(moduleRel, "terragrunt.hcl")
+}
+
+func cliRunCmd(t *testing.T, dir, name string, args ...string) {
+	t.Helper()
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("command %s %v failed: %v\n%s", name, args, err, string(out))
+	}
+}
+
+func cliRunCmdOutput(t *testing.T, dir, name string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("command %s %v failed: %v", name, args, err)
+	}
+	return string(out)
+}
+
+func Test_filterChangedModules(t *testing.T) {
+	t.Parallel()
+
+	logger := logging.New(logging.LevelDebug, &bytes.Buffer{}, &bytes.Buffer{})
+	bitbucketPR := func() ci.Environment {
+		return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: true, BaseRef: "main"}
+	}
+
+	t.Run("selects modules that contain changed files", func(t *testing.T) {
+		t.Parallel()
+		repoDir, moduleAbs, baseBranch, _ := setupCLIRepoWithChange(t)
+
+		modules := []discovery.Module{
+			{Path: moduleAbs},
+			{Path: filepath.Join(repoDir, "envs", "dev", "other")},
+		}
+		cfg := config.Config{Root: repoDir, BaseRef: baseBranch}
+
+		got, code := filterChangedModules(context.Background(), cfg, modules, logger, bitbucketPR)
+		if code != 0 {
+			t.Fatalf("filterChangedModules() code = %d, want 0", code)
+		}
+		if len(got) != 1 || got[0].Path != moduleAbs {
+			t.Fatalf("filterChangedModules() = %v, want exactly the changed module", got)
+		}
+	})
+
+	t.Run("returns error code when not a git repo", func(t *testing.T) {
+		t.Parallel()
+		cfg := config.Config{Root: t.TempDir(), BaseRef: "main"}
+		got, code := filterChangedModules(context.Background(), cfg, nil, logger, bitbucketPR)
+		if code != 1 || got != nil {
+			t.Fatalf("filterChangedModules(non-repo) = (%v, %d), want (nil, 1)", got, code)
+		}
+	})
+
+	t.Run("recovers via auto-fetch when base ref is missing in Bitbucket PR", func(t *testing.T) {
+		t.Parallel()
+		repoDir, moduleAbs, baseBranch, _ := setupCLIRepoWithChange(t)
+
+		// Drop the local + remote-tracking refs so the first GetChangedFiles
+		// returns ErrBaseRefNotFound and triggers maybeAutoFetchBaseRef.
+		cliRunCmd(t, repoDir, "git", "branch", "-D", baseBranch)
+		cliRunCmd(t, repoDir, "git", "update-ref", "-d", "refs/remotes/origin/"+baseBranch)
+
+		modules := []discovery.Module{{Path: moduleAbs}}
+		cfg := config.Config{Root: repoDir, BaseRef: baseBranch}
+		detect := func() ci.Environment {
+			return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: true, BaseRef: baseBranch}
+		}
+
+		got, code := filterChangedModules(context.Background(), cfg, modules, logger, detect)
+		if code != 0 {
+			t.Fatalf("filterChangedModules() code = %d, want 0 after auto-fetch", code)
+		}
+		if len(got) != 1 || got[0].Path != moduleAbs {
+			t.Fatalf("filterChangedModules() = %v, want changed module after auto-fetch", got)
+		}
+	})
+
+	t.Run("returns error when base ref cannot be resolved and auto-fetch is disabled", func(t *testing.T) {
+		t.Parallel()
+		repoDir, moduleAbs, baseBranch, _ := setupCLIRepoWithChange(t)
+		cliRunCmd(t, repoDir, "git", "branch", "-D", baseBranch)
+		cliRunCmd(t, repoDir, "git", "update-ref", "-d", "refs/remotes/origin/"+baseBranch)
+
+		modules := []discovery.Module{{Path: moduleAbs}}
+		cfg := config.Config{Root: repoDir, BaseRef: baseBranch, NoAutoFetch: true}
+		got, code := filterChangedModules(context.Background(), cfg, modules, logger, bitbucketPR)
+		if code != 1 || got != nil {
+			t.Fatalf("filterChangedModules(no-auto-fetch) = (%v, %d), want (nil, 1)", got, code)
+		}
+	})
+}
+
+func Test_maybeAutoFetchBaseRef_realFetch(t *testing.T) {
+	t.Parallel()
+	logger := logging.New(logging.LevelDebug, &bytes.Buffer{}, &bytes.Buffer{})
+
+	t.Run("fetch succeeds", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _, baseBranch, _ := setupCLIRepoWithChange(t)
+		cliRunCmd(t, repoDir, "git", "branch", "-D", baseBranch)
+		cliRunCmd(t, repoDir, "git", "update-ref", "-d", "refs/remotes/origin/"+baseBranch)
+
+		cfg := config.Config{Root: repoDir, BaseRef: baseBranch}
+		detect := func() ci.Environment {
+			return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: true, BaseRef: baseBranch}
+		}
+		fetched, err := maybeAutoFetchBaseRef(context.Background(), cfg, logger, detect, git.ErrBaseRefNotFound)
+		if !fetched {
+			t.Fatalf("maybeAutoFetchBaseRef() fetched = false, want true")
+		}
+		if err != nil {
+			t.Fatalf("maybeAutoFetchBaseRef() err = %v, want nil", err)
+		}
+	})
+
+	t.Run("fetch failure returns wrapped error", func(t *testing.T) {
+		t.Parallel()
+		repoDir, _, baseBranch, _ := setupCLIRepoWithChange(t)
+		// Remove the origin remote so the fetch attempt fails.
+		cliRunCmd(t, repoDir, "git", "remote", "remove", "origin")
+
+		cfg := config.Config{Root: repoDir, BaseRef: baseBranch}
+		detect := func() ci.Environment {
+			return ci.Environment{Provider: ci.ProviderBitbucket, IsPR: true, BaseRef: baseBranch}
+		}
+		fetched, err := maybeAutoFetchBaseRef(context.Background(), cfg, logger, detect, git.ErrBaseRefNotFound)
+		if !fetched {
+			t.Fatalf("maybeAutoFetchBaseRef() fetched = false, want true (attempted)")
+		}
+		if err == nil {
+			t.Fatalf("maybeAutoFetchBaseRef() err = nil, want non-nil fetch error")
+		}
+	})
 }
