@@ -1309,7 +1309,10 @@
 <ul>
 <li><strong>Automatic Filtering</strong>: Use <code>--changed-only</code> to let Cultivator query Git for modified files and automatically target only the relevant Terragrunt modules.</li>
 <li><strong>Smart Mapping</strong>: Changes to a file inside a module's directory (or its subdirectories) will trigger that module.</li>
+<li><strong>Root-Scoped Discovery</strong>: Only files inside the configured <code>--root</code> participate in module selection. A change to a file at the repository root (for example a <code>bitbucket-pipelines.yml</code>) located outside <code>--root</code> does not select any module.</li>
+<li><strong>Shared-Config Propagation</strong>: When a shared parent configuration (such as <code>root.hcl</code> or <code>environment.hcl</code>) lives inside <code>--root</code> and is modified, every descendant module is selected. This keeps environment-wide changes safe.</li>
 <li><strong>Custom Base</strong>: Use <code>--base=main</code> (or any branch/commit) to specify the reference point for change detection.</li>
+<li><strong>Bitbucket Auto-Fetch</strong>: In Bitbucket Pipelines pull-request builds, when the destination branch is not available locally Cultivator fetches it automatically (<code>git fetch --no-tags origin &lt;branch&gt;</code>) and retries the diff once. The behavior is opt-out via <code>--no-auto-fetch</code>.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># In a PR branch, plan only what changed compared to main</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--changed-only<span class="w"> </span>--base<span class="o">=</span>main

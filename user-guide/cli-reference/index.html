@@ -1544,13 +1544,18 @@
 </tr>
 <tr>
 <td><code>--changed-only</code></td>
-<td>Only execute modules with changed files</td>
+<td>Only execute modules with changed files. Scoped to <code>--root</code>: files outside the configured root do not select any module.</td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>--base</code></td>
-<td>Git base reference for <code>--changed-only</code></td>
+<td>Git base reference for <code>--changed-only</code>.</td>
 <td><code>HEAD</code></td>
+</tr>
+<tr>
+<td><code>--no-auto-fetch</code></td>
+<td>Disable the automatic <code>git fetch origin &lt;branch&gt;</code> retry that Cultivator performs in Bitbucket Pipelines pull-request builds when the destination branch is not locally resolvable.</td>
+<td><code>false</code></td>
 </tr>
 </tbody>
 </table>

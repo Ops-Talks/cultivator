@@ -1505,9 +1505,10 @@
 </ul>
 <h3 id="4-git-integration-magic-mode">4. Git Integration (Magic Mode)<a class="headerlink" href="#4-git-integration-magic-mode" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Queries Git for changed files using <code>git diff</code></li>
-<li>Maps file changes to specific Terragrunt modules</li>
-<li>Filters execution scope to only affected modules when <code>--changed-only</code> is active</li>
+<li>Queries Git for changed files using <code>git diff</code> against the configured base ref, trying the bare ref, <code>origin/&lt;ref&gt;</code>, and <code>refs/remotes/origin/&lt;ref&gt;</code> candidates in order.</li>
+<li>Maps file changes to specific Terragrunt modules, scoping the ancestor heuristic to the configured <code>--root</code>. Changes outside the root never select a module (so a file at the repository root such as <code>bitbucket-pipelines.yml</code> does not trigger every stack), and shared parent configs (<code>root.hcl</code>, <code>environment.hcl</code>) inside the root propagate to descendants.</li>
+<li>Filters execution scope to only affected modules when <code>--changed-only</code> is active.</li>
+<li>When every candidate ref fails to resolve, the diff returns the sentinel <code>ErrBaseRefNotFound</code>. In Bitbucket Pipelines pull-request builds the CLI then invokes <code>FetchRemoteBranch(ctx, root, "origin", baseRef)</code> once and retries the diff. The behavior is opt-out via <code>--no-auto-fetch</code> and never activates outside Bitbucket PR builds.</li>
 </ul>
 <h3 id="5-dependency-graph-dag">5. Dependency Graph (DAG)<a class="headerlink" href="#5-dependency-graph-dag" title="Permanent link">&para;</a></h3>
 <ul>

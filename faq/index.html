@@ -1253,6 +1253,24 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#why-did-changed-only-run-every-stack-in-a-previous-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why did --changed-only run every stack in a previous version?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-does-changed-only-fail-in-bitbucket-pipelines-with-git-diff-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why does --changed-only fail in Bitbucket Pipelines with "git diff failed"?
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1686,6 +1704,24 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#why-did-changed-only-run-every-stack-in-a-previous-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why did --changed-only run every stack in a previous version?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-does-changed-only-fail-in-bitbucket-pipelines-with-git-diff-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why does --changed-only fail in Bitbucket Pipelines with "git diff failed"?
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2021,6 +2057,25 @@
 </span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Run with config file (explicit)</span>
 </span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>cultivator<span class="w"> </span>plan<span class="w"> </span>--config<span class="o">=</span>cultivator.yml<span class="w"> </span>--env<span class="o">=</span>prod
 </span></code></pre></div>
+<h3 id="why-did-changed-only-run-every-stack-in-a-previous-version">Why did <code>--changed-only</code> run every stack in a previous version?<a class="headerlink" href="#why-did-changed-only-run-every-stack-in-a-previous-version" title="Permanent link">&para;</a></h3>
+<p>Older releases applied the "ancestor-config" heuristic (for <code>root.hcl</code> and
+<code>environment.hcl</code>) without scoping it to the configured <code>--root</code>. A single
+changed file at the repository root, such as <code>bitbucket-pipelines.yml</code>,
+matched every discovered module and Cultivator executed all stacks. The
+scoping fix landed in Magic Mode: changes outside <code>--root</code> no longer select
+any module, while shared parent configs inside <code>--root</code> still propagate to
+their descendants. If you still see all stacks running, double-check that
+<code>--root</code> is pointing at the directory that actually contains your Terragrunt
+hierarchy.</p>
+<h3 id="why-does-changed-only-fail-in-bitbucket-pipelines-with-git-diff-failed">Why does <code>--changed-only</code> fail in Bitbucket Pipelines with "git diff failed"?<a class="headerlink" href="#why-does-changed-only-fail-in-bitbucket-pipelines-with-git-diff-failed" title="Permanent link">&para;</a></h3>
+<p>Bitbucket Pipelines clones a single branch and does not create
+remote-tracking refs for the PR destination. When Cultivator cannot resolve
+<code>origin/&lt;base&gt;</code> it now fetches the destination branch automatically
+(<code>git fetch --no-tags origin &lt;branch&gt;</code>) and retries the diff once. Pair
+that with <code>clone.depth: full</code> to make sure the merge base is reachable. To
+opt out (for example to enforce a manual fetch step), pass
+<code>--no-auto-fetch</code>. The CLI exits non-zero if the base ref still cannot be
+resolved; it never silently falls back to running every stack.</p>
 <h2 id="advanced-questions">Advanced Questions<a class="headerlink" href="#advanced-questions" title="Permanent link">&para;</a></h2>
 <h3 id="can-i-use-cultivator-with-helmkustomize">Can I use Cultivator with Helm/Kustomize?<a class="headerlink" href="#can-i-use-cultivator-with-helmkustomize" title="Permanent link">&para;</a></h3>
 <p>No, Cultivator is designed for <strong>Terraform/Terragrunt only</strong>.</p>
