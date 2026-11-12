@@ -3,7 +3,7 @@ module github.com/Ops-Talks/cultivator
 go 1.25
 
 require (
-	github.com/olekukonko/tablewriter v1.1.4
+	github.com/olekukonko/tablewriter v1.1.5
 	gopkg.in/yaml.v3 v3.0.1
 )
 
